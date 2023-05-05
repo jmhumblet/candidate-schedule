@@ -13,6 +13,12 @@
 		<!-- Include all compiled plugins (below), or include individual files as needed -->
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
 
+		<style>
+			td, th {
+				text-align: center;
+			}
+		</style>
+
 		<script>
 			class Moment {
 				static FromDuration(startTime, duration){
@@ -81,7 +87,7 @@
 					var hour = this.hour - other.hour;
 					if (totalMinutes < 0){
 						totalMinutes = totalMinutes+60;
-						hour - 1;
+						hour -= 1;
 					}
 					return new Time(hour, totalMinutes)
 				}
@@ -93,7 +99,7 @@
 				}
 
 				toString() {
-					return `${this.hour.toLocaleString('fr-BE', {minimumIntegerDigits: 2, useGrouping:false})}:${this.minute.toLocaleString('fr-BE', {minimumIntegerDigits: 2, useGrouping:false})}`
+					return `${this.hour.toLocaleString('fr-BE', {minimumIntegerDigits: 2, useGrouping:false})}h${this.minute.toLocaleString('fr-BE', {minimumIntegerDigits: 2, useGrouping:false})}`
 				}
 			}
 
@@ -106,11 +112,12 @@
 			} 
 
 			class InterviewTimeslot extends Timeslot {
-				constructor(candidate, startTime, casusDuration, correctionDuration, meetingDuration, debriefDuration) {
+				constructor(candidate, startTime, welcomeDuration, casusDuration, correctionDuration, meetingDuration, debriefDuration) {
 					super();
 					this.candidate = candidate;
 					this.startTime = startTime;
-					this.correctionStartTime = startTime.after(casusDuration);
+					this.casusStartTime = this.startTime.after(welcomeDuration);
+					this.correctionStartTime = this.casusStartTime.after(casusDuration);
 					this.meetingStartTime = this.correctionStartTime.after(correctionDuration);
 					this.debriefStartTime = this.meetingStartTime.after(meetingDuration);
 					this.endTime = this.debriefStartTime.after(debriefDuration);
@@ -123,7 +130,8 @@
 				summary(){
 					return `<tr>
 						<td>${this.candidate.toString()}</td>
-						<td>${this.startTime.toString()} - ${this.correctionStartTime.toString()}</td>
+						<td>${this.startTime.toString()}</td>
+						<td>${this.casusStartTime.toString()} - ${this.correctionStartTime.toString()}</td>
 						<td>${this.correctionStartTime.toString()} - ${this.meetingStartTime.toString()}</td>
 						<td>${this.meetingStartTime.toString()} - ${this.debriefStartTime.toString()}</td>
 						<td>${this.debriefStartTime.toString()} - ${this.endTime.toString()}</td>
@@ -152,7 +160,7 @@
 				}
 				
 				summary() {
-					return this.internalSummary(2);
+					return this.internalSummary(3);
 				}
 
 				
@@ -163,7 +171,7 @@
 				internalSummary(colspan){
 					return `<tr class="info">
 						<td></td>
-						<td>${this.startTime.toString()}</td>
+						<td class="center">${this.startTime.toString()}</td>
 						<td colspan="${colspan}" class="text-center"><i class="glyphicon glyphicon-pause"></i> Pause midi</td>
 						<td>${this.endTime.toString()}</td>
 						</tr>`
@@ -180,7 +188,7 @@
 				}
 
 				summary() {
-					return this.internalSummary(2);
+					return this.internalSummary(3);
 				}
 
 				
@@ -291,6 +299,7 @@
 				const numberOfCandidates = $('#numberOfCandidates')[0].value;
 				const candidateNames = $('#candidateNames')[0].value;
 				const juryStartTime = Time.Parse($('#juryStartTime')[0].value);
+				const welcomeDuration = Timespan.Parse($('#welcomeDuration')[0].value);
 				const casusDuration = Timespan.Parse($('#casusDuration')[0].value);
 				const correctionDuration = Timespan.Parse($('#correctionDuration')[0].value);
 				const meetingDuration = Timespan.Parse($('#meetingDuration')[0].value);
@@ -302,7 +311,7 @@
 			
 				const candidates = getCandidates(numberOfCandidates, candidateNames, randomOrder);
 
-				timetable(candidates, juryStartTime, casusDuration, correctionDuration, meetingDuration, debriefDuration, lunchTargetTime, lunchDuration, globalDebriefDuration);	
+				timetable(candidates, juryStartTime, welcomeDuration, casusDuration, correctionDuration, meetingDuration, debriefDuration, lunchTargetTime, lunchDuration, globalDebriefDuration);	
 			}
 
 			function getCandidates(number, names){
@@ -372,27 +381,27 @@
 				}
 			}
 
-			function timetable(candidates, juryStartTime, casusDuration, correctionDuration, meetingDuration, debriefDuration, lunchTargetTime, lunchDuration, globalDebriefDuration) {
+			function timetable(candidates, juryStartTime, welcomeDuration, casusDuration, correctionDuration, meetingDuration, debriefDuration, lunchTargetTime, lunchDuration, globalDebriefDuration) {
 				cleanTable();
 				
 				appearances = [];
-				var candidateDuration = casusDuration.plus(correctionDuration).plus(meetingDuration);
+				var candidateDuration = welcomeDuration.plus(casusDuration).plus(correctionDuration).plus(meetingDuration);
 				var juryDuration = correctionDuration.plus(meetingDuration).plus(debriefDuration);
 				var lunchHappened = false;
-				var nextStartTime = juryStartTime.earlier(casusDuration);
+				var nextStartTime = juryStartTime.earlier(casusDuration).earlier(welcomeDuration);
 				const numberOfCandidates = candidates.length;
 
 				for (var candidate of candidates) {
-					var appearance = new InterviewTimeslot(candidate, nextStartTime, casusDuration, correctionDuration, meetingDuration, debriefDuration);
+					var appearance = new InterviewTimeslot(candidate, nextStartTime, welcomeDuration, casusDuration, correctionDuration, meetingDuration, debriefDuration);
 					appearances.push(appearance);
 					
 					if (!lunchHappened && appearance.endTime.after(juryDuration.half()).isLaterThan(lunchTargetTime)){
 						const lunch = new LunchTimeslot(appearance.endTime, lunchDuration);
 						appearances.push(lunch);
-						nextStartTime = lunch.endTime.earlier(casusDuration);
+						nextStartTime = lunch.endTime.earlier(casusDuration).earlier(welcomeDuration);
 						lunchHappened = true;
 					} else {
-						nextStartTime = appearance.endTime.earlier(casusDuration);
+						nextStartTime = appearance.endTime.earlier(casusDuration).earlier(welcomeDuration);
 					}
 
 				}
@@ -456,6 +465,11 @@ Jane Doe; Jane.Doe@gmail.com" rows="6" style="resize:none;"></textarea>
 					</div>
 
 					<div class="form-group row">
+						<label for="welcomeDuration" class="col-sm-4  control-label"> Durée de l'accueil</label>
+						<div class="col-sm-8"><input id="welcomeDuration" type="time" step="300" class="form-control" value="00:15"></div>
+					</div>
+
+					<div class="form-group row">
 						<label for="casusDuration" class="col-sm-4  control-label"> Durée du casus</label>
 						<div class="col-sm-8"><input id="casusDuration" type="time" step="300" class="form-control" value="01:00"></div>
 					</div>
@@ -504,6 +518,7 @@ Jane Doe; Jane.Doe@gmail.com" rows="6" style="resize:none;"></textarea>
 				<table id="result" class="table">
 					<thead>
 						<th>Candidat</th>
+						<th>Accueil</th>
 						<th>Casus</th>
 						<th>Correction</th>
 						<th>Entretien</th>
