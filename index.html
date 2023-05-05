@@ -44,7 +44,7 @@
 					var totalMinutes = this.minute + minute;
 					var minutes = totalMinutes % 60;
 					var hours = this.hour + hour + ~~(totalMinutes / 60);
-					return new Timespan(hours, minutes);
+					return new Timespan({hour:hours, minute: 	minutes});
 				}
 
 				half(){
@@ -123,11 +123,11 @@
 				summary(){
 					return `<tr>
 						<td>${this.candidate.toString()}</td>
-						<td>${this.startTime.toString()}</td>
-						<td>${this.correctionStartTime.toString()}</td>
-						<td>${this.meetingStartTime.toString()}</td>
-						<td>${this.debriefStartTime.toString()}</td>
-						<td>${this.endTime.toString()}</td>
+						<td>${this.startTime.toString()} - ${this.correctionStartTime.toString()}</td>
+						<td>${this.correctionStartTime.toString()} - ${this.meetingStartTime.toString()}</td>
+						<td>${this.meetingStartTime.toString()} - ${this.debriefStartTime.toString()}</td>
+						<td>${this.debriefStartTime.toString()} - ${this.endTime.toString()}</td>
+						
 						</tr>`
 				}
 
@@ -152,7 +152,7 @@
 				}
 				
 				summary() {
-					return this.internalSummary(3);
+					return this.internalSummary(2);
 				}
 
 				
@@ -164,7 +164,7 @@
 					return `<tr class="info">
 						<td></td>
 						<td>${this.startTime.toString()}</td>
-						<td colspan="${colspan}" class="text-center"><i class="glyphicon glyphicon-pause"></i>Pause midi</td>
+						<td colspan="${colspan}" class="text-center"><i class="glyphicon glyphicon-pause"></i> Pause midi</td>
 						<td>${this.endTime.toString()}</td>
 						</tr>`
 				}
@@ -180,7 +180,7 @@
 				}
 
 				summary() {
-					return this.internalSummary(3);
+					return this.internalSummary(2);
 				}
 
 				
@@ -504,11 +504,10 @@ Jane Doe; Jane.Doe@gmail.com" rows="6" style="resize:none;"></textarea>
 				<table id="result" class="table">
 					<thead>
 						<th>Candidat</th>
-						<th>Début du candidat</th>
-						<th>Début de la correction</th>
-						<th>Début de l'entretien</th>
-						<th>Début de la correction</th>
-						<th>Fin</th>
+						<th>Casus</th>
+						<th>Correction</th>
+						<th>Entretien</th>
+						<th>Correction</th>
 					</thead>
 					<tbody>
 						
