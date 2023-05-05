@@ -12,7 +12,7 @@
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
 		<!-- Include all compiled plugins (below), or include individual files as needed -->
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
-
+		<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script>
 		<style>
 			td, th {
 				text-align: center;
@@ -112,10 +112,11 @@
 			} 
 
 			class InterviewTimeslot extends Timeslot {
-				constructor(candidate, startTime, welcomeDuration, casusDuration, correctionDuration, meetingDuration, debriefDuration) {
+				constructor(candidate, startTime, welcomeDuration, casusDuration, correctionDuration, meetingDuration, debriefDuration, templateProvider) {
 					super();
 					this.candidate = candidate;
 					this.startTime = startTime;
+					this.welcomeDuration = welcomeDuration;
 					this.casusStartTime = this.startTime.after(welcomeDuration);
 					this.correctionStartTime = this.casusStartTime.after(casusDuration);
 					this.meetingStartTime = this.correctionStartTime.after(correctionDuration);
@@ -123,7 +124,7 @@
 					this.endTime = this.debriefStartTime.after(debriefDuration);
 
 					this.interviewerTiming = new InterviewerTiming(this.candidate, this.correctionStartTime, this.meetingStartTime, this.debriefStartTime, this.endTime);
-					this.candidateTiming = new CandidateTiming(this.candidate, this.startTime, this.correctionStartTime, this.meetingStartTime, this.debriefStartTime);
+					this.candidateTiming = new CandidateTiming(this.candidate, this.startTime, this.welcomeDuration, this.casusStartTime, this.correctionStartTime, this.meetingStartTime, this.debriefStartTime, templateProvider);
 					this.supervisorTiming = new SupervisorTiming(this.candidate, this.startTime, this.correctionStartTime);
 				}
 				
@@ -202,7 +203,7 @@
 					return `<tr class="info">
 						<td></td>
 						<td>${this.startTime.toString()}</td>
-						<td colspan="${colspan}" class="text-center"><i class="glyphicon glyphicon-edit"></i>Debriefing</td>
+						<td colspan="${colspan}" class="text-center"><i class="glyphicon glyphicon-edit"></i> Debriefing</td>
 						<td>${this.endTime.toString()}</td>
 						</tr>`
 				}
@@ -228,12 +229,15 @@
 			}
 
 			class CandidateTiming {
-				constructor(candidate, startTime, correctionStartTime, meetingStartTime, debriefStartTime){
+				constructor(candidate, startTime, welcomeDuration, casusStartTime, correctionStartTime, meetingStartTime, debriefStartTime, templateProvider){
 					this.candidate = candidate;
 					this.startTime = startTime;
+					this.welcomeDuration = welcomeDuration;
+					this.casusStartTime = casusStartTime;
 					this.pauseStartTime = correctionStartTime;
 					this.meetingStartTime = meetingStartTime;
 					this.endTime = debriefStartTime;
+					this.templateProvider = templateProvider;
 				}
 
 				summary(){
@@ -253,10 +257,12 @@
 				}
 
 				generateMailTo(){
+					const emailer = new Emailer(this.templateProvider());
+					const subject = emailer.buildSubject(this);
+					const body = emailer.buildBody(this);
+
 					const br = "%0D%0A";
-					return `mailto:${this.candidate.email ?? ""}?subject=Entretien&body=Cher ${this.candidate.name},${br}${br}
-					Vous êtes invité à un entretien à ${this.startTime}.${br}
-					Puisse le sort vous être favorable!`
+					return `mailto:${this.candidate.email ?? ""}?subject=${subject}&body=${body}`
 				}
 
 			}
@@ -291,7 +297,7 @@
 						$('#generate').click();
 					}
 				});
-
+				new ClipboardJS('.clippy');
 				generateTimetable();
 			});
 
@@ -311,7 +317,14 @@
 			
 				const candidates = getCandidates(numberOfCandidates, candidateNames, randomOrder);
 
-				timetable(candidates, juryStartTime, welcomeDuration, casusDuration, correctionDuration, meetingDuration, debriefDuration, lunchTargetTime, lunchDuration, globalDebriefDuration);	
+				const templateProvider = function(){
+					return {
+						subject: $('#emailSubject')[0].value,
+						body: $('#emailBody')[0].value
+					}
+				}
+
+				timetable(candidates, juryStartTime, welcomeDuration, casusDuration, correctionDuration, meetingDuration, debriefDuration, lunchTargetTime, lunchDuration, globalDebriefDuration, templateProvider);	
 			}
 
 			function getCandidates(number, names){
@@ -381,7 +394,7 @@
 				}
 			}
 
-			function timetable(candidates, juryStartTime, welcomeDuration, casusDuration, correctionDuration, meetingDuration, debriefDuration, lunchTargetTime, lunchDuration, globalDebriefDuration) {
+			function timetable(candidates, juryStartTime, welcomeDuration, casusDuration, correctionDuration, meetingDuration, debriefDuration, lunchTargetTime, lunchDuration, globalDebriefDuration, templateProvider) {
 				cleanTable();
 				
 				appearances = [];
@@ -392,7 +405,7 @@
 				const numberOfCandidates = candidates.length;
 
 				for (var candidate of candidates) {
-					var appearance = new InterviewTimeslot(candidate, nextStartTime, welcomeDuration, casusDuration, correctionDuration, meetingDuration, debriefDuration);
+					var appearance = new InterviewTimeslot(candidate, nextStartTime, welcomeDuration, casusDuration, correctionDuration, meetingDuration, debriefDuration, templateProvider);
 					appearances.push(appearance);
 					
 					if (!lunchHappened && appearance.endTime.after(juryDuration.half()).isLaterThan(lunchTargetTime)){
@@ -425,7 +438,38 @@
 				$('#resultCandidates').find('tbody').empty();
 				$('#resultSupervisor').find('tbody').empty();
 			}
-			
+
+			class Emailer {
+				br = "%0D%0A";
+				constructor(template){
+					this.template = template;
+				}
+
+				buildSubject(interviewTimeslot) {
+					return this.replacePlaceholders(this.template.subject, interviewTimeslot);
+				}
+
+				buildBody(interviewTimeslot) {
+					return this.replacePlaceholders(this.template.body, interviewTimeslot);
+				}
+
+				replacePlaceholders(text, obj) {
+					return text.replace(/\{([^}]+)\}/g, (_, key) => {
+						const keys = key.split('.');
+						let val = obj;
+						while (keys.length) {
+						const k = keys.shift();
+						if (val.hasOwnProperty(k)) {
+							val = val[k];
+						} else {
+							return '';
+						}
+						}
+						return val;
+					}).replace(/\r\n|\n/g, this.br);
+    			};
+			}
+
 		</script>
 	</head>
 	<body>
@@ -503,6 +547,21 @@ Jane Doe; Jane.Doe@gmail.com" rows="6" style="resize:none;"></textarea>
 						<label for="globalDebriefDuration" class="col-sm-4  control-label"> Durée du débriefing final</label>
 						<div class="col-sm-8"><input id="globalDebriefDuration" type="time" step="300" class="form-control readonly" value="00:15"></div>
 					</div>
+					<div class="form-group row hidden">
+						<label for="emailSubject" class="col-sm-4  control-label"> Sujet du mail</label>
+						<div class="col-sm-8"><input id="emailSubject" type="text" class="form-control readonly" value="Entretien"></div>
+					</div>
+					<div class="form-group row hidden">
+						<label for="emailBody" class="col-sm-4  control-label"> Corps du mail</label>
+						<div class="col-sm-8">
+							<textarea id="emailBody" type="text" class="form-control" rows="10">
+Cher {candidate.name},
+
+Vous êtes invité à un entretien à {casusStartTime}. Merci d'arriver {welcomeDuration.minute} minutes en avance.
+
+Puisse le sort vous être favorable!</textarea>
+						</div>
+					</div>
 					<div class="row">
 						<div class="col-sm-4"></div>
 						<div class="col-sm-8">
@@ -512,9 +571,8 @@ Jane Doe; Jane.Doe@gmail.com" rows="6" style="resize:none;"></textarea>
 					</div>
 				</div>
 			</form>
-
 			<div class="row">
-				<h2>Horaire</h2>
+				<h2 class="clippy" data-clipboard-target="#result"><i class="glyphicon glyphicon-copy"></i> Horaire</h2>
 				<table id="result" class="table">
 					<thead>
 						<th>Candidat</th>
