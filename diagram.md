@@ -10,8 +10,8 @@ class Moment {
 class Timespan {
     + Hour : Integer
     + Minute : Integer
-    + Plus(Timespan) Timespan
-    + Half() Time
+    + Plus(Timespan) : Timespan
+    + Half() : Timespan
 }
 
 class Time {
@@ -52,6 +52,12 @@ class LunchTimeslot {
 }
 
 class GlobalDebriefingTimeslot {
+    + StartTime : Time
+    + Duration : Timespan
+    + EndTime : Time
+}
+
+class JuryWelcomeTimeslot {
     + StartTime : Time
     + Duration : Timespan
     + EndTime : Time
