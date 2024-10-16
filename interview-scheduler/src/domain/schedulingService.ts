@@ -1,31 +1,37 @@
-import Schedule from "./schedule";
-import { InterviewSlot } from "./interviewSlot";
-import { TimeSlot } from "./timeSlot";
+import { FinalDebriefingSlot, InterviewSlot, JuryWelcomeSlot, LunchSlot, Slot } from "./interviewSlot";
 import { JuryDayParameters } from "./parameters";
 
 export default class SchedulingService {
     public static generateSchedule(
         parameters : JuryDayParameters
-    ) : Schedule {
-        const candidatesCount = parameters.candidates.length;
-        const schedule = new Schedule(candidatesCount);
+    ) : Slot[] {
+        
+        const schedule : Slot[] = [];
+        const juryWelcome = new JuryWelcomeSlot(parameters.jurorsStartTime);
+        schedule.push(juryWelcome);
 
-        const totalMinutes = 600;
-        const slotDuration = totalMinutes / candidatesCount;
-    
-        let currentTime = parameters.jurorsStartTime;
-    
-        for (let i = 0; i < candidatesCount; i++){
-            const slotStart = new Date(currentTime);
-            const slotEnd = new Date(currentTime.getTime() + slotDuration * 60 * 1000);
+        let lunchHasHappened = false;
+                
+        for (const candidate of parameters.candidates){
+            const referenceStart = schedule.length > 0 ? schedule.at(-1)!.timeSlot.endTime : parameters.jurorsStartTime;
+            const nextStartTime = referenceStart
+                .earlier(parameters.interviewParameters.casusDuration)
+                .earlier(parameters.interviewParameters.welcomeDuration);
 
-            const timeslot = new TimeSlot(slotStart, slotEnd);
-            const interviewSlot = new InterviewSlot(i+1, timeslot);
-            schedule.addSlot(interviewSlot);
+            const appearance = new InterviewSlot(candidate, nextStartTime, parameters.interviewParameters);
+            schedule.push(appearance);
 
-            currentTime = slotEnd;
-
+            if (!lunchHasHappened
+                && appearance.timeSlot.endTime
+                    .later(parameters.interviewParameters.juryDuration.half())
+                    .isLaterThan(parameters.lunchTargetTime)
+            ) {
+                const lunchSlot = new LunchSlot(appearance.timeSlot.endTime, parameters.lunchDuration);
+                schedule.push(lunchSlot);
+            }
         }
+
+        schedule.push(new FinalDebriefingSlot(schedule.at(-1)!.timeSlot.endTime, parameters.finalDebriefingDuration))
 
         return schedule;
     }

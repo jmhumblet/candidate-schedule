@@ -3,7 +3,7 @@ import { InterviewSlot } from "./interviewSlot";
 class Schedule {
     private slots: InterviewSlot[] = [];
 
-    constructor(public candidateCount: number){}
+    constructor(){}
 
     public addSlot(slot: InterviewSlot){
         this.slots.push(slot);

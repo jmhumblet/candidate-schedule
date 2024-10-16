@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { JuryDayParameters, Candidate, InterviewParameters, Duration } from './domain/parameters'; // Assuming you have these models in a separate file
 import { Button, Col, Form, Row, OverlayTrigger, Tooltip } from 'react-bootstrap'
+import Time from './domain/time';
 
 type InterviewFormProps = {
     onSubmit: (parameters: JuryDayParameters) => void;
@@ -19,7 +20,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit }) => {
     const [jurorsStartTime, setJurorsStartTime] = useState<string>('09:00');
     const [welcomeDuration, setWelcomeDuration] = useState<string>('00:15');
     const [casusDuration, setCasusDuration] = useState<string>('01:00');
-    const [correctionDuration, setCorrectionDuration] = useState<string>('00:10');
+    const [correctionDuration, setCorrectionDuration] = useState<string>('00:15');
     const [interviewDuration, setInterviewDuration] = useState<string>('01:00');
     const [debriefingDuration, setDebriefingDuration] = useState<string>('00:15');
     const [lunchTargetTime, setLunchTargetTime] = useState<string>('12:45');
@@ -95,17 +96,17 @@ const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit }) => {
             new Date(juryDate),
             jobTitle,
             candidateList,
-            new Date(`1970-01-01T${jurorsStartTime}:00`),
+            Time.Parse(jurorsStartTime),
             new InterviewParameters(
-                Duration.fromTime(welcomeDuration),
-                Duration.fromTime(casusDuration),
-                Duration.fromTime(correctionDuration),
-                Duration.fromTime(interviewDuration),
-                Duration.fromTime(debriefingDuration)
+                Duration.Parse(welcomeDuration),
+                Duration.Parse(casusDuration),
+                Duration.Parse(correctionDuration),
+                Duration.Parse(interviewDuration),
+                Duration.Parse(debriefingDuration)
             ),
-            new Date(`1970-01-01T${lunchTargetTime}:00`),
-            Duration.fromTime(lunchDuration),
-            Duration.fromTime(finalDebriefingDuration)
+            Time.Parse(lunchTargetTime),
+            Duration.Parse(lunchDuration),
+            Duration.Parse(finalDebriefingDuration)
         );
 
         onSubmit(juryDayParams);

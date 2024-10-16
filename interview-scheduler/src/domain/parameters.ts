@@ -1,34 +1,34 @@
+import Duration from "./duration";
+import Time from "./time";
+
 class JuryDayParameters {
     constructor(
         public juryDate : Date,
         public jobTitle : string,
         public candidates : Candidate[],
-        public jurorsStartTime : Date,
+        public jurorsStartTime : Time,
         public interviewParameters : InterviewParameters,
-        public lunchTargetTime : Date,
+        public lunchTargetTime : Time,
         public lunchDuration : Duration,
         public finalDebriefingDuration : Duration
     ) {}
 }
 
 class InterviewParameters {
+    public candidateDuration : Duration;
+    public juryDuration : Duration;
+    public totalDuration: any;
+
     constructor(
         public welcomeDuration : Duration,
         public casusDuration : Duration,
         public correctionDuration : Duration,
         public interviewDuration : Duration,
-        public debrifingDuration : Duration
-    ){}
-}
-
-class Duration {
-    constructor(
-        public minutes : number
-    ){}
-
-    static fromTime(time: string) : Duration {
-        const [hours, minutes] = time.split(':').map(Number);
-        return new Duration(hours * 60 + minutes);
+        public debriefingDuration : Duration
+    ){
+        this.candidateDuration = welcomeDuration.plus(casusDuration).plus(correctionDuration).plus(interviewDuration);
+        this.juryDuration = correctionDuration.plus(interviewDuration).plus(debriefingDuration);
+        this.totalDuration = this.candidateDuration.plus(debriefingDuration);
     }
 }
 
