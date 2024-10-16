@@ -5,6 +5,7 @@
     - events
     - others
 1. React
-    - Analytics endpoint
+    - Side effects (fetching weather?)
 1. Environment
     - Build and publish pipeline
+    - Analytics endpoint

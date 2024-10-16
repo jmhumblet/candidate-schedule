@@ -1,21 +1,21 @@
 import Schedule from "./schedule";
 import { InterviewSlot } from "./interviewSlot";
-import { TimeSlot } from "./simeSlot";
+import { TimeSlot } from "./timeSlot";
+import { JuryDayParameters } from "./parameters";
 
 export default class SchedulingService {
     public static generateSchedule(
-        candidateCount: number,
-        startTime: Date,
-        endTime: Date
+        parameters : JuryDayParameters
     ) : Schedule {
-        const schedule = new Schedule(candidateCount);
+        const candidatesCount = parameters.candidates.length;
+        const schedule = new Schedule(candidatesCount);
 
-        const totalMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
-        const slotDuration = totalMinutes / candidateCount;
+        const totalMinutes = 600;
+        const slotDuration = totalMinutes / candidatesCount;
     
-        let currentTime = startTime;
+        let currentTime = parameters.jurorsStartTime;
     
-        for (let i = 0; i < candidateCount; i++){
+        for (let i = 0; i < candidatesCount; i++){
             const slotStart = new Date(currentTime);
             const slotEnd = new Date(currentTime.getTime() + slotDuration * 60 * 1000);
 
