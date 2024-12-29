@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import InterviewForm from "./InterviewForm";
 import SchedulingService from "./domain/schedulingService";
 import { JuryDayParameters } from "./domain/parameters";
-import { InterviewSlot, Slot } from "./domain/interviewSlot";
+import { Slot } from "./domain/interviewSlot";
 import ScheduleTable from "./ScheduleTable";
 import { Col, Form, Row } from "react-bootstrap";
 
