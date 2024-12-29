@@ -11,7 +11,7 @@ const App: React.FC = () => {
     date.setDate(date.getDate() + 10);
 
     const [schedule, setSchedule] = useState<Slot[] | null>(null);
-    const [juryDate, setJuryDate] = useState<string>(date.toLocaleDateString());
+    const [juryDate, setJuryDate] = useState<string>(date.toISOString().split('T')[0]);
     const [jobTitle, setJobTitle] = useState<string>('');
 
     const handleFormSubmit = (parameters : JuryDayParameters) => {

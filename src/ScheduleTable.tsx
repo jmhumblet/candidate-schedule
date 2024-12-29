@@ -9,6 +9,8 @@ type ScheduleTableProps = {
 }
 
 const ScheduleTable: React.FC<ScheduleTableProps> = ({schedule, date}) => {
+    let typedDate = new Date(date);
+    date = typedDate.toLocaleDateString();
     return (
 <div>
     <div id="clippy-target">
