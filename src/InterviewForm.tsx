@@ -22,7 +22,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit }) => {
     const [interviewDuration, setInterviewDuration] = useState<string>('01:00');
     const [debriefingDuration, setDebriefingDuration] = useState<string>('00:15');
     const [lunchTargetTime, setLunchTargetTime] = useState<string>('12:45');
-    const [lunchDuration, setLunchDuration] = useState<string>('00:45');
+    const [lunchDuration, setLunchDuration] = useState<string>('00:30');
     const [finalDebriefingDuration, setFinalDebriefingDuration] = useState<string>('00:15');
 
     const hasCandidatesNames = Boolean(candidatesInput.trim());
