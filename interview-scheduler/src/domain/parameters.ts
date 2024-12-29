@@ -3,8 +3,6 @@ import Time from "./time";
 
 class JuryDayParameters {
     constructor(
-        public juryDate : Date,
-        public jobTitle : string,
         public candidates : Candidate[],
         public jurorsStartTime : Time,
         public interviewParameters : InterviewParameters,

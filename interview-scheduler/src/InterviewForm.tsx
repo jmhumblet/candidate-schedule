@@ -13,8 +13,6 @@ const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit }) => {
     const date = new Date();
     date.setDate(date.getDate() + 10);
 
-    const [juryDate, setJuryDate] = useState<string>(date.toISOString().split('T')[0]);
-    const [jobTitle, setJobTitle] = useState<string>('');
     const [candidatesCount, setCandidatesCount] = useState<number>(DEFAULT_CANDIDATE_COUNT); 
     const [candidatesInput, setCandidatesInput] = useState<string>(''); 
     const [jurorsStartTime, setJurorsStartTime] = useState<string>('09:00');
@@ -53,7 +51,6 @@ const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit }) => {
         return new Candidate(name, email ?? null);
     }
 
-
     const onCandidatesListChange = (value: string) => {
         setCandidatesInput(value);
 
@@ -87,14 +84,12 @@ const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit }) => {
             candidateList = candidatesInput.split('\n').map((line) => parseCandidate(line));
         } else if (candidatesCount !== undefined) {
             candidateList = Array.from({ length: candidatesCount }, (_, index) => {
-                return new Candidate(`Candidate ${index + 1}`, null);
+                return new Candidate(`${index + 1}`, null);
             });
         }
 
         // Create the JuryDayParameters object with all the form inputs
         const juryDayParams = new JuryDayParameters(
-            new Date(juryDate),
-            jobTitle,
             candidateList,
             Time.Parse(jurorsStartTime),
             new InterviewParameters(
@@ -115,27 +110,6 @@ const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit }) => {
     return (
         <div className="container">
             <Form ref={formRef} className="form-horizontal" onSubmit={handleSubmit}>
-                <Form.Group className="mb-3" as={Row} controlId="date">
-
-                    <Form.Label column sm={4} className="control-label">Date du jury</Form.Label>
-                    <Col sm={2}>
-                        <Form.Control
-                            type="date"
-                            value={juryDate}
-                            onChange={(e) => setJuryDate(e.target.value)}
-                            required
-                        />
-                    </Col>
-                    <Form.Label column sm={1} className="control-label">Poste</Form.Label>
-                    <Col sm={5}>
-                        <Form.Control
-                            type="text"
-                            value={jobTitle}
-                            onChange={(e) => setJobTitle(e.target.value)}
-                            placeholder='Gestionnaire de projet'
-                        />
-                    </Col>
-                </Form.Group>
 
                 <Form.Group className="mb-3" as={Row} controlId="candidateNames">
                     <Form.Label column sm={4} className="control-label">Nombre de candidats</Form.Label>

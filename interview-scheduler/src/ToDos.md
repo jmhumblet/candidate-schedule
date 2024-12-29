@@ -11,3 +11,7 @@
 1. Environment
     - Build and publish pipeline
     - Analytics endpoint
+
+
+Clippy
+Glyphs

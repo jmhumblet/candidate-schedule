@@ -28,6 +28,7 @@ export default class SchedulingService {
             ) {
                 const lunchSlot = new LunchSlot(appearance.timeSlot.endTime, parameters.lunchDuration);
                 schedule.push(lunchSlot);
+                lunchHasHappened = true;
             }
         }
 
