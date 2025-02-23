@@ -66,7 +66,6 @@ const LunchSlotRow = ({ slot }: { slot: LunchSlot }) => (
         <td colSpan={7} className="text-center">
             <FaPause /> <b>Pause midi ({slot.timeSlot.startTime.toString()} - {slot.timeSlot.endTime.toString()})</b>
         </td>
-        <td></td>
     </tr>
 );
 
@@ -75,7 +74,6 @@ const FinalDebriefingSlotRow = ({ slot }: { slot: FinalDebriefingSlot }) => (
         <td colSpan={7} className="text-center">
             <FaEdit /> <b>Débriefing final ({slot.timeSlot.startTime.toString()} - {slot.timeSlot.endTime.toString()})</b>
         </td>
-        <td></td>
     </tr>
 );
 
@@ -84,7 +82,6 @@ const JuryWelcomeSlotRow = ({ slot }: { slot: JuryWelcomeSlot }) => (
         <td colSpan={7} className="text-center">
             <FaUser /> <b>Accueil du jury ({slot.timeSlot.startTime.toString()} - {slot.timeSlot.endTime.toString()})</b>
         </td>
-        <td></td>
     </tr>
 );
 
