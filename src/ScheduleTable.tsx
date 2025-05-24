@@ -1,5 +1,6 @@
 import React from "react";
 import { FinalDebriefingSlot, InterviewSlot, JuryWelcomeSlot, LunchSlot, Slot } from "./domain/interviewSlot";
+import Time from "./domain/time"; // Import Time
 import { FaPause, FaUser, FaEdit, FaCopy } from 'react-icons/fa';
 import Clipboard from 'react-clipboard.js';
 
@@ -8,9 +9,20 @@ type ScheduleTableProps = {
     date : string;
 }
 
+// Helper function for time comparison
+const timeToMinutes = (time: Time): number => time.hour * 60 + time.minute;
+
 const ScheduleTable: React.FC<ScheduleTableProps> = ({schedule, date}) => {
     let typedDate = new Date(date);
     date = typedDate.toLocaleDateString();
+
+    // Sort the schedule by start time
+    const sortedSchedule = [...schedule].sort((a, b) => {
+        const timeA = timeToMinutes(a.timeSlot.startTime);
+        const timeB = timeToMinutes(b.timeSlot.startTime);
+        return timeA - timeB;
+    });
+
     return (
 <div>
     <div id="clippy-target">
@@ -30,7 +42,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({schedule, date}) => {
                 <th>Confirmé ?</th>
             </thead>
             <tbody>
-            {schedule.map((slot, index) => {
+            {sortedSchedule.map((slot, index) => {
                 if (slot instanceof InterviewSlot) {
                     return <InterviewSlotRow key={index} slot={slot} />;
                 } else if (slot instanceof LunchSlot) {

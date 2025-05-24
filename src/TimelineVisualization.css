@@ -116,3 +116,48 @@
   box-sizing: border-box;
   /* background-color: rgba(0,0,0,0.05); /* Optional: for visualizing */
 }
+
+/* Styles for Global Slot Entries */
+.global-slot-entry {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px; /* Consistent with candidate-entry or slightly different */
+  /* padding: 5px; /* Optional: if global-slot-name and timeline-segments-container don't have enough */
+  border: 1px solid #ddd; 
+  border-radius: 4px;
+  background-color: #f0f0f0; /* Slightly different background from candidates */
+}
+
+.global-slot-name {
+  width: 150px; /* Match candidate-name width */
+  padding: 10px; /* Match candidate-name padding for alignment */
+  font-weight: bold;
+  color: #333; /* Match candidate-name color */
+  border-right: 1px solid #eee; /* Match candidate-name border */
+  box-sizing: border-box; 
+  flex-shrink: 0; 
+  white-space: nowrap; /* Prevent name from wrapping */
+}
+
+/* Specific styles for global timeline segments */
+/* Base properties are inherited from .timeline-segment */
+
+.lunch-segment {
+  background-color: #6EAA7C; /* Calm green */
+  color: white;
+}
+
+.final-debriefing-segment {
+  background-color: #7B6D8D; /* Muted purple */
+  color: white;
+}
+
+.jury-welcome-segment {
+  background-color: #A57C6A; /* Neutral brown */
+  color: white;
+}
+
+.unknown-segment { /* Fallback for any other global slot types */
+  background-color: #777777; /* Grey */
+  color: white;
+}

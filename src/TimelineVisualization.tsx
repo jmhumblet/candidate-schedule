@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { StructuredSchedule, CandidateSchedule } from './domain/scheduleTypes';
-import { InterviewSlot } from './domain/interviewSlot';
+import { Slot, InterviewSlot, LunchSlot, FinalDebriefingSlot, JuryWelcomeSlot } from './domain/interviewSlot';
+import { Candidate } from './domain/parameters'; // Assuming Candidate is here
 import Time from './domain/time';
 import './TimelineVisualization.css';
 
 interface TimelineVisualizationProps {
-  schedule: StructuredSchedule;
+  slots: Slot[];
+}
+
+// Define a type for the processed candidate schedule structure
+interface ProcessedCandidateSchedule {
+  candidate: Candidate;
+  interviewSlots: InterviewSlot[];
 }
 
 const timeToMinutes = (time: Time): number => time.hour * 60 + time.minute;
@@ -21,25 +27,17 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ startTime, endTime, pix
   const headerWidth = (timeToMinutes(endTime) - timeToMinutes(startTime)) * pixelsPerMinute;
   const timeMarkers = [];
 
-  // Ensure startTime and endTime are valid before proceeding
   if (!startTime || !endTime) {
     return null;
   }
 
   const startHour = startTime.hour;
-  // Loop until the hour of the end time.
-  // For example, if endTime is 17:30, we want markers up to 17:00.
-  // If endTime is 17:00, we also want a marker at 17:00.
   const endHourLoop = endTime.minute === 0 ? endTime.hour + 1 : endTime.hour +1;
-
 
   for (let hour = startHour; hour < endHourLoop; hour++) {
     const markerTime = new Time(hour, 0);
-    // Ensure markerTime is not earlier than startTime and not later than endTime
     if (timeToMinutes(markerTime) < timeToMinutes(startTime) || timeToMinutes(markerTime) > timeToMinutes(endTime)) {
-        // Special case for the very first marker if startTime is not on the hour
         if (hour === startHour && startTime.minute > 0) {
-            // This marker will be for startTime itself, positioned at 0
              const position = (timeToMinutes(startTime) - timeToMinutes(startTime)) * pixelsPerMinute;
              timeMarkers.push(
                 <div
@@ -51,13 +49,11 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ startTime, endTime, pix
                     {startTime.toString()}
                 </div>
             );
-            continue; // continue to next hour for regular hourly markers
+            continue; 
         } else {
-            continue; // Skip markers outside the overall time range
+            continue; 
         }
     }
-
-
     const position = (timeToMinutes(markerTime) - timeToMinutes(startTime)) * pixelsPerMinute;
     timeMarkers.push(
       <div
@@ -78,53 +74,88 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ startTime, endTime, pix
   );
 };
 
-const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ schedule }) => {
+// Helper functions for global slots
+const getGlobalSlotName = (slot: Slot): string => {
+  if (slot instanceof LunchSlot) return "Lunch Break";
+  if (slot instanceof FinalDebriefingSlot) return "Final Debriefing";
+  if (slot instanceof JuryWelcomeSlot) return "Jury Welcome";
+  return "Unknown Event";
+};
+
+const getGlobalSlotSegmentClass = (slot: Slot): string => {
+  if (slot instanceof LunchSlot) return "lunch-segment";
+  if (slot instanceof FinalDebriefingSlot) return "final-debriefing-segment";
+  if (slot instanceof JuryWelcomeSlot) return "jury-welcome-segment";
+  return "unknown-segment";
+};
+
+const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ slots }) => {
   const [overallDayStartTime, setOverallDayStartTime] = useState<Time | null>(null);
   const [overallDayEndTime, setOverallDayEndTime] = useState<Time | null>(null);
+  const [processedCandidateSchedules, setProcessedCandidateSchedules] = useState<ProcessedCandidateSchedule[]>([]);
+  const [processedGlobalSlots, setProcessedGlobalSlots] = useState<Slot[]>([]);
 
   useEffect(() => {
     const calculateOverallTimes = () => {
-      if (!schedule || !schedule.candidateSchedules || schedule.candidateSchedules.length === 0) {
+      if (!slots || slots.length === 0) {
         setOverallDayStartTime(null);
         setOverallDayEndTime(null);
         return;
       }
-
       let earliestStartTime: Time | null = null;
       let latestEndTime: Time | null = null;
-
-      schedule.candidateSchedules.forEach(candidateSchedule => {
-        candidateSchedule.interviewSlots.forEach(slot => {
-          if (!earliestStartTime || timeToMinutes(slot.timeSlot.startTime) < timeToMinutes(earliestStartTime)) {
-            earliestStartTime = slot.timeSlot.startTime;
-          }
-          if (!latestEndTime || timeToMinutes(slot.timeSlot.endTime) > timeToMinutes(latestEndTime)) {
-            latestEndTime = slot.timeSlot.endTime;
-          }
-        });
+      slots.forEach(slot => {
+        if (!earliestStartTime || timeToMinutes(slot.timeSlot.startTime) < timeToMinutes(earliestStartTime)) {
+          earliestStartTime = slot.timeSlot.startTime;
+        }
+        if (!latestEndTime || timeToMinutes(slot.timeSlot.endTime) > timeToMinutes(latestEndTime)) {
+          latestEndTime = slot.timeSlot.endTime;
+        }
       });
-
       setOverallDayStartTime(earliestStartTime);
       setOverallDayEndTime(latestEndTime);
     };
 
     calculateOverallTimes();
-  }, [schedule]);
 
-  if (!schedule || !schedule.candidateSchedules) {
+    if (!slots || slots.length === 0) {
+      setProcessedCandidateSchedules([]);
+      setProcessedGlobalSlots([]);
+      return;
+    }
+
+    const interviewSlotsByCandidate = new Map<string, { candidate: Candidate, interviewSlots: InterviewSlot[] }>();
+    const globalSlots: Slot[] = [];
+
+    slots.forEach(slot => {
+      if (slot instanceof InterviewSlot) {
+        const candidateId = slot.candidate.id;
+        if (!interviewSlotsByCandidate.has(candidateId)) {
+          interviewSlotsByCandidate.set(candidateId, { candidate: slot.candidate, interviewSlots: [] });
+        }
+        interviewSlotsByCandidate.get(candidateId)!.interviewSlots.push(slot);
+      } else if (slot instanceof LunchSlot || slot instanceof FinalDebriefingSlot || slot instanceof JuryWelcomeSlot) {
+        globalSlots.push(slot);
+      }
+    });
+
+    setProcessedCandidateSchedules(Array.from(interviewSlotsByCandidate.values()));
+    // Sort global slots by start time before setting state
+    globalSlots.sort((a, b) => timeToMinutes(a.timeSlot.startTime) - timeToMinutes(b.timeSlot.startTime));
+    setProcessedGlobalSlots(globalSlots);
+
+  }, [slots]);
+
+  if (!slots || slots.length === 0) {
     return <p>No schedule data available.</p>;
   }
-
-  // Display overall start and end times (optional, for debugging or UI)
-  // console.log("Overall Day Start Time:", overallDayStartTime?.toString());
-  // console.log("Overall Day End Time:", overallDayEndTime?.toString());
 
   const renderSegment = (startTime: Time, endTime: Time, className: string, label: string) => {
     const startTimeInMinutes = timeToMinutes(startTime);
     const endTimeInMinutes = timeToMinutes(endTime);
     const durationInMinutes = endTimeInMinutes - startTimeInMinutes;
     
-    if (durationInMinutes <= 0) return null; // Don't render zero or negative duration segments
+    if (durationInMinutes <= 0) return null;
 
     const segmentWidth = durationInMinutes * PIXELS_PER_MINUTE;
 
@@ -150,53 +181,46 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ schedule 
           pixelsPerMinute={PIXELS_PER_MINUTE}
         />
       )}
-      {schedule.candidateSchedules.map((candidateSchedule: CandidateSchedule, index: number) => (
-        <div key={index} className="candidate-entry"> {/* Changed from candidate-row to avoid conflict if styles differ */}
+      {/* Render Processed Candidate Schedules */}
+      {processedCandidateSchedules.map((candidateSchedule, index) => (
+        <div key={candidateSchedule.candidate.id || index} className="candidate-entry">
           <div className="candidate-name">{candidateSchedule.candidate.name}</div>
           <div className="timeline-segments-container">
             {candidateSchedule.interviewSlots.length > 0 && overallDayStartTime && (() => {
-              // Assuming interviewSlots are sorted or the first one is the earliest for offset calculation
               const candidateFirstActivityStartTime = candidateSchedule.interviewSlots[0].timeSlot.startTime;
               const offsetMinutes = timeToMinutes(candidateFirstActivityStartTime) - timeToMinutes(overallDayStartTime);
-
               if (offsetMinutes > 0) {
                 const offsetWidth = offsetMinutes * PIXELS_PER_MINUTE;
-                // Adding explicit height here as per the example in the subtask description
                 return <div className="timeline-offset-segment" style={{ width: `${offsetWidth}px`, height: '40px' }} />;
               }
               return null;
             })()}
-            {candidateSchedule.interviewSlots.map((interviewSlot: InterviewSlot, slotIndex: number) => (
+            {candidateSchedule.interviewSlots.map((interviewSlot, slotIndex) => (
               <React.Fragment key={slotIndex}>
-                {/* Welcome Phase */}
                 {renderSegment(
                   interviewSlot.timeSlot.startTime,
                   interviewSlot.casusStartTime,
                   'darkblue-segment',
                   'Welcome'
                 )}
-                {/* Casus Phase */}
                 {renderSegment(
                   interviewSlot.casusStartTime,
                   interviewSlot.correctionStartTime,
                   'neutral-segment',
                   'Casus'
                 )}
-                {/* Correction Phase */}
                 {renderSegment(
                   interviewSlot.correctionStartTime,
                   interviewSlot.meetingStartTime,
                   'lightblue-segment',
                   'Correction'
                 )}
-                {/* Interview Phase */}
                 {renderSegment(
                   interviewSlot.meetingStartTime,
                   interviewSlot.debriefingStartTime,
                   'darkblue-segment',
                   'Interview'
                 )}
-                {/* Debriefing Phase */}
                 {renderSegment(
                   interviewSlot.debriefingStartTime,
                   interviewSlot.timeSlot.endTime,
@@ -208,6 +232,36 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ schedule 
           </div>
         </div>
       ))}
+
+      {/* Render Processed Global Slots */}
+      {processedGlobalSlots.map((globalSlot, index) => {
+        const slotName = getGlobalSlotName(globalSlot);
+        const segmentClass = getGlobalSlotSegmentClass(globalSlot);
+        let offsetSegmentRender = null;
+
+        if (overallDayStartTime && globalSlot.timeSlot.startTime) {
+          const offsetMinutes = timeToMinutes(globalSlot.timeSlot.startTime) - timeToMinutes(overallDayStartTime);
+          if (offsetMinutes > 0) {
+            const offsetWidth = offsetMinutes * PIXELS_PER_MINUTE;
+            offsetSegmentRender = <div className="timeline-offset-segment" style={{ width: `${offsetWidth}px`, height: '40px' }} />;
+          }
+        }
+
+        return (
+          <div key={`global-${index}`} className="global-slot-entry">
+            <div className="global-slot-name">{slotName}</div>
+            <div className="timeline-segments-container">
+              {offsetSegmentRender}
+              {renderSegment(
+                globalSlot.timeSlot.startTime,
+                globalSlot.timeSlot.endTime,
+                segmentClass,
+                slotName
+              )}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };
