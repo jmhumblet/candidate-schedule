@@ -129,11 +129,11 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ slots }) 
 
     slots.forEach(slot => {
       if (slot instanceof InterviewSlot) {
-        const candidateId = slot.candidate.id;
-        if (!interviewSlotsByCandidate.has(candidateId)) {
-          interviewSlotsByCandidate.set(candidateId, { candidate: slot.candidate, interviewSlots: [] });
+        const candidateName = slot.candidate.name; // Changed from candidate.id
+        if (!interviewSlotsByCandidate.has(candidateName)) {
+          interviewSlotsByCandidate.set(candidateName, { candidate: slot.candidate, interviewSlots: [] });
         }
-        interviewSlotsByCandidate.get(candidateId)!.interviewSlots.push(slot);
+        interviewSlotsByCandidate.get(candidateName)!.interviewSlots.push(slot);
       } else if (slot instanceof LunchSlot || slot instanceof FinalDebriefingSlot || slot instanceof JuryWelcomeSlot) {
         globalSlots.push(slot);
       }
@@ -183,7 +183,7 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ slots }) 
       )}
       {/* Render Processed Candidate Schedules */}
       {processedCandidateSchedules.map((candidateSchedule, index) => (
-        <div key={candidateSchedule.candidate.id || index} className="candidate-entry">
+        <div key={candidateSchedule.candidate.name || index} className="candidate-entry"> {/* Changed from candidate.id */}
           <div className="candidate-name">{candidateSchedule.candidate.name}</div>
           <div className="timeline-segments-container">
             {candidateSchedule.interviewSlots.length > 0 && overallDayStartTime && (() => {
