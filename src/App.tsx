@@ -55,7 +55,7 @@ const App: React.FC = () => {
             { schedule && (
                 <>
                     <ScheduleTable schedule={[...schedule.generalSlots, ...schedule.candidateSchedules.flatMap(cs => cs.interviewSlots)]} date={juryDate} />
-                    <TimelineVisualization schedule={schedule} /> {/* Add the new component here */}
+                    <TimelineVisualization slots={[...schedule.generalSlots, ...schedule.candidateSchedules.flatMap(cs => cs.interviewSlots)]} />
                 </>
             )}
 
