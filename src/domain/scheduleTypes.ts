@@ -1,4 +1,4 @@
-import { Candidate } from './candidate';
+import { Candidate } from './parameters';
 import { Slot, InterviewSlot } from './interviewSlot';
 
 export interface StructuredSchedule {
