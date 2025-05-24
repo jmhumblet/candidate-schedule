@@ -1,7 +1,7 @@
 import { FinalDebriefingSlot, InterviewSlot, JuryWelcomeSlot, LunchSlot, Slot } from "./interviewSlot";
 import { JuryDayParameters } from "./parameters";
 import { StructuredSchedule, CandidateSchedule } from "./scheduleTypes";
-import { Candidate } from "./candidate";
+import { Candidate } from "./parameters";
 
 export default class SchedulingService {
     public static generateSchedule(
