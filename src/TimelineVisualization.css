@@ -1,62 +1,118 @@
 .timeline-container {
-    margin-top: 20px;
-    font-family: sans-serif;
+  margin: 20px;
+  font-family: sans-serif;
+  box-sizing: border-box;
 }
 
-.candidate-row {
-    display: flex;
-    align-items: center; /* Align items vertically */
-    margin-bottom: 10px;
-    border: 1px solid #eee;
-    padding: 5px;
-    background-color: #f9f9f9;
+.candidate-entry {
+  display: flex;
+  align-items: center; /* Aligns candidate name and timeline segments container vertically */
+  margin-bottom: 10px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  /* border: 1px solid #eee; /* Optional: if a border like old .candidate-row is desired */
+  /* padding: 5px; /* Optional: if padding like old .candidate-row is desired */
 }
 
 .candidate-name {
-    min-width: 150px; /* Ensure candidate names have enough space */
-    font-weight: bold;
-    margin-right: 10px;
-    white-space: nowrap;
+  width: 150px; /* Fixed width */
+  padding: 10px; /* Inner spacing */
+  font-weight: bold;
+  color: #333;
+  border-right: 1px solid #eee; /* Separator line */
+  box-sizing: border-box; /* Padding and border included in width */
+  flex-shrink: 0; /* Prevent shrinking if container gets too small */
 }
 
 .timeline-segments-container {
-    display: flex; /* Segments within this container will be inline */
-    position: relative; /* For potential future absolute positioning of time labels if needed */
+  display: flex;
+  align-items: center; /* Align offset and actual segments vertically */
+  /* padding: 10px; Removed side padding for alignment with header */
+  padding-top: 10px;
+  padding-bottom: 10px;
+  /* No left/right padding here, segments start at the edge of this container */
+  overflow-x: auto; 
+  flex-grow: 1;
+  position: relative; 
 }
 
 .timeline-segment {
-    height: 40px; /* Increased height for better visibility */
-    border-right: 1px solid #ccc; /* Separator between segments */
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column; /* Stack time labels vertically */
-    justify-content: center; /* Center time labels vertically */
-    align-items: center; /* Center time labels horizontally */
-    padding: 0 5px; /* Add some padding */
-    color: white;
-    font-size: 0.75em; /* Smaller font for time labels */
-    overflow: hidden; /* Prevent text overflow */
-    text-align: center;
-}
-
-.timeline-segment:last-child {
-    border-right: none;
-}
-
-.darkblue-segment {
-    background-color: darkblue;
-}
-
-.lightblue-segment {
-    background-color: lightblue;
-    color: #333; /* Darker text for light blue background */
-}
-
-.neutral-segment {
-    background-color: lightgray;
-    color: #333; /* Darker text for light gray background */
+  height: 40px;
+  margin-right: 2px; /* Gap between segments */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px; /* Text padding inside segments */
+  font-size: 0.8em;
+  border-radius: 3px;
+  box-sizing: border-box;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .segment-time {
-    display: block; /* Each time on a new line */
+  font-size: 0.9em;
+}
+
+.darkblue-segment {
+  background-color: #345B63;
+}
+
+.neutral-segment {
+  background-color: #D4B996;
+}
+
+.lightblue-segment {
+  background-color: #A2D5F2;
+  color: #333;
+}
+
+.main-timeline-header {
+  position: relative;
+  height: 30px; 
+  background-color: #e0e0e0;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  overflow: hidden; 
+  margin-left: 150px; /* Align with the start of timeline-segments-container */
+  /* The 'width' is set inline in the TSX component based on overall times */
+}
+
+.time-marker {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-left: 1px solid #aaa;
+  padding-left: 4px; 
+  font-size: 10px;
+  color: #333;
+  display: flex;
+  align-items: center; 
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.time-marker:first-child {
+  padding-left: 2px; 
+}
+
+.main-timeline-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: #bbb;
+}
+
+.timeline-offset-segment {
+  height: 40px; /* Match .timeline-segment height */
+  margin-right: 2px; /* Consistent with segment margin */
+  box-sizing: border-box;
+  /* background-color: rgba(0,0,0,0.05); /* Optional: for visualizing */
 }
