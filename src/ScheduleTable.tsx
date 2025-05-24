@@ -12,14 +12,22 @@ type ScheduleTableProps = {
 // Helper function for time comparison
 const timeToMinutes = (time: Time): number => time.hour * 60 + time.minute;
 
+// Helper function to get the relevant time for jury intervention based sorting
+const getJurySortTime = (slot: Slot): Time => {
+    if (slot instanceof InterviewSlot) {
+        return (slot as InterviewSlot).correctionStartTime;
+    }
+    return slot.timeSlot.startTime;
+};
+
 const ScheduleTable: React.FC<ScheduleTableProps> = ({schedule, date}) => {
     let typedDate = new Date(date);
     date = typedDate.toLocaleDateString();
 
-    // Sort the schedule by start time
+    // Sort the schedule by jury intervention time
     const sortedSchedule = [...schedule].sort((a, b) => {
-        const timeA = timeToMinutes(a.timeSlot.startTime);
-        const timeB = timeToMinutes(b.timeSlot.startTime);
+        const timeA = timeToMinutes(getJurySortTime(a));
+        const timeB = timeToMinutes(getJurySortTime(b));
         return timeA - timeB;
     });
 
