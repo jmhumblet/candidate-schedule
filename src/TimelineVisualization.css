@@ -1,0 +1,62 @@
+.timeline-container {
+    margin-top: 20px;
+    font-family: sans-serif;
+}
+
+.candidate-row {
+    display: flex;
+    align-items: center; /* Align items vertically */
+    margin-bottom: 10px;
+    border: 1px solid #eee;
+    padding: 5px;
+    background-color: #f9f9f9;
+}
+
+.candidate-name {
+    min-width: 150px; /* Ensure candidate names have enough space */
+    font-weight: bold;
+    margin-right: 10px;
+    white-space: nowrap;
+}
+
+.timeline-segments-container {
+    display: flex; /* Segments within this container will be inline */
+    position: relative; /* For potential future absolute positioning of time labels if needed */
+}
+
+.timeline-segment {
+    height: 40px; /* Increased height for better visibility */
+    border-right: 1px solid #ccc; /* Separator between segments */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column; /* Stack time labels vertically */
+    justify-content: center; /* Center time labels vertically */
+    align-items: center; /* Center time labels horizontally */
+    padding: 0 5px; /* Add some padding */
+    color: white;
+    font-size: 0.75em; /* Smaller font for time labels */
+    overflow: hidden; /* Prevent text overflow */
+    text-align: center;
+}
+
+.timeline-segment:last-child {
+    border-right: none;
+}
+
+.darkblue-segment {
+    background-color: darkblue;
+}
+
+.lightblue-segment {
+    background-color: lightblue;
+    color: #333; /* Darker text for light blue background */
+}
+
+.neutral-segment {
+    background-color: lightgray;
+    color: #333; /* Darker text for light gray background */
+}
+
+.segment-time {
+    display: block; /* Each time on a new line */
+}

@@ -3,21 +3,22 @@ import InterviewForm from "./InterviewForm";
 import SchedulingService from "./domain/schedulingService";
 import { JuryDayParameters } from "./domain/parameters";
 import { Slot } from "./domain/interviewSlot";
+import { StructuredSchedule } from "./domain/scheduleTypes";
 import ScheduleTable from "./ScheduleTable";
+import TimelineVisualization from "./TimelineVisualization"; // Import the new component
 import { Col, Form, Row } from "react-bootstrap";
 
 const App: React.FC = () => {
     const date = new Date();
     date.setDate(date.getDate() + 10);
 
-    const [schedule, setSchedule] = useState<Slot[] | null>(null);
+    const [schedule, setSchedule] = useState<StructuredSchedule | null>(null);
     const [juryDate, setJuryDate] = useState<string>(date.toISOString().split('T')[0]);
     const [jobTitle, setJobTitle] = useState<string>('');
 
     const handleFormSubmit = (parameters : JuryDayParameters) => {
-        const newSchedule = SchedulingService.generateSchedule(parameters);
-
-        setSchedule(newSchedule);
+        const newStructuredSchedule = SchedulingService.generateSchedule(parameters);
+        setSchedule(newStructuredSchedule);
     }
 
     const formRef = useRef<HTMLFormElement | null>(null);  
@@ -52,7 +53,12 @@ const App: React.FC = () => {
             </div>
             <InterviewForm onSubmit={handleFormSubmit} />
 
-            { schedule && <ScheduleTable schedule={schedule} date={juryDate} /> }
+            { schedule && (
+                <>
+                    <ScheduleTable schedule={[...schedule.generalSlots, ...schedule.candidateSchedules.flatMap(cs => cs.interviewSlots)]} date={juryDate} />
+                    <TimelineVisualization schedule={schedule} /> {/* Add the new component here */}
+                </>
+            )}
 
         </div>
     )
