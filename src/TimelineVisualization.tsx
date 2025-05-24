@@ -1,7 +1,6 @@
 import React from 'react';
 import { StructuredSchedule, CandidateSchedule } from './domain/scheduleTypes';
 import { InterviewSlot } from './domain/interviewSlot';
-import { Candidate } from './domain/parameters'; // Corrected import path
 import Time from './domain/time';
 import './TimelineVisualization.css';
 
