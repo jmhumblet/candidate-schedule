@@ -139,21 +139,27 @@
   white-space: nowrap; /* Prevent name from wrapping */
 }
 
+/* Specific styles for candidate interview segments */
+.welcome-segment {
+  background-color: #90EE90; /* lightgreen */
+  color: #333; /* Dark text for good contrast */
+}
+
 /* Specific styles for global timeline segments */
 /* Base properties are inherited from .timeline-segment */
 
 .lunch-segment {
-  background-color: #6EAA7C; /* Calm green */
+  background-color: #345B63; /* Dark Blue, same as .darkblue-segment */
   color: white;
 }
 
 .final-debriefing-segment {
-  background-color: #7B6D8D; /* Muted purple */
+  background-color: #345B63; /* Dark Blue, same as .darkblue-segment */
   color: white;
 }
 
 .jury-welcome-segment {
-  background-color: #A57C6A; /* Neutral brown */
+  background-color: #345B63; /* Dark Blue, same as .darkblue-segment */
   color: white;
 }
 

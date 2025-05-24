@@ -8,11 +8,22 @@ interface TimelineVisualizationProps {
   slots: Slot[];
 }
 
-// Define a type for the processed candidate schedule structure
-interface ProcessedCandidateSchedule {
+// New Unified Item Types
+interface RenderableCandidateSchedule {
+  type: 'candidate';
   candidate: Candidate;
   interviewSlots: InterviewSlot[];
+  sortTime: Time; // Earliest start time for this candidate
 }
+
+interface RenderableGlobalSlot {
+  type: 'global';
+  slot: LunchSlot | FinalDebriefingSlot | JuryWelcomeSlot;
+  sortTime: Time; // Start time of the global slot
+}
+
+type RenderableItem = RenderableCandidateSchedule | RenderableGlobalSlot;
+
 
 const timeToMinutes = (time: Time): number => time.hour * 60 + time.minute;
 const PIXELS_PER_MINUTE = 2;
@@ -92,8 +103,8 @@ const getGlobalSlotSegmentClass = (slot: Slot): string => {
 const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ slots }) => {
   const [overallDayStartTime, setOverallDayStartTime] = useState<Time | null>(null);
   const [overallDayEndTime, setOverallDayEndTime] = useState<Time | null>(null);
-  const [processedCandidateSchedules, setProcessedCandidateSchedules] = useState<ProcessedCandidateSchedule[]>([]);
-  const [processedGlobalSlots, setProcessedGlobalSlots] = useState<Slot[]>([]);
+  const [renderableItems, setRenderableItems] = useState<RenderableItem[]>([]);
+
 
   useEffect(() => {
     const calculateOverallTimes = () => {
@@ -116,33 +127,49 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ slots }) 
       setOverallDayEndTime(latestEndTime);
     };
 
-    calculateOverallTimes();
+    calculateOverallTimes(); 
 
     if (!slots || slots.length === 0) {
-      setProcessedCandidateSchedules([]);
-      setProcessedGlobalSlots([]);
+      setRenderableItems([]);
       return;
     }
 
     const interviewSlotsByCandidate = new Map<string, { candidate: Candidate, interviewSlots: InterviewSlot[] }>();
-    const globalSlots: Slot[] = [];
+    const globalSlotInputs: (LunchSlot | FinalDebriefingSlot | JuryWelcomeSlot)[] = [];
 
     slots.forEach(slot => {
       if (slot instanceof InterviewSlot) {
-        const candidateName = slot.candidate.name; // Changed from candidate.id
+        const candidateName = slot.candidate.name;
         if (!interviewSlotsByCandidate.has(candidateName)) {
           interviewSlotsByCandidate.set(candidateName, { candidate: slot.candidate, interviewSlots: [] });
         }
-        interviewSlotsByCandidate.get(candidateName)!.interviewSlots.push(slot);
+        const candidateData = interviewSlotsByCandidate.get(candidateName)!;
+        candidateData.interviewSlots.push(slot);
+        candidateData.interviewSlots.sort((a,b) => timeToMinutes(a.timeSlot.startTime) - timeToMinutes(b.timeSlot.startTime));
+
       } else if (slot instanceof LunchSlot || slot instanceof FinalDebriefingSlot || slot instanceof JuryWelcomeSlot) {
-        globalSlots.push(slot);
+        globalSlotInputs.push(slot);
       }
     });
 
-    setProcessedCandidateSchedules(Array.from(interviewSlotsByCandidate.values()));
-    // Sort global slots by start time before setting state
-    globalSlots.sort((a, b) => timeToMinutes(a.timeSlot.startTime) - timeToMinutes(b.timeSlot.startTime));
-    setProcessedGlobalSlots(globalSlots);
+    const candidateRenderItems: RenderableCandidateSchedule[] = Array.from(interviewSlotsByCandidate.values())
+      .map(cs => ({
+        type: 'candidate',
+        candidate: cs.candidate,
+        interviewSlots: cs.interviewSlots, 
+        sortTime: cs.interviewSlots.length > 0 ? cs.interviewSlots[0].timeSlot.startTime : new Time(23,59) 
+      }));
+
+    const globalRenderItems: RenderableGlobalSlot[] = globalSlotInputs.map(slot => ({
+      type: 'global',
+      slot: slot,
+      sortTime: slot.timeSlot.startTime
+    }));
+
+    const combinedItems: RenderableItem[] = [...candidateRenderItems, ...globalRenderItems];
+    combinedItems.sort((a, b) => timeToMinutes(a.sortTime) - timeToMinutes(b.sortTime));
+
+    setRenderableItems(combinedItems);
 
   }, [slots]);
 
@@ -181,86 +208,92 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ slots }) 
           pixelsPerMinute={PIXELS_PER_MINUTE}
         />
       )}
-      {/* Render Processed Candidate Schedules */}
-      {processedCandidateSchedules.map((candidateSchedule, index) => (
-        <div key={candidateSchedule.candidate.name || index} className="candidate-entry"> {/* Changed from candidate.id */}
-          <div className="candidate-name">{candidateSchedule.candidate.name}</div>
-          <div className="timeline-segments-container">
-            {candidateSchedule.interviewSlots.length > 0 && overallDayStartTime && (() => {
-              const candidateFirstActivityStartTime = candidateSchedule.interviewSlots[0].timeSlot.startTime;
-              const offsetMinutes = timeToMinutes(candidateFirstActivityStartTime) - timeToMinutes(overallDayStartTime);
-              if (offsetMinutes > 0) {
-                const offsetWidth = offsetMinutes * PIXELS_PER_MINUTE;
-                return <div className="timeline-offset-segment" style={{ width: `${offsetWidth}px`, height: '40px' }} />;
-              }
-              return null;
-            })()}
-            {candidateSchedule.interviewSlots.map((interviewSlot, slotIndex) => (
-              <React.Fragment key={slotIndex}>
-                {renderSegment(
-                  interviewSlot.timeSlot.startTime,
-                  interviewSlot.casusStartTime,
-                  'darkblue-segment',
-                  'Welcome'
-                )}
-                {renderSegment(
-                  interviewSlot.casusStartTime,
-                  interviewSlot.correctionStartTime,
-                  'neutral-segment',
-                  'Casus'
-                )}
-                {renderSegment(
-                  interviewSlot.correctionStartTime,
-                  interviewSlot.meetingStartTime,
-                  'lightblue-segment',
-                  'Correction'
-                )}
-                {renderSegment(
-                  interviewSlot.meetingStartTime,
-                  interviewSlot.debriefingStartTime,
-                  'darkblue-segment',
-                  'Interview'
-                )}
-                {renderSegment(
-                  interviewSlot.debriefingStartTime,
-                  interviewSlot.timeSlot.endTime,
-                  'lightblue-segment',
-                  'Debriefing'
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-      ))}
-
-      {/* Render Processed Global Slots */}
-      {processedGlobalSlots.map((globalSlot, index) => {
-        const slotName = getGlobalSlotName(globalSlot);
-        const segmentClass = getGlobalSlotSegmentClass(globalSlot);
-        let offsetSegmentRender = null;
-
-        if (overallDayStartTime && globalSlot.timeSlot.startTime) {
-          const offsetMinutes = timeToMinutes(globalSlot.timeSlot.startTime) - timeToMinutes(overallDayStartTime);
-          if (offsetMinutes > 0) {
-            const offsetWidth = offsetMinutes * PIXELS_PER_MINUTE;
-            offsetSegmentRender = <div className="timeline-offset-segment" style={{ width: `${offsetWidth}px`, height: '40px' }} />;
-          }
-        }
-
-        return (
-          <div key={`global-${index}`} className="global-slot-entry">
-            <div className="global-slot-name">{slotName}</div>
-            <div className="timeline-segments-container">
-              {offsetSegmentRender}
-              {renderSegment(
-                globalSlot.timeSlot.startTime,
-                globalSlot.timeSlot.endTime,
-                segmentClass,
-                slotName
-              )}
+      
+      {/* Unified Rendering Loop */}
+      {renderableItems.map((item, index) => {
+        if (item.type === 'candidate') {
+          const candidateSchedule = item as RenderableCandidateSchedule;
+          return (
+            <div key={candidateSchedule.candidate.name || `candidate-${index}`} className="candidate-entry">
+              <div className="candidate-name">{candidateSchedule.candidate.name}</div>
+              <div className="timeline-segments-container">
+                {candidateSchedule.interviewSlots.length > 0 && overallDayStartTime && (() => {
+                  const candidateFirstActivityStartTime = candidateSchedule.sortTime; // Already the earliest
+                  const offsetMinutes = timeToMinutes(candidateFirstActivityStartTime) - timeToMinutes(overallDayStartTime);
+                  if (offsetMinutes > 0) {
+                    const offsetWidth = offsetMinutes * PIXELS_PER_MINUTE;
+                    return <div className="timeline-offset-segment" style={{ width: `${offsetWidth}px`, height: '40px' }} />;
+                  }
+                  return null;
+                })()}
+                {candidateSchedule.interviewSlots.map((interviewSlot, slotIndex) => (
+                  <React.Fragment key={slotIndex}>
+                    {renderSegment(
+                      interviewSlot.timeSlot.startTime,
+                      interviewSlot.casusStartTime,
+                      'welcome-segment', 
+                      'Welcome'
+                    )}
+                    {renderSegment(
+                      interviewSlot.casusStartTime,
+                      interviewSlot.correctionStartTime,
+                      'neutral-segment',
+                      'Casus'
+                    )}
+                    {renderSegment(
+                      interviewSlot.correctionStartTime,
+                      interviewSlot.meetingStartTime,
+                      'lightblue-segment',
+                      'Correction'
+                    )}
+                    {renderSegment(
+                      interviewSlot.meetingStartTime,
+                      interviewSlot.debriefingStartTime,
+                      'darkblue-segment',
+                      'Interview'
+                    )}
+                    {renderSegment(
+                      interviewSlot.debriefingStartTime,
+                      interviewSlot.timeSlot.endTime,
+                      'lightblue-segment',
+                      'Debriefing'
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
-          </div>
-        );
+          );
+        } else if (item.type === 'global') {
+          const globalSlotItem = item as RenderableGlobalSlot;
+          const globalSlot = globalSlotItem.slot; 
+          const slotName = getGlobalSlotName(globalSlot);
+          const segmentClass = getGlobalSlotSegmentClass(globalSlot);
+          let offsetSegmentRender = null;
+
+          if (overallDayStartTime && globalSlot.timeSlot.startTime) {
+            const offsetMinutes = timeToMinutes(globalSlot.timeSlot.startTime) - timeToMinutes(overallDayStartTime);
+            if (offsetMinutes > 0) {
+              const offsetWidth = offsetMinutes * PIXELS_PER_MINUTE;
+              offsetSegmentRender = <div className="timeline-offset-segment" style={{ width: `${offsetWidth}px`, height: '40px' }} />;
+            }
+          }
+
+          return (
+            <div key={`${slotName}-${index}`} className="global-slot-entry">
+              <div className="global-slot-name">{slotName}</div>
+              <div className="timeline-segments-container">
+                {offsetSegmentRender}
+                {renderSegment(
+                  globalSlot.timeSlot.startTime,
+                  globalSlot.timeSlot.endTime,
+                  segmentClass,
+                  slotName
+                )}
+              </div>
+            </div>
+          );
+        }
+        return null; // Should not happen if types are correct
       })}
     </div>
   );
