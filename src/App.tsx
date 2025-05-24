@@ -2,7 +2,6 @@ import React, { useRef, useState } from "react";
 import InterviewForm from "./InterviewForm";
 import SchedulingService from "./domain/schedulingService";
 import { JuryDayParameters } from "./domain/parameters";
-import { Slot } from "./domain/interviewSlot";
 import { StructuredSchedule } from "./domain/scheduleTypes";
 import ScheduleTable from "./ScheduleTable";
 import TimelineVisualization from "./TimelineVisualization"; // Import the new component
