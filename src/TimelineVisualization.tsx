@@ -145,6 +145,7 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ slots }) 
         }
         const candidateData = interviewSlotsByCandidate.get(candidateName)!;
         candidateData.interviewSlots.push(slot);
+        // Ensure interviewSlots for a candidate are sorted by start time (overall slot start)
         candidateData.interviewSlots.sort((a,b) => timeToMinutes(a.timeSlot.startTime) - timeToMinutes(b.timeSlot.startTime));
 
       } else if (slot instanceof LunchSlot || slot instanceof FinalDebriefingSlot || slot instanceof JuryWelcomeSlot) {
@@ -157,7 +158,8 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ slots }) 
         type: 'candidate',
         candidate: cs.candidate,
         interviewSlots: cs.interviewSlots, 
-        sortTime: cs.interviewSlots.length > 0 ? cs.interviewSlots[0].timeSlot.startTime : new Time(23,59) 
+        // sortTime is now the correctionStartTime of the first interview slot for the candidate
+        sortTime: cs.interviewSlots.length > 0 ? cs.interviewSlots[0].correctionStartTime : new Time(23,59) 
       }));
 
     const globalRenderItems: RenderableGlobalSlot[] = globalSlotInputs.map(slot => ({
@@ -213,13 +215,18 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ slots }) 
       {renderableItems.map((item, index) => {
         if (item.type === 'candidate') {
           const candidateSchedule = item as RenderableCandidateSchedule;
+          // For offset calculation of candidate row, use the overall start time of the first interview slot
+          // This is different from sortTime which is now correctionStartTime
+          const candidateRowDisplayStartTime = candidateSchedule.interviewSlots.length > 0 
+                                            ? candidateSchedule.interviewSlots[0].timeSlot.startTime 
+                                            : candidateSchedule.sortTime; // Fallback to sortTime if no slots (should not happen)
+
           return (
             <div key={candidateSchedule.candidate.name || `candidate-${index}`} className="candidate-entry">
               <div className="candidate-name">{candidateSchedule.candidate.name}</div>
               <div className="timeline-segments-container">
                 {candidateSchedule.interviewSlots.length > 0 && overallDayStartTime && (() => {
-                  const candidateFirstActivityStartTime = candidateSchedule.sortTime; // Already the earliest
-                  const offsetMinutes = timeToMinutes(candidateFirstActivityStartTime) - timeToMinutes(overallDayStartTime);
+                  const offsetMinutes = timeToMinutes(candidateRowDisplayStartTime) - timeToMinutes(overallDayStartTime);
                   if (offsetMinutes > 0) {
                     const offsetWidth = offsetMinutes * PIXELS_PER_MINUTE;
                     return <div className="timeline-offset-segment" style={{ width: `${offsetWidth}px`, height: '40px' }} />;
