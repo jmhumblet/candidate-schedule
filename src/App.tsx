@@ -6,6 +6,7 @@ import { StructuredSchedule } from "./domain/scheduleTypes";
 import ScheduleTable from "./ScheduleTable";
 import TimelineVisualization from "./TimelineVisualization"; // Import the new component
 import { Col, Form, Row } from "react-bootstrap";
+import ThemeToggle from "./ThemeToggle";
 
 const App: React.FC = () => {
     const date = new Date();
@@ -15,44 +16,45 @@ const App: React.FC = () => {
     const [juryDate, setJuryDate] = useState<string>(date.toISOString().split('T')[0]);
     const [jobTitle, setJobTitle] = useState<string>('');
 
-    const handleFormSubmit = (parameters : JuryDayParameters) => {
+    const handleFormSubmit = (parameters: JuryDayParameters) => {
         const newStructuredSchedule = SchedulingService.generateSchedule(parameters);
         setSchedule(newStructuredSchedule);
     }
 
-    const formRef = useRef<HTMLFormElement | null>(null);  
+    const formRef = useRef<HTMLFormElement | null>(null);
 
     return (
-        <div className="container mt-3">
+        <div className="container mt-3 position-relative">
+            <ThemeToggle />
             <h1>Entretiens</h1>
             <div className="container">
-            <Form ref={formRef} className="form-horizontal" >
-                <Form.Group className="mb-3" as={Row} controlId="date">
+                <Form ref={formRef} className="form-horizontal" >
+                    <Form.Group className="mb-3" as={Row} controlId="date">
 
-                    <Form.Label column sm={4} className="control-label">Date du jury</Form.Label>
-                    <Col sm={2}>
-                        <Form.Control
-                            type="date"
-                            value={juryDate}
-                            onChange={(e) => setJuryDate(e.target.value)}
-                            required
-                        />
-                    </Col>
-                    <Form.Label column sm={1} className="control-label">Poste</Form.Label>
-                    <Col sm={5}>
-                        <Form.Control
-                            type="text"
-                            value={jobTitle}
-                            onChange={(e) => setJobTitle(e.target.value)}
-                            placeholder='Gestionnaire de projet'
-                        />
-                    </Col>
-                </Form.Group>
-            </Form>
+                        <Form.Label column sm={4} className="control-label">Date du jury</Form.Label>
+                        <Col sm={2}>
+                            <Form.Control
+                                type="date"
+                                value={juryDate}
+                                onChange={(e) => setJuryDate(e.target.value)}
+                                required
+                            />
+                        </Col>
+                        <Form.Label column sm={1} className="control-label">Poste</Form.Label>
+                        <Col sm={5}>
+                            <Form.Control
+                                type="text"
+                                value={jobTitle}
+                                onChange={(e) => setJobTitle(e.target.value)}
+                                placeholder='Gestionnaire de projet'
+                            />
+                        </Col>
+                    </Form.Group>
+                </Form>
             </div>
             <InterviewForm onSubmit={handleFormSubmit} />
 
-            { schedule && (
+            {schedule && (
                 <>
                     <ScheduleTable schedule={[...schedule.generalSlots, ...schedule.candidateSchedules.flatMap(cs => cs.interviewSlots)]} date={juryDate} />
                     <TimelineVisualization slots={[...schedule.generalSlots, ...schedule.candidateSchedules.flatMap(cs => cs.interviewSlots)]} />
