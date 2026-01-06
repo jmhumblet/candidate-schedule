@@ -257,7 +257,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit }) => {
 
                 <Form.Group className="mb-3" as={Row}>
                     <Col sm={{ span: 8, offset: 4 }}>
-                        <Button type="submit" variant="primary">Générer (Ctrl + Enter)</Button>
+                        <Button type="submit" variant="orange">Générer (Ctrl + Enter)</Button>
                         {/* <Button type="reset" variant="warning" className="ml-2">Reset</Button> */}
                     </Col>
                 </Form.Group>
