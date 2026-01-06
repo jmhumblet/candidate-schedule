@@ -8,13 +8,13 @@ type InterviewFormProps = {
 };
 
 const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit }) => {
-    const DEFAULT_CANDIDATE_COUNT : number = 4;
+    const DEFAULT_CANDIDATE_COUNT: number = 5;
     // States to hold form data
     const date = new Date();
     date.setDate(date.getDate() + 10);
 
-    const [candidatesCount, setCandidatesCount] = useState<number>(DEFAULT_CANDIDATE_COUNT); 
-    const [candidatesInput, setCandidatesInput] = useState<string>(''); 
+    const [candidatesCount, setCandidatesCount] = useState<number>(DEFAULT_CANDIDATE_COUNT);
+    const [candidatesInput, setCandidatesInput] = useState<string>('');
     const [jurorsStartTime, setJurorsStartTime] = useState<string>('09:00');
     const [welcomeDuration, setWelcomeDuration] = useState<string>('00:15');
     const [casusDuration, setCasusDuration] = useState<string>('01:00');
@@ -28,21 +28,21 @@ const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit }) => {
     const hasCandidatesNames = Boolean(candidatesInput.trim());
 
     const formRef = useRef<HTMLFormElement | null>(null);
-    
+
     const parseCandidate = (line: string) => {
         var parts = line.split(/[\t;]/);
 
         var emailIndex = -1;
 
-        var email = parts.find((v,i) => {
-            if (v.match(/@/)){
+        var email = parts.find((v, i) => {
+            if (v.match(/@/)) {
                 emailIndex = i;
                 return true;
             }
             return false;
-        })	
+        })
 
-        if (emailIndex !== -1){
+        if (emailIndex !== -1) {
             parts.splice(emailIndex, 1);
         }
 
@@ -54,7 +54,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit }) => {
     const onCandidatesListChange = (value: string) => {
         setCandidatesInput(value);
 
-        if (value.trim()){
+        if (value.trim()) {
             setCandidatesCount(value.trim().split('\n').length);
         } else {
             setCandidatesCount(DEFAULT_CANDIDATE_COUNT);
@@ -80,7 +80,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit }) => {
         e.preventDefault();
 
         let candidateList: Candidate[] = [];
-        if (candidatesInput.trim()){
+        if (candidatesInput.trim()) {
             candidateList = candidatesInput.split('\n').map((line) => parseCandidate(line));
         } else if (candidatesCount !== undefined) {
             candidateList = Array.from({ length: candidatesCount }, (_, index) => {
@@ -117,12 +117,12 @@ const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit }) => {
                         <OverlayTrigger
                             placement="top"
                             overlay={hasCandidatesNames ? <Tooltip id="tooltip-disabled">Désactivé car des noms ont été fournis</Tooltip> : <div></div>}>
-                                <Form.Control
-                                    type="number"
-                                    value={candidatesCount}
-                                    onChange={(e) => setCandidatesCount(Number(e.target.value))}
-                                    disabled={hasCandidatesNames}
-                                />
+                            <Form.Control
+                                type="number"
+                                value={candidatesCount}
+                                onChange={(e) => setCandidatesCount(Number(e.target.value))}
+                                disabled={hasCandidatesNames}
+                            />
                         </OverlayTrigger>
                     </Col>
                     <Form.Label column sm={1} className="control-label">Ou</Form.Label>
