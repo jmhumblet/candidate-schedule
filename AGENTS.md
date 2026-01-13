@@ -7,10 +7,12 @@ This is a React application written in TypeScript for scheduling interviews. It 
 - **`src/domain/`**: Contains the core business logic (e.g., `schedule.ts`, `interviewSlot.ts`). **Read this first** to understand the data models and rules.
 - **`src/`**: Contains the UI components (e.g., `App.tsx`, `ScheduleTable.tsx`).
 - **`src/__tests__/`**: Contains unit and integration tests.
+- **`e2e/`**: Contains Playwright integration tests.
 
 ## How to Run
 - **Start App:** `npm start` (Runs on port 3000. Interactive watch mode.)
-- **Run Tests:** `npm run test:ci` (Runs all tests once. Use this for verifying changes.)
+- **Run Unit Tests:** `npm run test:ci` (Runs all Jest tests once.)
+- **Run Integration Tests:** `npx playwright test` (Runs Playwright tests.)
 - **Build:** `npm run build` (Builds for production.)
 
 ## "Gemini Antigravity" Guidelines
@@ -21,11 +23,30 @@ To operate with maximum efficiency and leverage your large context window ("Anti
 3.  **Use `test:ci`:** Always use `npm run test:ci` to verify your changes. Avoid `npm test` as it waits for input.
 4.  **Visual Verification:** If you are modifying the UI, check `App.tsx` and related components. If a browser automation tool is available, use it to verify the rendered output.
 
+## Integration Testing Strategy (Future Proofing)
+**All UI changes and new features MUST be covered by integration tests (Playwright).**
+
+1.  **Mandatory Coverage:**
+    -   **Happy Paths:** Ensure the main user flows (e.g., generating a schedule) work end-to-end.
+    -   **Persistence:** Verify that user preferences (e.g., Theme) and critical state survive page reloads.
+    -   **Interactivity:** Test key interactions like button clicks, form submissions, and toggles.
+
+2.  **Writing Future-Proof Tests:**
+    -   **Use Accessible Selectors:** Prefer `getByRole`, `getByLabel`, `getByText` over CSS selectors.
+        -   *Good:* `page.getByRole('button', { name: 'Générer' })`
+        -   *Bad:* `page.locator('.btn-orange')` or `div > div > button`
+    -   **Avoid Brittle Implementation Details:** Do not rely on specific DOM structures (like `nth-child`) that might change with styling updates.
+    -   **User-Centric:** Test what the user sees and does, not the implementation details.
+
+3.  **Testing Environment:**
+    -   **Local:** Playwright runs against `npm start` (dev server).
+    -   **CI/GitHub Actions:** Playwright runs against `npm run build` (production build) served via `serve`.
+
 ## Coding Standards
 - **Framework:** React (Functional Components + Hooks).
 - **Language:** TypeScript. Strictly type all interfaces and props.
 - **Styling:** Bootstrap 5 (via `react-bootstrap`).
-- **Testing:** Jest + React Testing Library.
+- **Testing:** Jest + React Testing Library (Unit) / Playwright (Integration).
 - **Separation of Concerns:** Keep business logic in `src/domain` and UI logic in components.
 
 ## Tasks
