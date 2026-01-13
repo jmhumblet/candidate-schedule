@@ -9,6 +9,7 @@ import { Button, Col, Form, Row } from "react-bootstrap";
 import SessionSidebar from "./SessionSidebar";
 import { SessionService, SavedSession, JuryDayParametersModel } from "./domain/session";
 import { FaBars } from "react-icons/fa";
+import ThemeToggle from "./ThemeToggle";
 
 const App: React.FC = () => {
     const date = new Date();
@@ -29,7 +30,7 @@ const App: React.FC = () => {
         setSessions(SessionService.getSessions());
     }, []);
 
-    const handleFormSubmit = (parameters : JuryDayParameters) => {
+    const handleFormSubmit = (parameters: JuryDayParameters) => {
         const newStructuredSchedule = SchedulingService.generateSchedule(parameters);
         setSchedule(newStructuredSchedule);
 
@@ -102,7 +103,8 @@ const App: React.FC = () => {
     const formRef = useRef<HTMLFormElement | null>(null);  
 
     return (
-        <div className="container mt-3">
+        <div className="container mt-3 position-relative">
+            <ThemeToggle />
             <div className="d-flex align-items-center mb-3">
                  <Button variant="light" className="me-3" onClick={() => setShowSidebar(true)}>
                     <FaBars />
@@ -148,7 +150,7 @@ const App: React.FC = () => {
             </div>
             <InterviewForm onSubmit={handleFormSubmit} initialParameters={initialParameters} />
 
-            { schedule && (
+            {schedule && (
                 <>
                     <ScheduleTable
                         schedule={[...schedule.generalSlots, ...schedule.candidateSchedules.flatMap(cs => cs.interviewSlots)]}
@@ -163,7 +165,5 @@ const App: React.FC = () => {
         </div>
     )
 };
-
-
 
 export default App;
