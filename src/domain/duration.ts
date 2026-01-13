@@ -22,6 +22,10 @@ class Duration {
         const minutes = halfMinutes % 60;
         return new Duration(hours, minutes);
     }
+
+    public toInputString() : string {
+        return `${this.hours.toLocaleString('fr-BE', {minimumIntegerDigits: 2, useGrouping:false})}:${this.minutes.toLocaleString('fr-BE', {minimumIntegerDigits: 2, useGrouping:false})}`
+    }
 }
 
 export default Duration

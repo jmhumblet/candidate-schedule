@@ -3,11 +3,14 @@ import { JuryDayParameters, Candidate, InterviewParameters, Duration } from './d
 import { Button, Col, Form, Row, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import Time from './domain/time';
 
+import { JuryDayParametersModel } from './domain/session';
+
 type InterviewFormProps = {
     onSubmit: (parameters: JuryDayParameters) => void;
+    initialParameters?: JuryDayParametersModel | null;
 };
 
-const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit }) => {
+const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit, initialParameters }) => {
     const DEFAULT_CANDIDATE_COUNT : number = 4;
     // States to hold form data
     const date = new Date();
@@ -24,6 +27,44 @@ const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit }) => {
     const [lunchTargetTime, setLunchTargetTime] = useState<string>('12:45');
     const [lunchDuration, setLunchDuration] = useState<string>('00:30');
     const [finalDebriefingDuration, setFinalDebriefingDuration] = useState<string>('00:15');
+
+    useEffect(() => {
+        if (initialParameters) {
+            setJurorsStartTime(initialParameters.jurorsStartTime);
+            setWelcomeDuration(initialParameters.interviewParameters.welcomeDuration);
+            setCasusDuration(initialParameters.interviewParameters.casusDuration);
+            setCorrectionDuration(initialParameters.interviewParameters.correctionDuration);
+            setInterviewDuration(initialParameters.interviewParameters.interviewDuration);
+            setDebriefingDuration(initialParameters.interviewParameters.debriefingDuration);
+            setLunchTargetTime(initialParameters.lunchTargetTime);
+            setLunchDuration(initialParameters.lunchDuration);
+            setFinalDebriefingDuration(initialParameters.finalDebriefingDuration);
+
+            // Reconstruct candidates input string
+            const candidatesStr = initialParameters.candidates.map(c => {
+                if (c.email) {
+                    return `${c.name}; ${c.email}`;
+                }
+                return c.name;
+            }).join('\n');
+
+            setCandidatesInput(candidatesStr);
+            setCandidatesCount(initialParameters.candidates.length);
+        } else {
+             // Reset to defaults if initialParameters is explicitly null (New Session)
+             setJurorsStartTime('09:00');
+             setWelcomeDuration('00:15');
+             setCasusDuration('01:00');
+             setCorrectionDuration('00:15');
+             setInterviewDuration('01:00');
+             setDebriefingDuration('00:15');
+             setLunchTargetTime('12:45');
+             setLunchDuration('00:30');
+             setFinalDebriefingDuration('00:15');
+             setCandidatesInput('');
+             setCandidatesCount(DEFAULT_CANDIDATE_COUNT);
+        }
+    }, [initialParameters]);
 
     const hasCandidatesNames = Boolean(candidatesInput.trim());
 

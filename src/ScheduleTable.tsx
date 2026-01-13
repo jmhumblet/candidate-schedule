@@ -7,6 +7,8 @@ import Clipboard from 'react-clipboard.js';
 type ScheduleTableProps = {
     schedule : Slot[];
     date : string;
+    confirmedCandidates: string[];
+    onConfirmCandidate: (candidateName: string, isConfirmed: boolean) => void;
 }
 
 // Helper function for time comparison
@@ -20,7 +22,7 @@ const getJurySortTime = (slot: Slot): Time => {
     return slot.timeSlot.startTime;
 };
 
-const ScheduleTable: React.FC<ScheduleTableProps> = ({schedule, date}) => {
+const ScheduleTable: React.FC<ScheduleTableProps> = ({schedule, date, confirmedCandidates, onConfirmCandidate}) => {
     let typedDate = new Date(date);
     date = typedDate.toLocaleDateString();
 
@@ -41,18 +43,25 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({schedule, date}) => {
 
         <table id="result" className="table table-striped table-hover text-center">
             <thead>
-                <th>Candidat</th>
-                <th>Accueil candidat</th>
-                <th>Casus</th>
-                <th>Correction du casus</th>
-                <th>Entretien</th>
-                <th>Délibération</th>
-                <th>Confirmé ?</th>
+                <tr>
+                    <th>Candidat</th>
+                    <th>Accueil candidat</th>
+                    <th>Casus</th>
+                    <th>Correction du casus</th>
+                    <th>Entretien</th>
+                    <th>Délibération</th>
+                    <th>Confirmé ?</th>
+                </tr>
             </thead>
             <tbody>
             {sortedSchedule.map((slot, index) => {
                 if (slot instanceof InterviewSlot) {
-                    return <InterviewSlotRow key={index} slot={slot} />;
+                    return <InterviewSlotRow
+                        key={index}
+                        slot={slot}
+                        isConfirmed={confirmedCandidates.includes(slot.candidate.name)}
+                        onConfirm={(confirmed) => onConfirmCandidate(slot.candidate.name, confirmed)}
+                    />;
                 } else if (slot instanceof LunchSlot) {
                     return <LunchSlotRow key={index} slot={slot} />;
                 } else if (slot instanceof FinalDebriefingSlot) {
@@ -69,7 +78,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({schedule, date}) => {
     )
 }
 
-const InterviewSlotRow = ({ slot }: { slot: InterviewSlot }) => (
+const InterviewSlotRow = ({ slot, isConfirmed, onConfirm }: { slot: InterviewSlot, isConfirmed: boolean, onConfirm: (confirmed: boolean) => void }) => (
     <tr>
         <td>{slot.candidate.name}</td>
         <td>{slot.timeSlot.startTime.toString()}</td>
@@ -77,7 +86,13 @@ const InterviewSlotRow = ({ slot }: { slot: InterviewSlot }) => (
         <td>{slot.correctionStartTime.toString()} - {slot.meetingStartTime.toString()}</td>
         <td>{slot.meetingStartTime.toString()} - {slot.debriefingStartTime.toString()}</td>
         <td>{slot.debriefingStartTime.toString()} - {slot.timeSlot.endTime.toString()}</td>
-        <td></td>
+        <td>
+            <input
+                type="checkbox"
+                checked={isConfirmed}
+                onChange={(e) => onConfirm(e.target.checked)}
+            />
+        </td>
     </tr>
 );
 
