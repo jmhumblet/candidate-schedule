@@ -6,49 +6,56 @@
 
 .candidate-entry {
   display: flex;
-  align-items: center; /* Aligns candidate name and timeline segments container vertically */
+  align-items: center;
+  /* Aligns candidate name and timeline segments container vertically */
   margin-bottom: 10px;
-  background-color: #f9f9f9;
+  background-color: var(--bs-tertiary-bg);
   border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  /* border: 1px solid #eee; /* Optional: if a border like old .candidate-row is desired */
-  /* padding: 5px; /* Optional: if padding like old .candidate-row is desired */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .candidate-name {
-  width: 150px; /* Fixed width */
-  padding: 10px; /* Inner spacing */
+  width: 150px;
+  /* Fixed width */
+  padding: 10px;
+  /* Inner spacing */
   font-weight: bold;
-  color: #333;
-  border-right: 1px solid #eee; /* Separator line */
-  box-sizing: border-box; /* Padding and border included in width */
-  flex-shrink: 0; /* Prevent shrinking if container gets too small */
+  color: var(--bs-body-color);
+  border-right: 1px solid var(--bs-border-color);
+  /* Separator line */
+  box-sizing: border-box;
+  /* Padding and border included in width */
+  flex-shrink: 0;
+  /* Prevent shrinking if container gets too small */
 }
 
 .timeline-segments-container {
   display: flex;
-  align-items: center; /* Align offset and actual segments vertically */
+  align-items: center;
+  /* Align offset and actual segments vertically */
   /* padding: 10px; Removed side padding for alignment with header */
   padding-top: 10px;
   padding-bottom: 10px;
   /* No left/right padding here, segments start at the edge of this container */
-  overflow-x: auto; 
+  overflow-x: auto;
   flex-grow: 1;
-  position: relative; 
+  position: relative;
 }
 
 .timeline-segment {
   height: 40px;
-  margin-right: 2px; /* Gap between segments */
+  margin-right: 2px;
+  /* Gap between segments */
   color: white;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 8px; /* Text padding inside segments */
+  padding: 0 8px;
+  /* Text padding inside segments */
   font-size: 0.8em;
   border-radius: 3px;
   box-sizing: border-box;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   white-space: nowrap;
 }
@@ -72,32 +79,32 @@
 
 .main-timeline-header {
   position: relative;
-  height: 30px; 
-  background-color: #e0e0e0;
-  border: 1px solid #ccc;
+  height: 30px;
+  background-color: var(--bs-secondary-bg);
+  border: 1px solid var(--bs-border-color);
   margin-bottom: 10px;
   box-sizing: border-box;
-  overflow: hidden; 
-  margin-left: 150px; /* Align with the start of timeline-segments-container */
-  /* The 'width' is set inline in the TSX component based on overall times */
+  overflow: hidden;
+  margin-left: 150px;
+  /* Align with the start of timeline-segments-container */
 }
 
 .time-marker {
   position: absolute;
   top: 0;
   height: 100%;
-  border-left: 1px solid #aaa;
-  padding-left: 4px; 
+  border-left: 1px solid var(--bs-border-color);
+  padding-left: 4px;
   font-size: 10px;
-  color: #333;
+  color: var(--bs-body-color);
   display: flex;
-  align-items: center; 
+  align-items: center;
   box-sizing: border-box;
   user-select: none;
 }
 
 .time-marker:first-child {
-  padding-left: 2px; 
+  padding-left: 2px;
 }
 
 .main-timeline-header::after {
@@ -107,12 +114,14 @@
   left: 0;
   width: 100%;
   height: 1px;
-  background-color: #bbb;
+  background-color: var(--bs-border-color);
 }
 
 .timeline-offset-segment {
-  height: 40px; /* Match .timeline-segment height */
-  margin-right: 2px; /* Consistent with segment margin */
+  height: 40px;
+  /* Match .timeline-segment height */
+  margin-right: 2px;
+  /* Consistent with segment margin */
   box-sizing: border-box;
   /* background-color: rgba(0,0,0,0.05); /* Optional: for visualizing */
 }
@@ -121,49 +130,68 @@
 .global-slot-entry {
   display: flex;
   align-items: center;
-  margin-bottom: 8px; /* Consistent with candidate-entry or slightly different */
+  margin-bottom: 8px;
+  /* Consistent with candidate-entry or slightly different */
   /* padding: 5px; /* Optional: if global-slot-name and timeline-segments-container don't have enough */
-  border: 1px solid #ddd; 
+  border: 1px solid var(--bs-border-color);
   border-radius: 4px;
-  background-color: #f0f0f0; /* Slightly different background from candidates */
+  background-color: var(--bs-secondary-bg);
+  /* Slightly different background from candidates */
 }
 
 .global-slot-name {
-  width: 150px; /* Match candidate-name width */
-  padding: 10px; /* Match candidate-name padding for alignment */
+  width: 150px;
+  /* Match candidate-name width */
+  padding: 10px;
+  /* Match candidate-name padding for alignment */
   font-weight: bold;
-  color: #333; /* Match candidate-name color */
-  border-right: 1px solid #eee; /* Match candidate-name border */
-  box-sizing: border-box; 
-  flex-shrink: 0; 
-  white-space: nowrap; /* Prevent name from wrapping */
+  color: var(--bs-body-color);
+  /* Match candidate-name color */
+  border-right: 1px solid var(--bs-border-color);
+  /* Match candidate-name border */
+  box-sizing: border-box;
+  flex-shrink: 0;
+  white-space: nowrap;
+  /* Prevent name from wrapping */
 }
 
 /* Specific styles for candidate interview segments */
 .welcome-segment {
-  background-color: #90EE90; /* lightgreen */
-  color: #333; /* Dark text for good contrast */
+  background-color: #1a6d1a;
+  /* darker green for dark mode visibility */
+  color: white;
+}
+
+[data-bs-theme='light'] .welcome-segment {
+  background-color: #90EE90;
+  /* lightgreen */
+  color: #333;
 }
 
 /* Specific styles for global timeline segments */
 /* Base properties are inherited from .timeline-segment */
 
 .lunch-segment {
-  background-color: #345B63; /* Dark Blue, same as .darkblue-segment */
+  background-color: #345B63;
+  /* Dark Blue, same as .darkblue-segment */
   color: white;
 }
 
 .final-debriefing-segment {
-  background-color: #345B63; /* Dark Blue, same as .darkblue-segment */
+  background-color: #345B63;
+  /* Dark Blue, same as .darkblue-segment */
   color: white;
 }
 
 .jury-welcome-segment {
-  background-color: #345B63; /* Dark Blue, same as .darkblue-segment */
+  background-color: #345B63;
+  /* Dark Blue, same as .darkblue-segment */
   color: white;
 }
 
-.unknown-segment { /* Fallback for any other global slot types */
-  background-color: #777777; /* Grey */
+.unknown-segment {
+  /* Fallback for any other global slot types */
+  background-color: #777777;
+  /* Grey */
   color: white;
 }

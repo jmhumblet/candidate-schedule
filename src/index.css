@@ -7,7 +7,41 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+[data-bs-theme='dark'] .btn-orange {
+  background-color: #d96d12 !important;
+  border-color: #d96d12 !important;
+}
+
+[data-bs-theme='dark'] .btn-orange:hover {
+  background-color: #bf5f0f !important;
+}
+
+.input-group-text-time {
+  background-color: #e7f1ff !important;
+  color: #0c63e4 !important;
+  font-weight: 600;
+  min-width: 100px;
+}
+
+.input-group-text-duration {
+  background-color: #fff3e0 !important;
+  color: #ef6c00 !important;
+  font-weight: 600;
+  min-width: 100px;
+}
+
+.input-group-text-format {
+  background-color: #f8f9fa !important;
+  color: #6c757d !important;
+  font-size: 0.85rem;
+}
+
+.indicator-icon {
+  margin-right: 8px;
 }
