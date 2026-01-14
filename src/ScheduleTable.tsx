@@ -22,7 +22,7 @@ const getJurySortTime = (slot: Slot): Time => {
     return slot.timeSlot.startTime;
 };
 
-const ScheduleTable: React.FC<ScheduleTableProps> = ({schedule, date, confirmedCandidates, onConfirmCandidate}) => {
+const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date, confirmedCandidates, onConfirmCandidate}) => {
     const [isCopied, setIsCopied] = useState(false);
     let typedDate = new Date(date);
     date = typedDate.toLocaleDateString();
@@ -96,7 +96,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({schedule, date, confirmedC
     </div>
 </div>
     )
-}
+});
 
 const InterviewSlotRow = ({ slot, isConfirmed, onConfirm }: { slot: InterviewSlot, isConfirmed: boolean, onConfirm: (confirmed: boolean) => void }) => (
     <tr>

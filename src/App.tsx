@@ -107,6 +107,11 @@ const App: React.FC = () => {
 
     const formRef = useRef<HTMLFormElement | null>(null);
 
+    const scheduleSlots = useMemo(() => {
+        if (!schedule) return [];
+        return [...schedule.generalSlots, ...schedule.candidateSchedules.flatMap(cs => cs.interviewSlots)];
+    }, [schedule]);
+
     return (
         <div className="container mt-3 position-relative">
             <ThemeToggle />
