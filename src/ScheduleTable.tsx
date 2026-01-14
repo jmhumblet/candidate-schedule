@@ -24,10 +24,10 @@ const getJurySortTime = (slot: Slot): Time => {
     return slot.timeSlot.startTime;
 };
 
-const ScheduleTable: React.FC<ScheduleTableProps> = ({schedule, date, confirmedCandidates, onConfirmCandidate}) => {
+const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date, confirmedCandidates, onConfirmCandidate}) => {
     const [isCopied, setIsCopied] = useState(false);
     let typedDate = new Date(date);
-    date = typedDate.toLocaleDateString();
+    date = typedDate.toLocaleDateString('fr-FR');
 
     // Sort the schedule by jury intervention time
     const sortedSchedule = [...schedule].sort((a, b) => {
@@ -100,7 +100,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({schedule, date, confirmedC
     </div>
 </div>
     )
-}
+});
 
 const InterviewSlotRow = ({ slot, isConfirmed, onConfirm, date }: { slot: InterviewSlot, isConfirmed: boolean, onConfirm: (confirmed: boolean) => void, date: string }) => {
     const handleEmail = () => {

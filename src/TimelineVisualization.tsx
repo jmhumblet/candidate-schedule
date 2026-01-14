@@ -87,10 +87,10 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ startTime, endTime, pix
 
 // Helper functions for global slots
 const getGlobalSlotName = (slot: Slot): string => {
-  if (slot instanceof LunchSlot) return "Lunch Break";
-  if (slot instanceof FinalDebriefingSlot) return "Final Debriefing";
-  if (slot instanceof JuryWelcomeSlot) return "Jury Welcome";
-  return "Unknown Event";
+  if (slot instanceof LunchSlot) return "Pause déjeuner";
+  if (slot instanceof FinalDebriefingSlot) return "Débriefing final";
+  if (slot instanceof JuryWelcomeSlot) return "Accueil du jury";
+  return "Événement inconnu";
 };
 
 const getGlobalSlotSegmentClass = (slot: Slot): string => {
@@ -101,6 +101,9 @@ const getGlobalSlotSegmentClass = (slot: Slot): string => {
 };
 
 const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo(({ slots }) => {
+  const [overallDayStartTime, setOverallDayStartTime] = useState<Time | null>(null);
+  const [overallDayEndTime, setOverallDayEndTime] = useState<Time | null>(null);
+  const [renderableItems, setRenderableItems] = useState<RenderableItem[]>([]);
 
   const { overallDayStartTime, overallDayEndTime } = useMemo(() => {
     if (!slots || slots.length === 0) {
@@ -165,7 +168,7 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo((
   }, [slots]);
 
   if (!slots || slots.length === 0) {
-    return <p>No schedule data available.</p>;
+    return <p>Aucun horaire disponible.</p>;
   }
 
   const renderSegment = (startTime: Time, endTime: Time, className: string, label: string) => {
@@ -191,7 +194,7 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo((
 
   return (
     <div className="timeline-container">
-      <h2>Candidate Timelines</h2>
+      <h2>Chronologie des candidats</h2>
       {overallDayStartTime && overallDayEndTime && (
         <TimelineHeader
           startTime={overallDayStartTime}
@@ -228,7 +231,7 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo((
                       interviewSlot.timeSlot.startTime,
                       interviewSlot.casusStartTime,
                       'welcome-segment', 
-                      'Welcome'
+                      'Accueil'
                     )}
                     {renderSegment(
                       interviewSlot.casusStartTime,
@@ -246,13 +249,13 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo((
                       interviewSlot.meetingStartTime,
                       interviewSlot.debriefingStartTime,
                       'darkblue-segment',
-                      'Interview'
+                      'Entretien'
                     )}
                     {renderSegment(
                       interviewSlot.debriefingStartTime,
                       interviewSlot.timeSlot.endTime,
                       'lightblue-segment',
-                      'Debriefing'
+                      'Délibération'
                     )}
                   </React.Fragment>
                 ))}
@@ -293,6 +296,6 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo((
       })}
     </div>
   );
-};
+});
 
 export default TimelineVisualization;
