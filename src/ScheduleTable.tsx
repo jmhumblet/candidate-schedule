@@ -20,7 +20,7 @@ const getJurySortTime = (slot: Slot): Time => {
     return slot.timeSlot.startTime;
 };
 
-const ScheduleTable: React.FC<ScheduleTableProps> = ({schedule, date}) => {
+const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date}) => {
     let typedDate = new Date(date);
     date = typedDate.toLocaleDateString();
 
@@ -67,7 +67,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({schedule, date}) => {
     </div>
 </div>
     )
-}
+});
 
 const InterviewSlotRow = ({ slot }: { slot: InterviewSlot }) => (
     <tr>

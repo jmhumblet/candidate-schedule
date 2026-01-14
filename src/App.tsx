@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useMemo } from "react";
 import InterviewForm from "./InterviewForm";
 import SchedulingService from "./domain/schedulingService";
 import { JuryDayParameters } from "./domain/parameters";
@@ -22,6 +22,11 @@ const App: React.FC = () => {
     }
 
     const formRef = useRef<HTMLFormElement | null>(null);
+
+    const scheduleSlots = useMemo(() => {
+        if (!schedule) return [];
+        return [...schedule.generalSlots, ...schedule.candidateSchedules.flatMap(cs => cs.interviewSlots)];
+    }, [schedule]);
 
     return (
         <div className="container mt-3 position-relative">
@@ -56,8 +61,8 @@ const App: React.FC = () => {
 
             {schedule && (
                 <>
-                    <ScheduleTable schedule={[...schedule.generalSlots, ...schedule.candidateSchedules.flatMap(cs => cs.interviewSlots)]} date={juryDate} />
-                    <TimelineVisualization slots={[...schedule.generalSlots, ...schedule.candidateSchedules.flatMap(cs => cs.interviewSlots)]} />
+                    <ScheduleTable schedule={scheduleSlots} date={juryDate} />
+                    <TimelineVisualization slots={scheduleSlots} />
                 </>
             )}
 
