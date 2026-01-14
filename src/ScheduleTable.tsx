@@ -25,7 +25,7 @@ const getJurySortTime = (slot: Slot): Time => {
 const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date, confirmedCandidates, onConfirmCandidate}) => {
     const [isCopied, setIsCopied] = useState(false);
     let typedDate = new Date(date);
-    date = typedDate.toLocaleDateString();
+    date = typedDate.toLocaleDateString('fr-FR');
 
     // Sort the schedule by jury intervention time
     const sortedSchedule = [...schedule].sort((a, b) => {

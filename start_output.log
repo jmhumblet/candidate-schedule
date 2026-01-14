@@ -5,9 +5,9 @@
 Browserslist: caniuse-lite is outdated. Please run:
   npx update-browserslist-db@latest
   Why you should do it regularly: https://github.com/browserslist/update-db#readme
-(node:3018) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(node:2241) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
 (Use `node --trace-deprecation ...` to show where the warning was created)
-(node:3018) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(node:2241) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
 Starting the development server...
 
 [0;33mOne of your dependencies, babel-preset-react-app, is importing the
@@ -22,21 +22,18 @@ ever be fixed. Add "@babel/plugin-proposal-private-property-in-object" to
 your devDependencies to work around this error. This will make this message
 go away.[0m
 
-Compiled successfully!
+Compiled with warnings.
 
-You can now view interview-scheduler in the browser.
+[eslint]
+src/App.tsx
+  Line 110:11:  'scheduleSlots' is assigned a value but never used  @typescript-eslint/no-unused-vars
 
-  Local:            http://localhost:3000/candidate-schedule
-  On Your Network:  http://192.168.0.2:3000/candidate-schedule
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
 
-Note that the development build is not optimized.
-To create a production build, use npm run build.
+WARNING in [eslint]
+src/App.tsx
+  Line 110:11:  'scheduleSlots' is assigned a value but never used  @typescript-eslint/no-unused-vars
 
-webpack compiled successfully
-No issues found.
-Compiling...
-Compiled successfully!
-webpack compiled successfully
-Files successfully emitted, waiting for typecheck results...
-Issues checking in progress...
+webpack compiled with 1 warning
 No issues found.
