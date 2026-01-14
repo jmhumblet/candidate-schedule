@@ -58,7 +58,7 @@ describe('Duration', () => {
       const duration1 = new Duration(1, 15);
       const duration2 = new Duration(0, 30);
       const result = duration1.plus(duration2);
-      
+
       expect(result.hours).toBe(1);
       expect(result.minutes).toBe(45);
     });
@@ -67,7 +67,7 @@ describe('Duration', () => {
       const duration1 = new Duration(1, 30);
       const duration2 = new Duration(0, 45);
       const result = duration1.plus(duration2);
-      
+
       expect(result.hours).toBe(2);
       expect(result.minutes).toBe(15);
     });
@@ -76,7 +76,7 @@ describe('Duration', () => {
       const duration1 = new Duration(2, 45);
       const duration2 = new Duration(1, 30);
       const result = duration1.plus(duration2);
-      
+
       expect(result.hours).toBe(4);
       expect(result.minutes).toBe(15);
     });
@@ -85,7 +85,7 @@ describe('Duration', () => {
       const duration1 = new Duration(1, 30);
       const duration2 = new Duration(0, 0);
       const result = duration1.plus(duration2);
-      
+
       expect(result.hours).toBe(1);
       expect(result.minutes).toBe(30);
     });
@@ -95,7 +95,7 @@ describe('Duration', () => {
     test('should halve even duration', () => {
       const duration = new Duration(2, 30);
       const result = duration.half();
-      
+
       expect(result.hours).toBe(1);
       expect(result.minutes).toBe(15);
     });
@@ -103,7 +103,7 @@ describe('Duration', () => {
     test('should halve odd minutes duration', () => {
       const duration = new Duration(1, 15);
       const result = duration.half();
-      
+
       expect(result.hours).toBe(0);
       expect(result.minutes).toBe(37.5);
     });
@@ -111,7 +111,7 @@ describe('Duration', () => {
     test('should halve duration with only hours', () => {
       const duration = new Duration(2, 0);
       const result = duration.half();
-      
+
       expect(result.hours).toBe(1);
       expect(result.minutes).toBe(0);
     });
@@ -119,7 +119,7 @@ describe('Duration', () => {
     test('should halve duration with only minutes', () => {
       const duration = new Duration(0, 30);
       const result = duration.half();
-      
+
       expect(result.hours).toBe(0);
       expect(result.minutes).toBe(15);
     });
@@ -127,7 +127,7 @@ describe('Duration', () => {
     test('should handle odd total minutes', () => {
       const duration = new Duration(0, 45);
       const result = duration.half();
-      
+
       expect(result.hours).toBe(0);
       expect(result.minutes).toBe(22.5);
     });
