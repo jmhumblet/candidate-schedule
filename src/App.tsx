@@ -10,6 +10,9 @@ import SessionSidebar from "./SessionSidebar";
 import { SessionService, SavedSession, JuryDayParametersModel } from "./domain/session";
 import { FaBars } from "react-icons/fa";
 import ThemeToggle from "./ThemeToggle";
+import EmailTemplateModal from "./EmailTemplateModal";
+import { loadTemplates } from "./domain/emailTemplates";
+import { InterviewSlot, Slot } from "./domain/interviewSlot";
 
 const App: React.FC = () => {
     const date = new Date();
@@ -21,6 +24,7 @@ const App: React.FC = () => {
 
     // Session Management State
     const [showSidebar, setShowSidebar] = useState<boolean>(false);
+    const [showEmailModal, setShowEmailModal] = useState<boolean>(false);
     const [sessions, setSessions] = useState<SavedSession[]>([]);
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
     const [initialParameters, setInitialParameters] = useState<JuryDayParametersModel | null>(null);
@@ -105,12 +109,86 @@ const App: React.FC = () => {
         }
     };
 
-    const formRef = useRef<HTMLFormElement | null>(null);
+    const replaceCommonPlaceholders = (text: string) => {
+        return text
+            .replace(/{jobTitle}/g, jobTitle)
+            .replace(/{juryDate}/g, juryDate);
+    };
 
-    const scheduleSlots = useMemo(() => {
-        if (!schedule) return [];
-        return [...schedule.generalSlots, ...schedule.candidateSchedules.flatMap(cs => cs.interviewSlots)];
-    }, [schedule]);
+    const handleSendCandidateEmail = (slot: InterviewSlot) => {
+        const templates = loadTemplates();
+        let subject = replaceCommonPlaceholders(templates.candidate.subject);
+        let body = replaceCommonPlaceholders(templates.candidate.body);
+
+        const replacements: Record<string, string> = {
+            '{candidateName}': slot.candidate.name,
+            '{startTime}': slot.timeSlot.startTime.toString(),
+            '{casusStart}': slot.casusStartTime.toString(),
+            '{correctionStart}': slot.correctionStartTime.toString(),
+            '{interviewStart}': slot.meetingStartTime.toString(),
+            '{debriefStart}': slot.debriefingStartTime.toString(),
+        };
+
+        Object.entries(replacements).forEach(([key, value]) => {
+            body = body.replace(new RegExp(key, 'g'), value);
+            subject = subject.replace(new RegExp(key, 'g'), value);
+        });
+
+        window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+    };
+
+    const handleSendJuryEmail = () => {
+        if (!schedule) return;
+        const templates = loadTemplates();
+        let subject = replaceCommonPlaceholders(templates.jury.subject);
+        let body = replaceCommonPlaceholders(templates.jury.body);
+
+        const sortedSlots = [...slots].sort((a, b) => {
+            if (a.timeSlot.startTime.hour !== b.timeSlot.startTime.hour) {
+                return a.timeSlot.startTime.hour - b.timeSlot.startTime.hour;
+            }
+            return a.timeSlot.startTime.minute - b.timeSlot.startTime.minute;
+        });
+
+        const scheduleString = sortedSlots.map(s => {
+            const time = s.timeSlot.startTime.toString();
+            let desc = "";
+            if (s instanceof InterviewSlot) desc = `Entretien: ${s.candidate.name}`;
+            else if (s.constructor.name === 'LunchSlot') desc = "Pause midi";
+            else if (s.constructor.name === 'JuryWelcomeSlot') desc = "Accueil Jury";
+            else if (s.constructor.name === 'FinalDebriefingSlot') desc = "Débriefing final";
+            return `${time} : ${desc}`;
+        }).join('\n');
+
+        body = body.replace(/{schedule}/g, scheduleString);
+
+        window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+    };
+
+    const handleSendWelcomeEmail = () => {
+         if (!schedule) return;
+        const templates = loadTemplates();
+        let subject = replaceCommonPlaceholders(templates.welcome.subject);
+        let body = replaceCommonPlaceholders(templates.welcome.body);
+
+        const interviews = slots.filter(s => s instanceof InterviewSlot) as InterviewSlot[];
+        const sortedInterviews = interviews.sort((a, b) => {
+            if (a.timeSlot.startTime.hour !== b.timeSlot.startTime.hour) {
+                return a.timeSlot.startTime.hour - b.timeSlot.startTime.hour;
+            }
+            return a.timeSlot.startTime.minute - b.timeSlot.startTime.minute;
+        });
+
+        const arrivalsString = sortedInterviews.map(s => {
+            return `${s.timeSlot.startTime.toString()} : ${s.candidate.name}`;
+        }).join('\n');
+
+        body = body.replace(/{arrivals}/g, arrivalsString);
+
+        window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+    }
+
+    const formRef = useRef<HTMLFormElement | null>(null);
 
     return (
         <div className="container mt-3 position-relative">
@@ -129,6 +207,12 @@ const App: React.FC = () => {
                 onLoadSession={handleLoadSession}
                 onDeleteSession={handleDeleteSession}
                 onNewSession={handleNewSession}
+                onManageEmails={() => setShowEmailModal(true)}
+            />
+
+            <EmailTemplateModal
+                show={showEmailModal}
+                onHide={() => setShowEmailModal(false)}
             />
 
             <div className="container">
@@ -167,6 +251,9 @@ const App: React.FC = () => {
                         date={juryDate}
                         confirmedCandidates={confirmedCandidates}
                         onConfirmCandidate={handleConfirmCandidate}
+                        onSendCandidateEmail={handleSendCandidateEmail}
+                        onSendJuryEmail={handleSendJuryEmail}
+                        onSendWelcomeEmail={handleSendWelcomeEmail}
                     />
                     <TimelineVisualization slots={slots} />
                 </>

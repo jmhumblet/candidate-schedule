@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FinalDebriefingSlot, InterviewSlot, JuryWelcomeSlot, LunchSlot, Slot } from "./domain/interviewSlot";
 import Time from "./domain/time"; // Import Time
-import { FaPause, FaUser, FaEdit, FaCopy, FaCheck } from 'react-icons/fa';
+import { FaPause, FaUser, FaEdit, FaCopy, FaCheck, FaEnvelope } from 'react-icons/fa';
 import Clipboard from 'react-clipboard.js';
 
 type ScheduleTableProps = {
@@ -9,6 +9,9 @@ type ScheduleTableProps = {
     date : string;
     confirmedCandidates: string[];
     onConfirmCandidate: (candidateName: string, isConfirmed: boolean) => void;
+    onSendCandidateEmail: (slot: InterviewSlot) => void;
+    onSendJuryEmail: () => void;
+    onSendWelcomeEmail: () => void;
 }
 
 // Helper function for time comparison
@@ -22,7 +25,15 @@ const getJurySortTime = (slot: Slot): Time => {
     return slot.timeSlot.startTime;
 };
 
-const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date, confirmedCandidates, onConfirmCandidate}) => {
+const ScheduleTable: React.FC<ScheduleTableProps> = ({
+    schedule,
+    date,
+    confirmedCandidates,
+    onConfirmCandidate,
+    onSendCandidateEmail,
+    onSendJuryEmail,
+    onSendWelcomeEmail
+}) => {
     const [isCopied, setIsCopied] = useState(false);
     let typedDate = new Date(date);
     date = typedDate.toLocaleDateString();
@@ -47,15 +58,21 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date,
 
     return (
 <div>
-    <div className="d-flex align-items-center mb-3">
+    <div className="d-flex align-items-center mb-3 flex-wrap gap-2">
         <Clipboard
             data-clipboard-target="#schedule-content"
-            className={`btn ${isCopied ? 'btn-success' : 'btn-outline-primary'} me-3`}
+            className={`btn ${isCopied ? 'btn-success' : 'btn-outline-primary'}`}
             onSuccess={handleCopySuccess}
             title="Copier l'horaire"
         >
             {isCopied ? <><FaCheck /> Copié !</> : <><FaCopy /> Copier</>}
         </Clipboard>
+        <button className="btn btn-outline-secondary" onClick={onSendJuryEmail}>
+            <FaEnvelope /> Email Jury
+        </button>
+        <button className="btn btn-outline-secondary" onClick={onSendWelcomeEmail}>
+            <FaEnvelope /> Email Accueil
+        </button>
     </div>
 
     <div id="schedule-content">
@@ -71,6 +88,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date,
                     <th>Entretien</th>
                     <th>Délibération</th>
                     <th>Confirmé ?</th>
+                    <th>Email</th>
                 </tr>
             </thead>
             <tbody>
@@ -81,6 +99,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date,
                         slot={slot}
                         isConfirmed={confirmedCandidates.includes(slot.candidate.name)}
                         onConfirm={(confirmed) => onConfirmCandidate(slot.candidate.name, confirmed)}
+                        onSendEmail={() => onSendCandidateEmail(slot)}
                     />;
                 } else if (slot instanceof LunchSlot) {
                     return <LunchSlotRow key={index} slot={slot} />;
@@ -96,9 +115,9 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date,
     </div>
 </div>
     )
-});
+}
 
-const InterviewSlotRow = ({ slot, isConfirmed, onConfirm }: { slot: InterviewSlot, isConfirmed: boolean, onConfirm: (confirmed: boolean) => void }) => (
+const InterviewSlotRow = ({ slot, isConfirmed, onConfirm, onSendEmail }: { slot: InterviewSlot, isConfirmed: boolean, onConfirm: (confirmed: boolean) => void, onSendEmail: () => void }) => (
     <tr>
         <td>{slot.candidate.name}</td>
         <td>{slot.timeSlot.startTime.toString()}</td>
@@ -113,12 +132,17 @@ const InterviewSlotRow = ({ slot, isConfirmed, onConfirm }: { slot: InterviewSlo
                 onChange={(e) => onConfirm(e.target.checked)}
             />
         </td>
+        <td>
+             <button className="btn btn-outline-secondary btn-sm" onClick={onSendEmail} title="Envoyer e-mail au candidat">
+                 <FaEnvelope />
+             </button>
+        </td>
     </tr>
 );
 
 const LunchSlotRow = ({ slot }: { slot: LunchSlot }) => (
     <tr>
-        <td colSpan={7} className="text-center">
+        <td colSpan={8} className="text-center">
             <FaPause /> <b>Pause midi ({slot.timeSlot.startTime.toString()} - {slot.timeSlot.endTime.toString()})</b>
         </td>
     </tr>
@@ -126,7 +150,7 @@ const LunchSlotRow = ({ slot }: { slot: LunchSlot }) => (
 
 const FinalDebriefingSlotRow = ({ slot }: { slot: FinalDebriefingSlot }) => (
     <tr>
-        <td colSpan={7} className="text-center">
+        <td colSpan={8} className="text-center">
             <FaEdit /> <b>Débriefing final ({slot.timeSlot.startTime.toString()} - {slot.timeSlot.endTime.toString()})</b>
         </td>
     </tr>
@@ -134,7 +158,7 @@ const FinalDebriefingSlotRow = ({ slot }: { slot: FinalDebriefingSlot }) => (
 
 const JuryWelcomeSlotRow = ({ slot }: { slot: JuryWelcomeSlot }) => (
     <tr>
-        <td colSpan={7} className="text-center">
+        <td colSpan={8} className="text-center">
             <FaUser /> <b>Accueil du jury ({slot.timeSlot.startTime.toString()} - {slot.timeSlot.endTime.toString()})</b>
         </td>
     </tr>
