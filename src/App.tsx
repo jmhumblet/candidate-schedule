@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import InterviewForm from "./InterviewForm";
 import SchedulingService from "./domain/schedulingService";
 import { JuryDayParameters } from "./domain/parameters";
@@ -48,6 +48,11 @@ const App: React.FC = () => {
         setSessions(SessionService.getSessions()); // Refresh list
         setCurrentSessionId(sessionToSave.id);
     }
+
+    const slots = useMemo(() => {
+        if (!schedule) return [];
+        return [...schedule.generalSlots, ...schedule.candidateSchedules.flatMap(cs => cs.interviewSlots)];
+    }, [schedule]);
 
     const handleLoadSession = (session: SavedSession) => {
         setCurrentSessionId(session.id);
@@ -100,7 +105,7 @@ const App: React.FC = () => {
         }
     };
 
-    const formRef = useRef<HTMLFormElement | null>(null);  
+    const formRef = useRef<HTMLFormElement | null>(null);
 
     return (
         <div className="container mt-3 position-relative">
@@ -153,12 +158,12 @@ const App: React.FC = () => {
             {schedule && (
                 <>
                     <ScheduleTable
-                        schedule={[...schedule.generalSlots, ...schedule.candidateSchedules.flatMap(cs => cs.interviewSlots)]}
+                        schedule={slots}
                         date={juryDate}
                         confirmedCandidates={confirmedCandidates}
                         onConfirmCandidate={handleConfirmCandidate}
                     />
-                    <TimelineVisualization slots={[...schedule.generalSlots, ...schedule.candidateSchedules.flatMap(cs => cs.interviewSlots)]} />
+                    <TimelineVisualization slots={slots} />
                 </>
             )}
 

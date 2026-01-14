@@ -13,6 +13,18 @@ code {
     monospace;
 }
 
+.btn-orange {
+  background-color: #fd7e14;
+  border-color: #fd7e14;
+  color: white;
+}
+
+.btn-orange:hover {
+  background-color: #e36802;
+  border-color: #e36802;
+  color: white;
+}
+
 [data-bs-theme='dark'] .btn-orange {
   background-color: #d96d12 !important;
   border-color: #d96d12 !important;

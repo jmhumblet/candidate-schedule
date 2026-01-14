@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { FinalDebriefingSlot, InterviewSlot, JuryWelcomeSlot, LunchSlot, Slot } from "./domain/interviewSlot";
 import Time from "./domain/time"; // Import Time
-import { FaPause, FaUser, FaEdit, FaCopy } from 'react-icons/fa';
+import { FaPause, FaUser, FaEdit, FaCopy, FaCheck } from 'react-icons/fa';
 import Clipboard from 'react-clipboard.js';
 
 type ScheduleTableProps = {
@@ -23,6 +23,7 @@ const getJurySortTime = (slot: Slot): Time => {
 };
 
 const ScheduleTable: React.FC<ScheduleTableProps> = ({schedule, date, confirmedCandidates, onConfirmCandidate}) => {
+    const [isCopied, setIsCopied] = useState(false);
     let typedDate = new Date(date);
     date = typedDate.toLocaleDateString();
 
@@ -33,13 +34,32 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({schedule, date, confirmedC
         return timeA - timeB;
     });
 
+    React.useEffect(() => {
+        if (isCopied) {
+            const timer = setTimeout(() => setIsCopied(false), 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [isCopied]);
+
+    const handleCopySuccess = () => {
+        setIsCopied(true);
+    };
+
     return (
 <div>
-    <div id="clippy-target">
-        <Clipboard component="h2"  data-clipboard-target="#clippy-target">
-            <FaCopy /> <span id="timetableTitle">Horaire du {date}</span>
+    <div className="d-flex align-items-center mb-3">
+        <Clipboard
+            data-clipboard-target="#schedule-content"
+            className={`btn ${isCopied ? 'btn-success' : 'btn-outline-primary'} me-3`}
+            onSuccess={handleCopySuccess}
+            title="Copier l'horaire"
+        >
+            {isCopied ? <><FaCheck /> Copié !</> : <><FaCopy /> Copier</>}
         </Clipboard>
+    </div>
 
+    <div id="schedule-content">
+        <h2>Horaire du {date}</h2>
 
         <table id="result" className="table table-striped table-hover text-center">
             <thead>
