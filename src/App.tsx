@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import InterviewForm from "./InterviewForm";
 import SchedulingService from "./domain/schedulingService";
 import { JuryDayParameters } from "./domain/parameters";
@@ -90,7 +90,7 @@ const App: React.FC = () => {
         setShowSidebar(false);
     };
 
-    const handleConfirmCandidate = (candidateName: string, isConfirmed: boolean) => {
+    const handleConfirmCandidate = useCallback((candidateName: string, isConfirmed: boolean) => {
         const newConfirmed = isConfirmed
             ? [...confirmedCandidates, candidateName]
             : confirmedCandidates.filter(c => c !== candidateName);
@@ -106,7 +106,7 @@ const App: React.FC = () => {
                 setSessions(SessionService.getSessions());
             }
         }
-    };
+    }, [confirmedCandidates, sessions, currentSessionId]);
 
     const formRef = useRef<HTMLFormElement | null>(null);
 
