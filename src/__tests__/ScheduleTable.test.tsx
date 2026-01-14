@@ -20,7 +20,7 @@ test('ScheduleTable renders and copy interaction', async () => {
     const slots = [new JuryWelcomeSlot(startTime)];
     const date = '2023-10-27';
 
-    render(<ScheduleTable schedule={slots} date={date} />);
+    render(<ScheduleTable schedule={slots} date={date} confirmedCandidates={[]} onConfirmCandidate={() => {}} />);
 
     // Verify title is present
     expect(screen.getByText(/Horaire du/)).toBeInTheDocument();

@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { FinalDebriefingSlot, InterviewSlot, JuryWelcomeSlot, LunchSlot, Slot } from "./domain/interviewSlot";
 import Time from "./domain/time"; // Import Time
-import { FaPause, FaUser, FaEdit, FaCopy, FaCheck } from 'react-icons/fa';
+import { FaPause, FaUser, FaEdit, FaCopy, FaCheck, FaEnvelope } from 'react-icons/fa';
 import Clipboard from 'react-clipboard.js';
+import { EmailTemplateService } from "./domain/EmailTemplates";
+import { Button } from "react-bootstrap";
 
 type ScheduleTableProps = {
     schedule : Slot[];
@@ -22,10 +24,10 @@ const getJurySortTime = (slot: Slot): Time => {
     return slot.timeSlot.startTime;
 };
 
-const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date, confirmedCandidates, onConfirmCandidate}) => {
+const ScheduleTable: React.FC<ScheduleTableProps> = ({schedule, date, confirmedCandidates, onConfirmCandidate}) => {
     const [isCopied, setIsCopied] = useState(false);
     let typedDate = new Date(date);
-    date = typedDate.toLocaleDateString('fr-FR');
+    date = typedDate.toLocaleDateString();
 
     // Sort the schedule by jury intervention time
     const sortedSchedule = [...schedule].sort((a, b) => {
@@ -71,6 +73,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date,
                     <th>Entretien</th>
                     <th>Délibération</th>
                     <th>Confirmé ?</th>
+                    <th>Email</th>
                 </tr>
             </thead>
             <tbody>
@@ -81,6 +84,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date,
                         slot={slot}
                         isConfirmed={confirmedCandidates.includes(slot.candidate.name)}
                         onConfirm={(confirmed) => onConfirmCandidate(slot.candidate.name, confirmed)}
+                        date={date}
                     />;
                 } else if (slot instanceof LunchSlot) {
                     return <LunchSlotRow key={index} slot={slot} />;
@@ -96,29 +100,42 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date,
     </div>
 </div>
     )
-});
+}
 
-const InterviewSlotRow = ({ slot, isConfirmed, onConfirm }: { slot: InterviewSlot, isConfirmed: boolean, onConfirm: (confirmed: boolean) => void }) => (
-    <tr>
-        <td>{slot.candidate.name}</td>
-        <td>{slot.timeSlot.startTime.toString()}</td>
-        <td>{slot.casusStartTime.toString()} - {slot.correctionStartTime.toString()}</td>
-        <td>{slot.correctionStartTime.toString()} - {slot.meetingStartTime.toString()}</td>
-        <td>{slot.meetingStartTime.toString()} - {slot.debriefingStartTime.toString()}</td>
-        <td>{slot.debriefingStartTime.toString()} - {slot.timeSlot.endTime.toString()}</td>
-        <td>
-            <input
-                type="checkbox"
-                checked={isConfirmed}
-                onChange={(e) => onConfirm(e.target.checked)}
-            />
-        </td>
-    </tr>
-);
+const InterviewSlotRow = ({ slot, isConfirmed, onConfirm, date }: { slot: InterviewSlot, isConfirmed: boolean, onConfirm: (confirmed: boolean) => void, date: string }) => {
+    const handleEmail = () => {
+        const templates = EmailTemplateService.getTemplates();
+        const link = EmailTemplateService.generateCandidateLink(templates.candidate, slot.candidate.name, date, slot);
+        window.location.href = link;
+    };
+
+    return (
+        <tr>
+            <td>{slot.candidate.name}</td>
+            <td>{slot.timeSlot.startTime.toString()}</td>
+            <td>{slot.casusStartTime.toString()} - {slot.correctionStartTime.toString()}</td>
+            <td>{slot.correctionStartTime.toString()} - {slot.meetingStartTime.toString()}</td>
+            <td>{slot.meetingStartTime.toString()} - {slot.debriefingStartTime.toString()}</td>
+            <td>{slot.debriefingStartTime.toString()} - {slot.timeSlot.endTime.toString()}</td>
+            <td>
+                <input
+                    type="checkbox"
+                    checked={isConfirmed}
+                    onChange={(e) => onConfirm(e.target.checked)}
+                />
+            </td>
+            <td>
+                <Button variant="outline-primary" size="sm" onClick={handleEmail} title="Envoyer email au candidat">
+                    <FaEnvelope />
+                </Button>
+            </td>
+        </tr>
+    );
+};
 
 const LunchSlotRow = ({ slot }: { slot: LunchSlot }) => (
     <tr>
-        <td colSpan={7} className="text-center">
+        <td colSpan={8} className="text-center">
             <FaPause /> <b>Pause midi ({slot.timeSlot.startTime.toString()} - {slot.timeSlot.endTime.toString()})</b>
         </td>
     </tr>
@@ -126,7 +143,7 @@ const LunchSlotRow = ({ slot }: { slot: LunchSlot }) => (
 
 const FinalDebriefingSlotRow = ({ slot }: { slot: FinalDebriefingSlot }) => (
     <tr>
-        <td colSpan={7} className="text-center">
+        <td colSpan={8} className="text-center">
             <FaEdit /> <b>Débriefing final ({slot.timeSlot.startTime.toString()} - {slot.timeSlot.endTime.toString()})</b>
         </td>
     </tr>
@@ -134,7 +151,7 @@ const FinalDebriefingSlotRow = ({ slot }: { slot: FinalDebriefingSlot }) => (
 
 const JuryWelcomeSlotRow = ({ slot }: { slot: JuryWelcomeSlot }) => (
     <tr>
-        <td colSpan={7} className="text-center">
+        <td colSpan={8} className="text-center">
             <FaUser /> <b>Accueil du jury ({slot.timeSlot.startTime.toString()} - {slot.timeSlot.endTime.toString()})</b>
         </td>
     </tr>

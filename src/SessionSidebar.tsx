@@ -10,6 +10,7 @@ interface SessionSidebarProps {
     onLoadSession: (session: SavedSession) => void;
     onDeleteSession: (id: string) => void;
     onNewSession: () => void;
+    onOpenTemplateEditor: () => void;
 }
 
 const SessionSidebar: React.FC<SessionSidebarProps> = ({
@@ -18,7 +19,8 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
     sessions,
     onLoadSession,
     onDeleteSession,
-    onNewSession
+    onNewSession,
+    onOpenTemplateEditor
 }) => {
     // Sort sessions by juryDate (descending)
     const sortedSessions = [...sessions].sort((a, b) => {
@@ -41,6 +43,9 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
                 <div className="d-grid gap-2 mb-3">
                     <Button variant="success" onClick={() => { onNewSession(); onHide(); }}>
                         + Nouvelle Session
+                    </Button>
+                    <Button variant="outline-secondary" onClick={() => { onOpenTemplateEditor(); onHide(); }}>
+                        Modèles d'emails
                     </Button>
                 </div>
                 <ListGroup>

@@ -25,6 +25,24 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock
 });
 
+// Mock crypto.randomUUID
+Object.defineProperty(global, 'crypto', {
+  value: {
+    randomUUID: () => 'test-uuid-' + Math.random()
+  }
+});
+
+// Mock matchMedia
+window.matchMedia = window.matchMedia || function() {
+  return {
+      matches: false,
+      addListener: function() {},
+      removeListener: function() {},
+      addEventListener: function() {},
+      removeEventListener: function() {},
+      dispatchEvent: function() { return false; },
+  };
+};
 
 describe('App Integration Test', () => {
   beforeEach(() => {

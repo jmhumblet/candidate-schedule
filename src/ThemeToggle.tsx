@@ -25,7 +25,7 @@ const ThemeToggle: React.FC = () => {
             variant="outline-secondary"
             onClick={toggleTheme}
             className="position-absolute top-0 end-0 m-3 d-flex align-items-center gap-2"
-            title={`Passer en mode ${theme === 'light' ? 'sombre' : 'clair'}`}
+            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
         >
             {theme === 'light' ? <FaMoon /> : <FaSun />}
             <span className="d-none d-sm-inline">
