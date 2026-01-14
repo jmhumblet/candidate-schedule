@@ -38,4 +38,8 @@ export default class Time {
         return `${this.hour.toLocaleString('fr-BE', {minimumIntegerDigits: 2, useGrouping:false})}h${this.minute.toLocaleString('fr-BE', {minimumIntegerDigits: 2, useGrouping:false})}`
     }
 
+    public toInputString() : string {
+        return `${this.hour.toLocaleString('fr-BE', {minimumIntegerDigits: 2, useGrouping:false})}:${this.minute.toLocaleString('fr-BE', {minimumIntegerDigits: 2, useGrouping:false})}`
+    }
+
 }

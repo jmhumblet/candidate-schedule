@@ -100,7 +100,7 @@ const getGlobalSlotSegmentClass = (slot: Slot): string => {
   return "unknown-segment";
 };
 
-const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ slots }) => {
+const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo(({ slots }) => {
   const [overallDayStartTime, setOverallDayStartTime] = useState<Time | null>(null);
   const [overallDayEndTime, setOverallDayEndTime] = useState<Time | null>(null);
   const [renderableItems, setRenderableItems] = useState<RenderableItem[]>([]);
@@ -304,6 +304,6 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ slots }) 
       })}
     </div>
   );
-};
+});
 
 export default TimelineVisualization;

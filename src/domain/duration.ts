@@ -26,6 +26,10 @@ class Duration {
     public toString(): string {
         return `${this.hours}h${this.minutes.toString().padStart(2, '0')}`;
     }
+
+    public toInputString() : string {
+        return `${this.hours.toLocaleString('fr-BE', {minimumIntegerDigits: 2, useGrouping:false})}:${this.minutes.toLocaleString('fr-BE', {minimumIntegerDigits: 2, useGrouping:false})}`
+    }
 }
 
 export default Duration

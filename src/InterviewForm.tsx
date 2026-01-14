@@ -5,11 +5,14 @@ import { FaClock, FaHourglassHalf } from 'react-icons/fa';
 import Time from './domain/time';
 import SchedulingService from './domain/schedulingService';
 
+import { JuryDayParametersModel } from './domain/session';
+
 type InterviewFormProps = {
     onSubmit: (parameters: JuryDayParameters) => void;
+    initialParameters?: JuryDayParametersModel | null;
 };
 
-const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit }) => {
+const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit, initialParameters }) => {
     const DEFAULT_CANDIDATE_COUNT: number = 5;
     // States to hold form data
     const date = new Date();
@@ -26,6 +29,49 @@ const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit }) => {
     const [lunchTargetTime, setLunchTargetTime] = useState<string>('12:45');
     const [lunchDuration, setLunchDuration] = useState<number>(30);
     const [finalDebriefingDuration, setFinalDebriefingDuration] = useState<number>(15);
+
+    const parseDurationToMinutes = (time: string): number => {
+        const [hours, minutes] = time.split(':').map(Number);
+        return hours * 60 + minutes;
+    };
+
+    useEffect(() => {
+        if (initialParameters) {
+            setJurorsStartTime(initialParameters.jurorsStartTime);
+            setWelcomeDuration(parseDurationToMinutes(initialParameters.interviewParameters.welcomeDuration));
+            setCasusDuration(parseDurationToMinutes(initialParameters.interviewParameters.casusDuration));
+            setCorrectionDuration(parseDurationToMinutes(initialParameters.interviewParameters.correctionDuration));
+            setInterviewDuration(parseDurationToMinutes(initialParameters.interviewParameters.interviewDuration));
+            setDebriefingDuration(parseDurationToMinutes(initialParameters.interviewParameters.debriefingDuration));
+            setLunchTargetTime(initialParameters.lunchTargetTime);
+            setLunchDuration(parseDurationToMinutes(initialParameters.lunchDuration));
+            setFinalDebriefingDuration(parseDurationToMinutes(initialParameters.finalDebriefingDuration));
+
+            // Reconstruct candidates input string
+            const candidatesStr = initialParameters.candidates.map(c => {
+                if (c.email) {
+                    return `${c.name}; ${c.email}`;
+                }
+                return c.name;
+            }).join('\n');
+
+            setCandidatesInput(candidatesStr);
+            setCandidatesCount(initialParameters.candidates.length);
+        } else {
+             // Reset to defaults if initialParameters is explicitly null (New Session)
+             setJurorsStartTime('09:00');
+             setWelcomeDuration(15);
+             setCasusDuration(60);
+             setCorrectionDuration(15);
+             setInterviewDuration(60);
+             setDebriefingDuration(15);
+             setLunchTargetTime('12:45');
+             setLunchDuration(30);
+             setFinalDebriefingDuration(15);
+             setCandidatesInput('');
+             setCandidatesCount(DEFAULT_CANDIDATE_COUNT);
+        }
+    }, [initialParameters]);
 
     const hasCandidatesNames = Boolean(candidatesInput.trim());
 

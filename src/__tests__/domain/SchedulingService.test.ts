@@ -5,10 +5,10 @@ import Time from '../../domain/time';
 
 describe('SchedulingService', () => {
   const createBasicParameters = (candidatesCount: number = 2): JuryDayParameters => {
-    const candidates = Array.from({ length: candidatesCount }, (_, index) => 
+    const candidates = Array.from({ length: candidatesCount }, (_, index) =>
       new Candidate(`Candidate ${index + 1}`, `candidate${index + 1}@example.com`)
     );
-    
+
     return new JuryDayParameters(
       candidates,
       new Time(9, 0), // jurorsStartTime
@@ -72,10 +72,10 @@ describe('SchedulingService', () => {
 
     test('should add lunch slot when appropriate', () => {
       // Create parameters that would trigger lunch
-      const candidates = Array.from({ length: 4 }, (_, index) => 
+      const candidates = Array.from({ length: 4 }, (_, index) =>
         new Candidate(`Candidate ${index + 1}`, `candidate${index + 1}@example.com`)
       );
-      
+
       const parameters = new JuryDayParameters(
         candidates,
         new Time(9, 0),
@@ -95,9 +95,9 @@ describe('SchedulingService', () => {
 
       // Should have Welcome, Lunch, and Final Debriefing slots
       expect(schedule.generalSlots.length).toBeGreaterThan(2);
-      
+
       // Check if there's a lunch slot
-      const hasLunchSlot = schedule.generalSlots.some(slot => 
+      const hasLunchSlot = schedule.generalSlots.some(slot =>
         slot.constructor.name === 'LunchSlot'
       );
       expect(hasLunchSlot).toBe(true);
@@ -108,7 +108,7 @@ describe('SchedulingService', () => {
       const schedule = SchedulingService.generateSchedule(parameters);
 
       expect(schedule.candidateSchedules).toHaveLength(2);
-      
+
       const firstCandidateSlot = schedule.candidateSchedules[0].interviewSlots[0];
       const secondCandidateSlot = schedule.candidateSchedules[1].interviewSlots[0];
 
@@ -145,7 +145,7 @@ describe('SchedulingService', () => {
       const schedule = SchedulingService.generateSchedule(parameters);
 
       expect(schedule.candidateSchedules).toHaveLength(5);
-      
+
       // Each candidate should have exactly one interview slot
       schedule.candidateSchedules.forEach((candidateSchedule, index) => {
         expect(candidateSchedule.interviewSlots).toHaveLength(1);
