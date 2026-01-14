@@ -88,14 +88,14 @@ describe('InterviewParameters', () => {
 describe('Candidate', () => {
   test('should create candidate with name and email', () => {
     const candidate = new Candidate('John Doe', 'john@example.com');
-    
+
     expect(candidate.name).toBe('John Doe');
     expect(candidate.email).toBe('john@example.com');
   });
 
   test('should create candidate with name and null email', () => {
     const candidate = new Candidate('Jane Smith', null);
-    
+
     expect(candidate.name).toBe('Jane Smith');
     expect(candidate.email).toBeNull();
   });

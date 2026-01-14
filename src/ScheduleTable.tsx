@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { FinalDebriefingSlot, InterviewSlot, JuryWelcomeSlot, LunchSlot, Slot } from "./domain/interviewSlot";
 import Time from "./domain/time"; // Import Time
-import { FaPause, FaUser, FaEdit, FaCopy } from 'react-icons/fa';
+import { FaPause, FaUser, FaEdit, FaCopy, FaCheck } from 'react-icons/fa';
 import Clipboard from 'react-clipboard.js';
 
 type ScheduleTableProps = {
     schedule : Slot[];
     date : string;
+    confirmedCandidates: string[];
+    onConfirmCandidate: (candidateName: string, isConfirmed: boolean) => void;
 }
 
 // Helper function for time comparison
@@ -20,7 +22,8 @@ const getJurySortTime = (slot: Slot): Time => {
     return slot.timeSlot.startTime;
 };
 
-const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date}) => {
+const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date, confirmedCandidates, onConfirmCandidate}) => {
+    const [isCopied, setIsCopied] = useState(false);
     let typedDate = new Date(date);
     date = typedDate.toLocaleDateString();
 
@@ -31,28 +34,54 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date}
         return timeA - timeB;
     });
 
+    React.useEffect(() => {
+        if (isCopied) {
+            const timer = setTimeout(() => setIsCopied(false), 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [isCopied]);
+
+    const handleCopySuccess = () => {
+        setIsCopied(true);
+    };
+
     return (
 <div>
-    <div id="clippy-target">
-        <Clipboard component="h2"  data-clipboard-target="#clippy-target">
-            <FaCopy /> <span id="timetableTitle">Horaire du {date}</span>
+    <div className="d-flex align-items-center mb-3">
+        <Clipboard
+            data-clipboard-target="#schedule-content"
+            className={`btn ${isCopied ? 'btn-success' : 'btn-outline-primary'} me-3`}
+            onSuccess={handleCopySuccess}
+            title="Copier l'horaire"
+        >
+            {isCopied ? <><FaCheck /> Copié !</> : <><FaCopy /> Copier</>}
         </Clipboard>
+    </div>
 
+    <div id="schedule-content">
+        <h2>Horaire du {date}</h2>
 
         <table id="result" className="table table-striped table-hover text-center">
             <thead>
-                <th>Candidat</th>
-                <th>Accueil candidat</th>
-                <th>Casus</th>
-                <th>Correction du casus</th>
-                <th>Entretien</th>
-                <th>Délibération</th>
-                <th>Confirmé ?</th>
+                <tr>
+                    <th>Candidat</th>
+                    <th>Accueil candidat</th>
+                    <th>Casus</th>
+                    <th>Correction du casus</th>
+                    <th>Entretien</th>
+                    <th>Délibération</th>
+                    <th>Confirmé ?</th>
+                </tr>
             </thead>
             <tbody>
             {sortedSchedule.map((slot, index) => {
                 if (slot instanceof InterviewSlot) {
-                    return <InterviewSlotRow key={index} slot={slot} />;
+                    return <InterviewSlotRow
+                        key={index}
+                        slot={slot}
+                        isConfirmed={confirmedCandidates.includes(slot.candidate.name)}
+                        onConfirm={(confirmed) => onConfirmCandidate(slot.candidate.name, confirmed)}
+                    />;
                 } else if (slot instanceof LunchSlot) {
                     return <LunchSlotRow key={index} slot={slot} />;
                 } else if (slot instanceof FinalDebriefingSlot) {
@@ -69,7 +98,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date}
     )
 });
 
-const InterviewSlotRow = ({ slot }: { slot: InterviewSlot }) => (
+const InterviewSlotRow = ({ slot, isConfirmed, onConfirm }: { slot: InterviewSlot, isConfirmed: boolean, onConfirm: (confirmed: boolean) => void }) => (
     <tr>
         <td>{slot.candidate.name}</td>
         <td>{slot.timeSlot.startTime.toString()}</td>
@@ -77,7 +106,13 @@ const InterviewSlotRow = ({ slot }: { slot: InterviewSlot }) => (
         <td>{slot.correctionStartTime.toString()} - {slot.meetingStartTime.toString()}</td>
         <td>{slot.meetingStartTime.toString()} - {slot.debriefingStartTime.toString()}</td>
         <td>{slot.debriefingStartTime.toString()} - {slot.timeSlot.endTime.toString()}</td>
-        <td></td>
+        <td>
+            <input
+                type="checkbox"
+                checked={isConfirmed}
+                onChange={(e) => onConfirm(e.target.checked)}
+            />
+        </td>
     </tr>
 );
 
