@@ -45,6 +45,7 @@ To operate with maximum efficiency and leverage your large context window ("Anti
 ## Coding Standards
 - **Framework:** React (Functional Components + Hooks).
 - **Language:** TypeScript. Strictly type all interfaces and props.
+- **Localization:** French. All user-facing text, labels, and date formats must be in French.
 - **Styling:** Bootstrap 5 (via `react-bootstrap`).
 - **Testing:** Jest + React Testing Library (Unit) / Playwright (Integration).
 - **Separation of Concerns:** Keep business logic in `src/domain` and UI logic in components.
