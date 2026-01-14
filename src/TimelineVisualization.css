@@ -1,4 +1,5 @@
 .timeline-container {
+  --timeline-label-width: 150px;
   margin: 20px;
   font-family: sans-serif;
   box-sizing: border-box;
@@ -15,8 +16,7 @@
 }
 
 .candidate-name {
-  width: 150px;
-  /* Fixed width */
+  width: var(--timeline-label-width);
   padding: 10px;
   /* Inner spacing */
   font-weight: bold;
@@ -85,7 +85,7 @@
   margin-bottom: 10px;
   box-sizing: border-box;
   overflow: hidden;
-  margin-left: 150px;
+  margin-left: var(--timeline-label-width);
   /* Align with the start of timeline-segments-container */
 }
 
@@ -140,7 +140,7 @@
 }
 
 .global-slot-name {
-  width: 150px;
+  width: var(--timeline-label-width);
   /* Match candidate-name width */
   padding: 10px;
   /* Match candidate-name padding for alignment */
