@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import InterviewForm from "./InterviewForm";
 import SchedulingService from "./domain/schedulingService";
 import { JuryDayParameters } from "./domain/parameters";
@@ -8,8 +8,10 @@ import TimelineVisualization from "./TimelineVisualization"; // Import the new c
 import { Button, Col, Form, Row } from "react-bootstrap";
 import SessionSidebar from "./SessionSidebar";
 import { SessionService, SavedSession, JuryDayParametersModel } from "./domain/session";
-import { FaBars } from "react-icons/fa";
+import { FaBars, FaEnvelope } from "react-icons/fa";
 import ThemeToggle from "./ThemeToggle";
+import EmailTemplateEditor from "./EmailTemplateEditor";
+import { EmailTemplateService } from "./domain/EmailTemplates";
 
 const App: React.FC = () => {
     const date = new Date();
@@ -25,6 +27,7 @@ const App: React.FC = () => {
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
     const [initialParameters, setInitialParameters] = useState<JuryDayParametersModel | null>(null);
     const [confirmedCandidates, setConfirmedCandidates] = useState<string[]>([]);
+    const [showTemplateEditor, setShowTemplateEditor] = useState<boolean>(false);
 
     useEffect(() => {
         setSessions(SessionService.getSessions());
@@ -87,7 +90,7 @@ const App: React.FC = () => {
         setShowSidebar(false);
     };
 
-    const handleConfirmCandidate = useCallback((candidateName: string, isConfirmed: boolean) => {
+    const handleConfirmCandidate = (candidateName: string, isConfirmed: boolean) => {
         const newConfirmed = isConfirmed
             ? [...confirmedCandidates, candidateName]
             : confirmedCandidates.filter(c => c !== candidateName);
@@ -103,9 +106,25 @@ const App: React.FC = () => {
                 setSessions(SessionService.getSessions());
             }
         }
-    }, [confirmedCandidates, sessions, currentSessionId]);
+    };
 
     const formRef = useRef<HTMLFormElement | null>(null);
+
+    const handleSendJuryEmail = () => {
+        if (!slots.length) return;
+        const templates = EmailTemplateService.getTemplates();
+        const formattedDate = new Date(juryDate).toLocaleDateString('fr-FR');
+        const link = EmailTemplateService.generateJuryLink(templates.jury, formattedDate, slots);
+        window.location.href = link;
+    };
+
+    const handleSendWelcomeEmail = () => {
+         if (!slots.length) return;
+        const templates = EmailTemplateService.getTemplates();
+        const formattedDate = new Date(juryDate).toLocaleDateString('fr-FR');
+        const link = EmailTemplateService.generateWelcomeLink(templates.welcome, formattedDate, slots);
+        window.location.href = link;
+    };
 
     return (
         <div className="container mt-3 position-relative">
@@ -124,6 +143,12 @@ const App: React.FC = () => {
                 onLoadSession={handleLoadSession}
                 onDeleteSession={handleDeleteSession}
                 onNewSession={handleNewSession}
+                onOpenTemplateEditor={() => setShowTemplateEditor(true)}
+            />
+
+            <EmailTemplateEditor
+                show={showTemplateEditor}
+                onHide={() => setShowTemplateEditor(false)}
             />
 
             <div className="container">
@@ -157,6 +182,16 @@ const App: React.FC = () => {
 
             {schedule && (
                 <>
+                    <div className="d-flex justify-content-end mb-2 gap-2">
+                        <Button variant="outline-primary" onClick={handleSendJuryEmail}>
+                            <FaEnvelope className="me-2" />
+                            Email Jury
+                        </Button>
+                        <Button variant="outline-primary" onClick={handleSendWelcomeEmail}>
+                            <FaEnvelope className="me-2" />
+                            Email Accueil
+                        </Button>
+                    </div>
                     <ScheduleTable
                         schedule={slots}
                         date={juryDate}
