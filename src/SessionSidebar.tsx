@@ -1,5 +1,5 @@
 import React from 'react';
-import { Offcanvas, Button, ListGroup } from 'react-bootstrap';
+import { Offcanvas, Button, ListGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { SavedSession } from './domain/session';
 import { FaTrash } from 'react-icons/fa';
 
@@ -57,16 +57,19 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
                                 <div className="fw-bold">{session.jobTitle || "Sans titre"}</div>
                                 <small>{session.juryDate}</small>
                             </div>
-                            <Button
-                                variant="outline-danger"
-                                size="sm"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onDeleteSession(session.id);
-                                }}
-                            >
-                                <FaTrash />
-                            </Button>
+                            <OverlayTrigger overlay={<Tooltip>Supprimer la session</Tooltip>}>
+                                <Button
+                                    variant="outline-danger"
+                                    size="sm"
+                                    aria-label="Supprimer la session"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onDeleteSession(session.id);
+                                    }}
+                                >
+                                    <FaTrash />
+                                </Button>
+                            </OverlayTrigger>
                         </ListGroup.Item>
                     ))}
                     {sortedSessions.length === 0 && (
