@@ -1,18 +1,13 @@
 .sidebar-container {
-    background-color: #0d1117; /* Dark GitHub-like background */
-    color: #c9d1d9;
+    background-color: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
     height: 100%;
     display: flex;
     flex-direction: column;
-    border-right: 1px solid #30363d;
+    border-right: 1px solid var(--bs-border-color);
     position: relative;
-    transition: width 0.05s ease-out; /* Slightly faster for resizing */
+    transition: width 0.05s ease-out;
     overflow: hidden;
-}
-
-/* Ensure text is white/light regardless of global theme */
-.sidebar-container, .sidebar-container .btn, .sidebar-container .form-control {
-   color-scheme: dark;
 }
 
 .sidebar-header {
@@ -33,10 +28,10 @@
 
 .sidebar-footer {
     padding: 16px;
-    border-top: 1px solid #30363d;
+    border-top: 1px solid var(--bs-border-color);
     font-size: 0.9em;
     flex-shrink: 0;
-    background-color: #0d1117;
+    background-color: var(--bs-tertiary-bg);
 }
 
 .resize-handle {
@@ -51,7 +46,7 @@
 }
 
 .resize-handle:hover, .resize-handle:active {
-    background-color: #58a6ff;
+    background-color: var(--bs-primary);
 }
 
 /* Sidebar items */
@@ -59,7 +54,7 @@
     padding: 8px 16px;
     font-size: 0.8em;
     text-transform: uppercase;
-    color: #8b949e;
+    color: var(--bs-secondary-color);
     font-weight: 600;
     display: flex;
     justify-content: space-between;
@@ -72,20 +67,20 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    color: #c9d1d9;
+    color: var(--bs-body-color);
     text-decoration: none;
     transition: background-color 0.2s;
     user-select: none;
 }
 
 .sidebar-item:hover {
-    background-color: #161b22;
-    color: #58a6ff;
+    background-color: var(--bs-secondary-bg);
+    color: var(--bs-primary);
 }
 
 .sidebar-item.active {
-    border-left: 2px solid #58a6ff;
-    background-color: #161b22;
+    border-left: 2px solid var(--bs-primary);
+    background-color: var(--bs-secondary-bg);
 }
 
 .sidebar-search {
@@ -94,9 +89,9 @@
 }
 
 .sidebar-search input {
-    background-color: #010409;
-    border: 1px solid #30363d;
-    color: #c9d1d9;
+    background-color: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    color: var(--bs-body-color);
     border-radius: 6px;
     padding: 6px 12px;
     width: 100%;
@@ -105,8 +100,8 @@
 
 .sidebar-search input:focus {
     outline: none;
-    border-color: #58a6ff;
-    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.25);
 }
 
 .collapsed-sidebar {
@@ -129,10 +124,10 @@
 }
 
 .sidebar-content::-webkit-scrollbar-thumb {
-    background-color: #30363d;
+    background-color: var(--bs-border-color);
     border-radius: 4px;
 }
 
 .sidebar-content::-webkit-scrollbar-thumb:hover {
-    background-color: #58a6ff;
+    background-color: var(--bs-secondary);
 }
