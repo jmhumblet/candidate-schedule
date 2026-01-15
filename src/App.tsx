@@ -33,7 +33,7 @@ const App: React.FC = () => {
         setSessions(SessionService.getSessions());
     }, []);
 
-    const handleFormSubmit = (parameters: JuryDayParameters) => {
+    const handleFormSubmit = useCallback((parameters: JuryDayParameters) => {
         const newStructuredSchedule = SchedulingService.generateSchedule(parameters);
         setSchedule(newStructuredSchedule);
 
@@ -50,7 +50,7 @@ const App: React.FC = () => {
         SessionService.saveSession(sessionToSave);
         setSessions(SessionService.getSessions()); // Refresh list
         setCurrentSessionId(sessionToSave.id);
-    }
+    }, [currentSessionId, juryDate, jobTitle, confirmedCandidates]);
 
     const slots = useMemo(() => {
         if (!schedule) return [];
