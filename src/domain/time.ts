@@ -35,7 +35,7 @@ export default class Time {
     }
 
     public toString() : string {
-        return `${this.hour.toLocaleString('fr-BE', {minimumIntegerDigits: 2, useGrouping:false})}h${this.minute.toLocaleString('fr-BE', {minimumIntegerDigits: 2, useGrouping:false})}`
+        return `${this.hour.toString().padStart(2, '0')}h${this.minute.toString().padStart(2, '0')}`
     }
 
     public toInputString() : string {
