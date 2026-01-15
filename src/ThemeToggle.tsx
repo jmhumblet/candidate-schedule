@@ -8,6 +8,8 @@ interface ThemeToggleProps {
     showLabel?: boolean;
 }
 
+const getSystemTheme = () => window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
 const ThemeToggle: React.FC<ThemeToggleProps> = ({
     className = "position-absolute top-0 end-0 m-3 d-flex align-items-center gap-2",
     variant = "outline-secondary",
@@ -18,16 +20,29 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
         if (savedTheme === 'light' || savedTheme === 'dark') {
             return savedTheme;
         }
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        return getSystemTheme();
     });
 
     useEffect(() => {
         document.documentElement.setAttribute('data-bs-theme', theme);
-        localStorage.setItem('theme', theme);
     }, [theme]);
 
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleChange = () => {
+             // Only update from system if no user preference is stored
+             if (!localStorage.getItem('theme')) {
+                 setTheme(mediaQuery.matches ? 'dark' : 'light');
+             }
+        };
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
+    }, []);
+
     const toggleTheme = () => {
-        setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+        const newTheme = theme === 'light' ? 'dark' : 'light';
+        setTheme(newTheme);
+        localStorage.setItem('theme', newTheme);
     };
 
     return (
@@ -37,6 +52,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
             className={className}
             title={`Passer en mode ${theme === 'light' ? 'sombre' : 'clair'}`}
             size="sm"
+            aria-label={theme === 'light' ? 'Activer le mode sombre' : 'Activer le mode clair'}
         >
             {theme === 'light' ? <FaMoon /> : <FaSun />}
             {showLabel && (
