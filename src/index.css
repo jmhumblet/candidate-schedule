@@ -1,59 +1,138 @@
+:root {
+  /* Semantic Colors - Light Mode (Default) */
+  --bg-body: #f8f9fa;
+  --bg-surface: #ffffff;
+  --bg-surface-secondary: #e9ecef;
+
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --text-inverse: #ffffff;
+
+  --border-color: #dee2e6;
+  --border-color-subtle: #e9ecef;
+
+  /* Brand / Accent */
+  --accent-primary: #fd7e14;
+  --accent-primary-hover: #e36802;
+  --accent-primary-rgb: 253, 126, 20;
+
+  /* Status / Context Colors */
+  --status-info-bg: #e7f1ff;
+  --status-info-text: #0c63e4;
+  --status-warning-bg: #fff3e0;
+  --status-warning-text: #ef6c00;
+  --status-neutral-bg: #f8f9fa;
+  --status-neutral-text: #6c757d;
+
+  /* Timeline Colors */
+  --timeline-dark: #345B63;
+  --timeline-neutral: #D4B996;
+  --timeline-light: #A2D5F2;
+  --timeline-light-text: #333333;
+  --timeline-welcome: #90EE90;
+  --timeline-welcome-text: #333333;
+
+  /* Spacing (8-point grid) */
+  --space-0_5: 0.25rem; /* 4px */
+  --space-1: 0.5rem;    /* 8px */
+  --space-2: 1rem;      /* 16px */
+  --space-3: 1.5rem;    /* 24px */
+  --space-4: 2rem;      /* 32px */
+  --space-6: 3rem;      /* 48px */
+  --space-8: 4rem;      /* 64px */
+
+  /* Typography (Fluid) */
+  --font-xs: clamp(0.75rem, 1vw + 0.5rem, 0.8rem);
+  --font-sm: clamp(0.8rem, 1vw + 0.5rem, 0.9rem);
+  --font-base: clamp(1rem, 1vw + 0.5rem, 1.1rem);
+  --font-lg: clamp(1.25rem, 2vw + 0.5rem, 1.5rem);
+  --font-xl: clamp(1.5rem, 3vw + 0.5rem, 2rem);
+}
+
+[data-bs-theme='dark'] {
+  /* Semantic Colors - Dark Mode */
+  --bg-body: #212529;
+  --bg-surface: #2b3035;
+  --bg-surface-secondary: #343a40;
+
+  --text-primary: #f8f9fa;
+  --text-secondary: #adb5bd;
+  --text-inverse: #ffffff;
+
+  --border-color: #495057;
+  --border-color-subtle: #343a40;
+
+  /* Brand / Accent */
+  --accent-primary: #d96d12;
+  --accent-primary-hover: #bf5f0f;
+  --accent-primary-rgb: 217, 109, 18;
+
+  /* Status / Context Colors - Adjusted for Dark Mode */
+  --status-info-bg: #0c2e5e;
+  --status-info-text: #6ea8fe;
+  --status-warning-bg: #4d2c00;
+  --status-warning-text: #feb272;
+  --status-neutral-bg: #343a40;
+  --status-neutral-text: #adb5bd;
+
+  /* Timeline Colors - Adjusted */
+  --timeline-welcome: #1a6d1a;
+  --timeline-welcome-text: #ffffff;
+  --timeline-light: #5ba8d4;
+  --timeline-light-text: #000000;
+}
+
 body {
   margin: 0;
+  background-color: var(--bg-body);
+  color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-size: var(--font-base);
 }
-
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
 
+/* Component Overrides using Semantic Variables */
+
 .btn-orange {
-  background-color: #fd7e14;
-  border-color: #fd7e14;
-  color: white;
+  background-color: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: var(--text-inverse) !important;
 }
 
-.btn-orange:hover {
-  background-color: #e36802;
-  border-color: #e36802;
-  color: white;
-}
-
-[data-bs-theme='dark'] .btn-orange {
-  background-color: #d96d12 !important;
-  border-color: #d96d12 !important;
-}
-
-[data-bs-theme='dark'] .btn-orange:hover {
-  background-color: #bf5f0f !important;
+.btn-orange:hover, .btn-orange:focus, .btn-orange:active {
+  background-color: var(--accent-primary-hover) !important;
+  border-color: var(--accent-primary-hover) !important;
+  color: var(--text-inverse) !important;
 }
 
 .input-group-text-time {
-  background-color: #e7f1ff !important;
-  color: #0c63e4 !important;
+  background-color: var(--status-info-bg) !important;
+  color: var(--status-info-text) !important;
   font-weight: 600;
   min-width: 100px;
 }
 
 .input-group-text-duration {
-  background-color: #fff3e0 !important;
-  color: #ef6c00 !important;
+  background-color: var(--status-warning-bg) !important;
+  color: var(--status-warning-text) !important;
   font-weight: 600;
   min-width: 100px;
 }
 
 .input-group-text-format {
-  background-color: #f8f9fa !important;
-  color: #6c757d !important;
+  background-color: var(--status-neutral-bg) !important;
+  color: var(--status-neutral-text) !important;
   font-size: 0.85rem;
 }
 
 .indicator-icon {
-  margin-right: 8px;
+  margin-right: var(--space-1);
 }
