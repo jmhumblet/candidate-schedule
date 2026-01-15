@@ -135,12 +135,16 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo((
         }
         const candidateData = interviewSlotsByCandidate.get(candidateName)!;
         candidateData.interviewSlots.push(slot);
-        // Ensure interviewSlots for a candidate are sorted by start time (overall slot start)
-        candidateData.interviewSlots.sort((a,b) => timeToMinutes(a.timeSlot.startTime) - timeToMinutes(b.timeSlot.startTime));
 
       } else if (slot instanceof LunchSlot || slot instanceof FinalDebriefingSlot || slot instanceof JuryWelcomeSlot) {
         globalSlotInputs.push(slot);
       }
+    });
+
+    // Ensure interviewSlots for each candidate are sorted by start time (overall slot start)
+    // Optimization: Sort once after all slots are collected, instead of after every insertion.
+    interviewSlotsByCandidate.forEach(candidateData => {
+      candidateData.interviewSlots.sort((a,b) => timeToMinutes(a.timeSlot.startTime) - timeToMinutes(b.timeSlot.startTime));
     });
 
     const candidateRenderItems: RenderableCandidateSchedule[] = Array.from(interviewSlotsByCandidate.values())
