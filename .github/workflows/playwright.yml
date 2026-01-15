@@ -18,6 +18,8 @@ jobs:
       run: npm ci
     - name: Build
       run: npm run build
+      env:
+        PUBLIC_URL: /
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
     - name: Run Playwright tests
