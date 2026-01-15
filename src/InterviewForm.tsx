@@ -404,4 +404,4 @@ const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit, initialParamete
     );
 };
 
-export default InterviewForm;
+export default React.memo(InterviewForm);
