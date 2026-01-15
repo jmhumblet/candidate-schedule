@@ -1,31 +1,78 @@
-import React from 'react';
-import { Offcanvas, Button, ListGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import React, { useState, useEffect, useRef } from 'react';
+import { OverlayTrigger, Tooltip, Button } from 'react-bootstrap';
 import { SavedSession } from './domain/session';
-import { FaTrash } from 'react-icons/fa';
+import { FaTrash, FaBook, FaDiscord, FaGithub, FaChevronRight, FaPlus, FaColumns, FaEnvelope } from 'react-icons/fa';
+import Logo from './Logo';
+import ThemeToggle from './ThemeToggle';
+import './Sidebar.css';
 
 interface SessionSidebarProps {
-    show: boolean;
-    onHide: () => void;
     sessions: SavedSession[];
     onLoadSession: (session: SavedSession) => void;
     onDeleteSession: (id: string) => void;
     onNewSession: () => void;
     onOpenTemplateEditor: () => void;
+
+    // Layout props
+    width: number;
+    setWidth: (width: number) => void;
+    collapsed: boolean;
+    setCollapsed: (collapsed: boolean) => void;
 }
 
 const SessionSidebar: React.FC<SessionSidebarProps> = ({
-    show,
-    onHide,
     sessions,
     onLoadSession,
     onDeleteSession,
     onNewSession,
-    onOpenTemplateEditor
+    onOpenTemplateEditor,
+    width,
+    setWidth,
+    collapsed,
+    setCollapsed
 }) => {
-    // Sort sessions by juryDate (descending)
+    const [searchTerm, setSearchTerm] = useState('');
+
+    // Resize logic
+    const isResizing = useRef(false);
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (isResizing.current) {
+                const newWidth = Math.max(200, Math.min(600, e.clientX)); // Min 200, Max 600
+                setWidth(newWidth);
+            }
+        };
+
+        const handleMouseUp = () => {
+            isResizing.current = false;
+            document.body.style.cursor = 'default';
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [setWidth]);
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        isResizing.current = true;
+        document.body.style.cursor = 'col-resize';
+        e.preventDefault();
+    };
+
+    // Filter sessions
     const sortedSessions = [...sessions].sort((a, b) => {
         return new Date(b.juryDate).getTime() - new Date(a.juryDate).getTime();
     });
+
+    const filteredSessions = sortedSessions.filter(s =>
+        (s.jobTitle?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        s.juryDate.includes(searchTerm)
+    );
 
     const isPast = (dateStr: string) => {
         const today = new Date();
@@ -34,57 +81,128 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
         return date < today;
     };
 
-    return (
-        <Offcanvas show={show} onHide={onHide}>
-            <Offcanvas.Header closeButton>
-                <Offcanvas.Title>Sessions Sauvegardées</Offcanvas.Title>
-            </Offcanvas.Header>
-            <Offcanvas.Body>
-                <div className="d-grid gap-2 mb-3">
-                    <Button variant="success" onClick={() => { onNewSession(); onHide(); }}>
-                        + Nouvelle Session
+    if (collapsed) {
+        return (
+            <div className="sidebar-container collapsed-sidebar" style={{ width: 60 }}>
+                <div className="d-flex flex-column align-items-center gap-3 w-100">
+                     <Button variant="link" className="p-0 text-secondary mb-2" onClick={() => setCollapsed(false)} title="Expand Sidebar" aria-label="Expand Sidebar">
+                        <FaChevronRight size={20} />
                     </Button>
-                    <Button variant="outline-secondary" onClick={() => { onOpenTemplateEditor(); onHide(); }}>
-                        Modèles d'emails
+
+                    <div style={{ width: '24px', overflow: 'hidden', height: '24px' }} title="Jules">
+                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-light">
+                            <path d="M12 2C7.58 2 4 5.58 4 10V14H6V10C6 6.69 8.69 4 12 4C15.31 4 18 6.69 18 10V15H20V10C20 5.58 16.42 2 12 2Z" fill="currentColor"/>
+                            <path d="M6 16C4.9 16 4 16.9 4 18C4 19.1 4.9 20 6 20C7.1 20 8 19.1 8 18C8 16.9 7.1 16 6 16Z" fill="currentColor"/>
+                            <path d="M12 16C10.9 16 10 16.9 10 18C10 19.1 10.9 20 12 20C13.1 20 14 19.1 14 18C14 16.9 13.1 16 12 16Z" fill="currentColor"/>
+                            <path d="M18 16C16.9 16 16 16.9 16 18C16 19.1 16.9 20 18 20C19.1 20 20 19.1 20 18C20 16.9 19.1 16 18 16Z" fill="currentColor"/>
+                        </svg>
+                    </div>
+
+                    <OverlayTrigger placement="right" overlay={<Tooltip>Nouvelle Session</Tooltip>}>
+                        <Button variant="primary" size="sm" onClick={onNewSession} className="rounded-circle p-2 d-flex justify-content-center align-items-center" style={{ width: 32, height: 32 }} aria-label="Nouvelle Session">
+                            <FaPlus size={12} />
+                        </Button>
+                    </OverlayTrigger>
+
+                    <OverlayTrigger placement="right" overlay={<Tooltip>Modèles d'emails</Tooltip>}>
+                        <Button variant="link" className="text-secondary p-0" onClick={onOpenTemplateEditor} aria-label="Modèles d'emails">
+                            <FaEnvelope size={20} />
+                        </Button>
+                    </OverlayTrigger>
+
+                    <div className="mt-auto pb-3 d-flex flex-column gap-3 align-items-center">
+                         <ThemeToggle className="btn btn-link text-secondary p-0 border-0" showLabel={false} variant="link" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="sidebar-container" style={{ width }}>
+            <div className="resize-handle" onMouseDown={handleMouseDown} />
+
+            <div className="sidebar-header">
+                <Logo />
+                <div className="d-flex gap-2 align-items-center">
+                    <ThemeToggle className="btn btn-sm btn-link text-secondary p-1 border-0" showLabel={false} variant="link"/>
+                    <Button variant="link" size="sm" className="text-secondary p-1" onClick={() => setCollapsed(true)} title="Collapse Sidebar" aria-label="Collapse Sidebar">
+                        <FaColumns />
                     </Button>
                 </div>
-                <ListGroup>
-                    {sortedSessions.map(session => (
-                        <ListGroup.Item
-                            key={session.id}
-                            as="div"
-                            action
-                            onClick={() => onLoadSession(session)}
-                            className="d-flex justify-content-between align-items-center"
-                            style={{ backgroundColor: isPast(session.juryDate) ? '#ffe6e6' : 'inherit', cursor: 'pointer' }}
-                        >
-                            <div>
-                                <div className="fw-bold">{session.jobTitle || "Sans titre"}</div>
-                                <small>{session.juryDate}</small>
-                            </div>
-                            <OverlayTrigger overlay={<Tooltip>Supprimer la session</Tooltip>}>
-                                <Button
-                                    variant="outline-danger"
-                                    size="sm"
-                                    aria-label="Supprimer la session"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onDeleteSession(session.id);
-                                    }}
-                                >
-                                    <FaTrash />
-                                </Button>
-                            </OverlayTrigger>
-                        </ListGroup.Item>
-                    ))}
-                    {sortedSessions.length === 0 && (
-                        <div className="text-center text-muted mt-3">
-                            Aucune session sauvegardée.
+            </div>
+
+            <div className="sidebar-search">
+                <div className="position-relative">
+                    <input
+                        type="text"
+                        placeholder="Rechercher..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+            </div>
+
+            <div className="sidebar-content">
+                <div className="d-flex justify-content-between align-items-center px-3 mb-2">
+                     <span className="sidebar-section-title px-0">Sessions Récentes</span>
+                     <OverlayTrigger overlay={<Tooltip>Nouvelle Session</Tooltip>}>
+                        <Button variant="link" size="sm" className="p-0 text-primary" onClick={onNewSession} aria-label="Nouvelle Session">
+                            <FaPlus />
+                        </Button>
+                     </OverlayTrigger>
+                </div>
+
+                {filteredSessions.map(session => (
+                    <div
+                        key={session.id}
+                        className={`sidebar-item ${isPast(session.juryDate) ? 'text-muted' : ''}`}
+                        onClick={() => onLoadSession(session)}
+                    >
+                        <div className="text-truncate me-2" style={{ maxWidth: '80%' }}>
+                            <div className="fw-bold text-truncate" style={{ fontSize: '0.9em' }}>{session.jobTitle || "Sans titre"}</div>
+                            <div style={{ fontSize: '0.75em', opacity: 0.7 }}>{session.juryDate}</div>
                         </div>
-                    )}
-                </ListGroup>
-            </Offcanvas.Body>
-        </Offcanvas>
+                         <OverlayTrigger overlay={<Tooltip>Supprimer</Tooltip>}>
+                            <div
+                                className="text-secondary p-1 rounded hover-bg-dark"
+                                role="button"
+                                aria-label="Supprimer"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDeleteSession(session.id);
+                                }}
+                            >
+                                <FaTrash size={12} />
+                            </div>
+                        </OverlayTrigger>
+                    </div>
+                ))}
+
+                {filteredSessions.length === 0 && (
+                    <div className="px-3 text-muted" style={{ fontSize: '0.8em' }}>Aucune session trouvée.</div>
+                )}
+
+                <div className="mt-4 px-3">
+                     <div className="sidebar-section-title px-0 mb-2">Outils</div>
+                     <div className="sidebar-item" onClick={onOpenTemplateEditor} role="button" aria-label="Modèles d'emails">
+                        <span className="d-flex align-items-center gap-2">
+                             <FaEnvelope size={14} /> Modèles d'emails
+                        </span>
+                     </div>
+                </div>
+            </div>
+
+            <div className="sidebar-footer">
+                <div className="d-flex justify-content-between text-secondary">
+                    <div className="d-flex gap-3">
+                        <span className="d-flex align-items-center gap-1" style={{ cursor: 'pointer' }}><FaBook /> Docs</span>
+                        <span className="d-flex align-items-center gap-1" style={{ cursor: 'pointer' }}><FaDiscord /></span>
+                        <span className="d-flex align-items-center gap-1" style={{ cursor: 'pointer' }}><FaGithub /></span>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 
