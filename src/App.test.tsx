@@ -29,7 +29,6 @@ Object.defineProperty(window, 'localStorage', {
 describe('App Integration Test', () => {
   beforeEach(() => {
     localStorage.clear();
-    // Reset any singleton state if necessary (SessionService is stateless besides localStorage access)
   });
 
   test('Complete flow: Create, Save, Load, Confirm, Delete', async () => {
@@ -62,10 +61,6 @@ describe('App Integration Test', () => {
     expect(sessions[0].juryDate).toBe(futureDateStr);
 
     // 5. Confirm a candidate
-    // Find the first checkbox in the table
-    // The first checkboxes might be something else, let's look for the one in the table row
-    // Candidate names are '1', '2', '3', '4'.
-    // Use getAllByText in case '1' appears elsewhere, and find the one inside a table cell or row
     const candidateCells = screen.getAllByRole('cell', { name: '1' });
     const row = candidateCells[0].closest('tr');
     const checkbox = within(row!).getByRole('checkbox');
@@ -78,12 +73,9 @@ describe('App Integration Test', () => {
     expect(sessions[0].confirmedCandidates).toContain('1');
 
     // 6. Simulate "New Session"
-    // Open Sidebar
-    const sidebarBtn = document.querySelector('.btn-light'); // The hamburger button
-    fireEvent.click(sidebarBtn!);
-
-    // Wait for sidebar to be visible (Offcanvas animation)
-    const newSessionBtn = await screen.findByText('+ Nouvelle Session');
+    // Sidebar is always visible.
+    const newSessionBtns = screen.getAllByLabelText('Nouvelle Session');
+    const newSessionBtn = newSessionBtns[0];
     fireEvent.click(newSessionBtn);
 
     // Form should be reset
@@ -91,7 +83,6 @@ describe('App Integration Test', () => {
     expect(screen.queryByText(/Horaire du/)).not.toBeInTheDocument();
 
     // 7. Load the saved session
-    fireEvent.click(sidebarBtn!); // Open sidebar again
     const sessionItem = await screen.findByText('Software Engineer');
     fireEvent.click(sessionItem);
 
@@ -100,33 +91,25 @@ describe('App Integration Test', () => {
     expect(screen.getByLabelText('Date du jury')).toHaveValue(futureDateStr);
 
     // Check confirmation persistence
-    // Need to re-query elements after re-render/update
     const restoredCandidateCells = screen.getAllByRole('cell', { name: '1' });
     const restoredRow = restoredCandidateCells[0].closest('tr');
     const restoredCheckbox = within(restoredRow!).getByRole('checkbox');
     expect(restoredCheckbox).toBeChecked();
 
     // 8. Delete Session
-    fireEvent.click(sidebarBtn!);
+    const itemText = await screen.findByText('Software Engineer');
+    const sidebarItem = itemText.closest('.sidebar-item');
+    expect(sidebarItem).toBeInTheDocument();
 
-    // The sidebar might need to be queried again.
-    // We look for "Software Engineer" which is in the sidebar list item text.
-    // Use findAllByText and filter for the one in the sidebar (list-group-item)
-    const itemsToDelete = await screen.findAllByText('Software Engineer');
-    const sessionItemToDelete = itemsToDelete.find(el => el.closest('.list-group-item'));
-
-    expect(sessionItemToDelete).toBeDefined();
-
-    const listGroupItem = sessionItemToDelete!.closest('.list-group-item');
-    const trashBtn = within(listGroupItem as HTMLElement).getByRole('button');
-    fireEvent.click(trashBtn);
+    const deleteBtn = within(sidebarItem as HTMLElement).getByLabelText('Supprimer');
+    fireEvent.click(deleteBtn);
 
     // Verify deletion
     sessions = SessionService.getSessions();
     expect(sessions.length).toBe(0);
 
-    // Sidebar should show "Aucune session sauvegardée"
-    expect(screen.getByText('Aucune session sauvegardée.')).toBeInTheDocument();
+    // Sidebar should show "Aucune session trouvée."
+    expect(screen.getByText('Aucune session trouvée.')).toBeInTheDocument();
   });
 
   test('Past sessions are highlighted', async () => {
@@ -159,11 +142,9 @@ describe('App Integration Test', () => {
     SessionService.saveSession(session);
 
     render(<App />);
-    const sidebarBtn = document.querySelector('.btn-light');
-    fireEvent.click(sidebarBtn!);
 
     const itemText = await screen.findByText('Past Job');
-    const item = itemText.closest('.list-group-item');
-    expect(item).toHaveStyle('background-color: #ffe6e6');
+    const item = itemText.closest('.sidebar-item');
+    expect(item).toHaveClass('text-muted');
   });
 });
