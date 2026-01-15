@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { Slot, InterviewSlot, LunchSlot, FinalDebriefingSlot, JuryWelcomeSlot } from './domain/interviewSlot';
 import { Candidate } from './domain/parameters'; // Assuming Candidate is here
 import Time from './domain/time';
@@ -101,37 +101,27 @@ const getGlobalSlotSegmentClass = (slot: Slot): string => {
 };
 
 const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo(({ slots }) => {
-  const [overallDayStartTime, setOverallDayStartTime] = useState<Time | null>(null);
-  const [overallDayEndTime, setOverallDayEndTime] = useState<Time | null>(null);
-  const [renderableItems, setRenderableItems] = useState<RenderableItem[]>([]);
 
-
-  useEffect(() => {
-    const calculateOverallTimes = () => {
-      if (!slots || slots.length === 0) {
-        setOverallDayStartTime(null);
-        setOverallDayEndTime(null);
-        return;
-      }
-      let earliestStartTime: Time | null = null;
-      let latestEndTime: Time | null = null;
-      slots.forEach(slot => {
-        if (!earliestStartTime || timeToMinutes(slot.timeSlot.startTime) < timeToMinutes(earliestStartTime)) {
-          earliestStartTime = slot.timeSlot.startTime;
-        }
-        if (!latestEndTime || timeToMinutes(slot.timeSlot.endTime) > timeToMinutes(latestEndTime)) {
-          latestEndTime = slot.timeSlot.endTime;
-        }
-      });
-      setOverallDayStartTime(earliestStartTime);
-      setOverallDayEndTime(latestEndTime);
-    };
-
-    calculateOverallTimes(); 
-
+  const { overallDayStartTime, overallDayEndTime } = useMemo(() => {
     if (!slots || slots.length === 0) {
-      setRenderableItems([]);
-      return;
+        return { overallDayStartTime: null, overallDayEndTime: null };
+    }
+    let earliestStartTime: Time | null = null;
+    let latestEndTime: Time | null = null;
+    slots.forEach(slot => {
+      if (!earliestStartTime || timeToMinutes(slot.timeSlot.startTime) < timeToMinutes(earliestStartTime)) {
+        earliestStartTime = slot.timeSlot.startTime;
+      }
+      if (!latestEndTime || timeToMinutes(slot.timeSlot.endTime) > timeToMinutes(latestEndTime)) {
+        latestEndTime = slot.timeSlot.endTime;
+      }
+    });
+    return { overallDayStartTime: earliestStartTime, overallDayEndTime: latestEndTime };
+  }, [slots]);
+
+  const renderableItems = useMemo(() => {
+    if (!slots || slots.length === 0) {
+      return [];
     }
 
     const interviewSlotsByCandidate = new Map<string, { candidate: Candidate, interviewSlots: InterviewSlot[] }>();
@@ -171,8 +161,7 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo((
     const combinedItems: RenderableItem[] = [...candidateRenderItems, ...globalRenderItems];
     combinedItems.sort((a, b) => timeToMinutes(a.sortTime) - timeToMinutes(b.sortTime));
 
-    setRenderableItems(combinedItems);
-
+    return combinedItems;
   }, [slots]);
 
   if (!slots || slots.length === 0) {
