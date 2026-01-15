@@ -101,9 +101,6 @@ const getGlobalSlotSegmentClass = (slot: Slot): string => {
 };
 
 const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo(({ slots }) => {
-  const [overallDayStartTime, setOverallDayStartTime] = useState<Time | null>(null);
-  const [overallDayEndTime, setOverallDayEndTime] = useState<Time | null>(null);
-  const [renderableItems, setRenderableItems] = useState<RenderableItem[]>([]);
 
   const { overallDayStartTime, overallDayEndTime } = useMemo(() => {
     if (!slots || slots.length === 0) {
@@ -122,7 +119,7 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo((
     return { overallDayStartTime: earliestStartTime, overallDayEndTime: latestEndTime };
   }, [slots]);
 
-  const renderableItems = useMemo(() => {
+  const itemsToRender = useMemo(() => {
     if (!slots || slots.length === 0) {
       return [];
     }
@@ -204,7 +201,7 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo((
       )}
       
       {/* Unified Rendering Loop */}
-      {renderableItems.map((item, index) => {
+      {itemsToRender.map((item, index) => {
         if (item.type === 'candidate') {
           const candidateSchedule = item as RenderableCandidateSchedule;
           // For offset calculation of candidate row, use the overall start time of the first interview slot
