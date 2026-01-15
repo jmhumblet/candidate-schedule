@@ -109,29 +109,64 @@ export class EmailTemplateService {
     }
 
     private static formatSchedule(schedule: Slot[]): string {
-        // Sort by start time
-        const sorted = [...schedule].sort((a, b) =>
-            (a.timeSlot.startTime.hour * 60 + a.timeSlot.startTime.minute) -
-            (b.timeSlot.startTime.hour * 60 + b.timeSlot.startTime.minute)
-        );
+        type ScheduleEvent = {
+            startTime: number; // minutes from midnight
+            startTimeStr: string;
+            endTimeStr: string;
+            description: string;
+        };
 
-        return sorted.map(slot => {
-            const time = `${slot.timeSlot.startTime} - ${slot.timeSlot.endTime}`;
-            let description = "";
+        const events: ScheduleEvent[] = [];
 
+        schedule.forEach(slot => {
             if (slot instanceof InterviewSlot) {
-                description = `Entretien: ${slot.candidate.name}`;
-            } else if (slot instanceof LunchSlot) {
-                description = "Pause midi";
-            } else if (slot instanceof FinalDebriefingSlot) {
-                description = "Débriefing final";
-            } else if (slot instanceof JuryWelcomeSlot) {
-                description = "Accueil du jury";
+                // 1. Correction
+                events.push({
+                    startTime: slot.correctionStartTime.hour * 60 + slot.correctionStartTime.minute,
+                    startTimeStr: slot.correctionStartTime.toString(),
+                    endTimeStr: slot.meetingStartTime.toString(),
+                    description: `Correction du casus (${slot.candidate.name})`
+                });
+                // 2. Interview
+                events.push({
+                    startTime: slot.meetingStartTime.hour * 60 + slot.meetingStartTime.minute,
+                    startTimeStr: slot.meetingStartTime.toString(),
+                    endTimeStr: slot.debriefingStartTime.toString(),
+                    description: `Entretien (${slot.candidate.name})`
+                });
+                // 3. Debriefing
+                events.push({
+                    startTime: slot.debriefingStartTime.hour * 60 + slot.debriefingStartTime.minute,
+                    startTimeStr: slot.debriefingStartTime.toString(),
+                    endTimeStr: slot.timeSlot.endTime.toString(),
+                    description: `Débriefing (${slot.candidate.name})`
+                });
             } else {
-                description = "Autre";
-            }
+                let description = "";
+                if (slot instanceof LunchSlot) {
+                    description = "Pause midi";
+                } else if (slot instanceof FinalDebriefingSlot) {
+                    description = "Débriefing final";
+                } else if (slot instanceof JuryWelcomeSlot) {
+                    description = "Accueil du jury";
+                } else {
+                    description = "Autre";
+                }
 
-            return `${time} : ${description}`;
+                events.push({
+                    startTime: slot.timeSlot.startTime.hour * 60 + slot.timeSlot.startTime.minute,
+                    startTimeStr: slot.timeSlot.startTime.toString(),
+                    endTimeStr: slot.timeSlot.endTime.toString(),
+                    description: description
+                });
+            }
+        });
+
+        // Sort by start time
+        const sortedEvents = events.sort((a, b) => a.startTime - b.startTime);
+
+        return sortedEvents.map(event => {
+            return `${event.startTimeStr} - ${event.endTimeStr} : ${event.description}`;
         }).join('\n');
     }
 
