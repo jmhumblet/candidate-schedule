@@ -44,12 +44,15 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ startTime, endTime, pix
 
   const startHour = startTime.hour;
   const endHourLoop = endTime.minute === 0 ? endTime.hour + 1 : endTime.hour +1;
+  const startTimeMinutes = timeToMinutes(startTime);
+  const endTimeMinutes = timeToMinutes(endTime);
 
   for (let hour = startHour; hour < endHourLoop; hour++) {
-    const markerTime = new Time(hour, 0);
-    if (timeToMinutes(markerTime) < timeToMinutes(startTime) || timeToMinutes(markerTime) > timeToMinutes(endTime)) {
+    const markerTimeMinutes = hour * 60;
+
+    if (markerTimeMinutes < startTimeMinutes || markerTimeMinutes > endTimeMinutes) {
         if (hour === startHour && startTime.minute > 0) {
-             const position = (timeToMinutes(startTime) - timeToMinutes(startTime)) * pixelsPerMinute;
+             const position = (startTimeMinutes - startTimeMinutes) * pixelsPerMinute;
              timeMarkers.push(
                 <div
                     key={`marker-start`}
@@ -65,15 +68,17 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ startTime, endTime, pix
             continue; 
         }
     }
-    const position = (timeToMinutes(markerTime) - timeToMinutes(startTime)) * pixelsPerMinute;
+    const position = (markerTimeMinutes - startTimeMinutes) * pixelsPerMinute;
+    const timeString = `${hour.toString().padStart(2, '0')}h00`;
+
     timeMarkers.push(
       <div
         key={`marker-${hour}`}
         className="time-marker"
         style={{ left: `${position}px` }}
-        title={markerTime.toString()}
+        title={timeString}
       >
-        {markerTime.toString()}
+        {timeString}
       </div>
     );
   }
