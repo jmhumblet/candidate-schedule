@@ -7,12 +7,10 @@ test.describe('Email Templates Integration', () => {
   });
 
   test('should allow editing email templates', async ({ page }) => {
-    // Open Sidebar
-    // The hamburger button is usually the first light button in the header
-    await page.locator('.btn-light').first().click();
-
-    // Open Editor
-    const templatesButton = page.getByRole('button', { name: "Modèles d'emails" });
+    // Open Editor from Sidebar (Always Visible)
+    // There are multiple buttons with this aria-label (desktop and collapsed), pick the first visible one or by role
+    // Since sidebar is open by default, we can just click the sidebar item.
+    const templatesButton = page.getByRole('button', { name: "Modèles d'emails" }).first();
     await expect(templatesButton).toBeVisible();
     await templatesButton.click();
 
@@ -31,7 +29,6 @@ test.describe('Email Templates Integration', () => {
     await expect(modal).toBeHidden();
 
     // Re-open to check persistence
-    await page.locator('.btn-light').first().click();
     await templatesButton.click();
 
     await expect(subjectInput).toHaveValue('Sujet Test Integration');
