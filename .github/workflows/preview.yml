@@ -41,22 +41,23 @@ jobs:
 
            # Clone gh-pages branch
            # We use a token to authenticate
-           git clone --branch=gh-pages --depth=1 https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git public || (mkdir public && cd public && git init && git checkout -b gh-pages)
+           # Use a separate directory (gh-pages-root) to avoid conflict with source 'public' dir
+           git clone --branch=gh-pages --depth=1 https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git gh-pages-root || (mkdir gh-pages-root && cd gh-pages-root && git init && git checkout -b gh-pages)
 
            # Prepare destination directory
-           mkdir -p public/previews/${{ github.ref_name }}
+           mkdir -p gh-pages-root/previews/${{ github.ref_name }}
 
            # Clean old preview content for this branch (if any) but keep the dir structure
-           rm -rf public/previews/${{ github.ref_name }}/*
+           rm -rf gh-pages-root/previews/${{ github.ref_name }}/*
 
            # Copy new build artifacts
-           cp -r build/* public/previews/${{ github.ref_name }}/
+           cp -r build/* gh-pages-root/previews/${{ github.ref_name }}/
 
-           # Copy generation script to public root (where it can see previews folder)
-           cp scripts/generate-dashboard.js public/
+           # Copy generation script to gh-pages root (where it can see previews folder)
+           cp scripts/generate-dashboard.js gh-pages-root/
 
-           # Navigate to public and generate dashboard
-           cd public
+           # Navigate to gh-pages root and generate dashboard
+           cd gh-pages-root
            node generate-dashboard.js
            rm generate-dashboard.js
 
