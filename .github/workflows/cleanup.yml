@@ -23,10 +23,10 @@ jobs:
            git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
            # Clone gh-pages
-           git clone --branch=gh-pages --depth=1 https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git public || echo "gh-pages not found"
+           git clone --branch=gh-pages --depth=1 https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git gh-pages-root || echo "gh-pages not found"
 
-           if [ -d "public" ]; then
-             cd public
+           if [ -d "gh-pages-root" ]; then
+             cd gh-pages-root
              BRANCH_NAME=${{ github.event.ref }}
 
              if [ -d "previews/$BRANCH_NAME" ]; then
