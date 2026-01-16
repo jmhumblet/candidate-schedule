@@ -142,7 +142,7 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({ show, onHide 
                                 />
                             </Form.Group>
 
-                            <Card className="mt-3 bg-light">
+                            <Card className="mt-3 bg-body-secondary">
                                 <Card.Header>Aperçu</Card.Header>
                                 <Card.Body>
                                     <h6 className="card-subtitle mb-2 text-muted">Objet : {getPreview(type, templates[type]).subject}</h6>

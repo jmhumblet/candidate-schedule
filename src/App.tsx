@@ -124,7 +124,7 @@ const App: React.FC = () => {
     };
 
     return (
-        <div className="d-flex vh-100 overflow-hidden bg-body">
+        <div className="d-flex vh-100 overflow-hidden">
             <SessionSidebar
                 sessions={sessions}
                 onLoadSession={handleLoadSession}
