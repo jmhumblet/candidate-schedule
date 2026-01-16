@@ -1,46 +1,77 @@
-# Getting Started with Create React App
+# PlanIt - Interview Scheduler
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+PlanIt is a modern, responsive web application designed to streamline the process of scheduling candidate interviews. It allows jury members to define interview parameters, generate visual timelines, and manage email templates for communication.
 
-## Available Scripts
+## 🚀 Features
 
-In the project directory, you can run:
+*   **Session Planning:** Easily configure jury dates, job titles, and candidate counts.
+*   **Customizable Sequences:** Define durations for preparation, interview, and debriefing stages, including breaks.
+*   **Visual Timeline:** Automatically generate and visualize interview schedules for multiple candidates.
+*   **Email Templates:** Built-in editor for invitation and confirmation emails with live preview.
+*   **Theme Support:** Fully responsive design with automatic Dark/Light mode support based on system preferences.
 
-### `npm start`
+## 🛠 Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+*   **Core:** [React](https://reactjs.org/), [TypeScript](https://www.typescriptlang.org/)
+*   **Styling:** [Bootstrap 5](https://getbootstrap.com/), [React-Bootstrap](https://react-bootstrap.github.io/)
+*   **Testing:** [Jest](https://jestjs.io/), [React Testing Library](https://testing-library.com/), [Playwright](https://playwright.dev/)
+*   **CI/CD:** GitHub Actions, GitHub Pages
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## 🏁 Getting Started
 
-### `npm test`
+### Prerequisites
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+*   Node.js (v14 or higher)
+*   npm
 
-### `npm run build`
+### Installation
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/jmhumblet/candidate-schedule.git
+    cd candidate-schedule
+    ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Running Locally
 
-### `npm run eject`
+Start the development server:
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```bash
+npm start
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+The application will be available at `http://localhost:3000`.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## 🧪 Testing
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### Unit & Integration Tests
 
-## Learn More
+Run the Jest test suite:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+npm run test:ci
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### End-to-End Tests
+
+Run Playwright E2E tests:
+
+```bash
+npx playwright test
+```
+
+## 📦 Deployment
+
+The application is automatically deployed to GitHub Pages via GitHub Actions.
+
+*   **Live Demo:** [https://jmhumblet.github.io/candidate-schedule/](https://jmhumblet.github.io/candidate-schedule/)
+*   **Feature Previews:** Pull requests generate a preview deployment for testing.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
