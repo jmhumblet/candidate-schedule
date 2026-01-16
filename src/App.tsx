@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import InterviewForm from "./InterviewForm";
 import SchedulingService from "./domain/schedulingService";
 import { JuryDayParameters } from "./domain/parameters";
 import { StructuredSchedule } from "./domain/scheduleTypes";
 import ScheduleTable from "./ScheduleTable";
 import TimelineVisualization from "./TimelineVisualization";
-import { Button, Col, Form, Row } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 import SessionSidebar from "./SessionSidebar";
 import { SessionService, SavedSession, JuryDayParametersModel } from "./domain/session";
 import { FaEnvelope } from "react-icons/fa";
@@ -107,8 +107,6 @@ const App: React.FC = () => {
         }
     }, [confirmedCandidates, sessions, currentSessionId]);
 
-    const formRef = useRef<HTMLFormElement | null>(null);
-
     const handleSendJuryEmail = () => {
         if (!slots.length) return;
         const templates = EmailTemplateService.getTemplates();
@@ -147,33 +145,14 @@ const App: React.FC = () => {
                             <h1 className="mb-0">Entretiens</h1>
                         </div>
 
-                        <Form ref={formRef} className="form-horizontal" >
-                            <Form.Group className="mb-3" as={Row}>
-
-                                <Form.Label column sm={4} className="control-label" htmlFor="juryDate">Date du jury</Form.Label>
-                                <Col sm={2}>
-                                    <Form.Control
-                                        id="juryDate"
-                                        type="date"
-                                        value={juryDate}
-                                        onChange={(e) => setJuryDate(e.target.value)}
-                                        required
-                                    />
-                                </Col>
-                                <Form.Label column sm={1} className="control-label" htmlFor="jobTitle">Poste</Form.Label>
-                                <Col sm={5}>
-                                    <Form.Control
-                                        id="jobTitle"
-                                        type="text"
-                                        value={jobTitle}
-                                        onChange={(e) => setJobTitle(e.target.value)}
-                                        placeholder='Gestionnaire de projet'
-                                    />
-                                </Col>
-                            </Form.Group>
-                        </Form>
-
-                        <InterviewForm onSubmit={handleFormSubmit} initialParameters={initialParameters} />
+                        <InterviewForm
+                            onSubmit={handleFormSubmit}
+                            initialParameters={initialParameters}
+                            juryDate={juryDate}
+                            setJuryDate={setJuryDate}
+                            jobTitle={jobTitle}
+                            setJobTitle={setJobTitle}
+                        />
 
                         {schedule && (
                             <>

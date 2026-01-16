@@ -15,7 +15,11 @@ jest.mock('../InterviewForm', () => {
 
 jest.mock('../ScheduleTable', () => () => <div data-testid="schedule-table" />);
 jest.mock('../TimelineVisualization', () => () => <div data-testid="timeline" />);
-jest.mock('../SessionSidebar', () => () => <div data-testid="session-sidebar" />);
+jest.mock('../SessionSidebar', () => ({ setCollapsed }: any) => (
+    <div data-testid="session-sidebar">
+        <button className="me-3" onClick={() => setCollapsed && setCollapsed(true)}>Toggle Sidebar</button>
+    </div>
+));
 jest.mock('../ThemeToggle', () => () => <div />);
 jest.mock('../EmailTemplateEditor', () => () => <div />);
 
