@@ -1,154 +1,152 @@
 .timeline-container {
-  --timeline-label-width: 150px;
   margin: var(--space-3);
   font-family: inherit;
-  box-sizing: border-box;
-}
-
-.candidate-entry {
   display: flex;
-  align-items: center;
-  margin-bottom: var(--space-2);
-  background-color: var(--bg-surface);
-  border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid var(--border-color);
+  flex-direction: column;
+  height: auto;
 }
 
-.candidate-name {
-  width: var(--timeline-label-width);
+/* The scrollable grid container */
+.timeline-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr; /* 200px for labels, rest for timeline */
+  overflow: auto;
+  max-height: 800px; /* Limit height to prevent full page scroll if list is huge */
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--bg-surface);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  position: relative;
+}
+
+/* Top Left Corner (Empty or Title) */
+.timeline-corner {
+  grid-column: 1;
+  grid-row: 1;
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 30;
+  background-color: var(--bg-surface-secondary);
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
   padding: var(--space-2);
   font-weight: bold;
-  color: var(--text-primary);
-  border-right: 1px solid var(--border-color);
-  box-sizing: border-box;
-  flex-shrink: 0;
-}
-
-.timeline-segments-container {
   display: flex;
   align-items: center;
-  padding-top: var(--space-2);
-  padding-bottom: var(--space-2);
-  overflow-x: auto;
-  flex-grow: 1;
-  position: relative;
+  color: var(--text-secondary);
 }
 
-.timeline-segment {
-  height: 40px;
-  margin-right: 2px;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--space-1);
-  font-size: 0.8em;
-  border-radius: 3px;
-  box-sizing: border-box;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.segment-time {
-  font-size: 0.9em;
-}
-
-.darkblue-segment {
-  background-color: var(--timeline-dark);
-}
-
-.neutral-segment {
-  background-color: var(--timeline-neutral);
-}
-
-.lightblue-segment {
-  background-color: var(--timeline-light);
-  color: var(--timeline-light-text);
-}
-
-.main-timeline-header {
-  position: relative;
-  height: 30px;
+/* Top Right: Time Header Track */
+.timeline-time-header {
+  grid-column: 2;
+  grid-row: 1;
+  position: sticky;
+  top: 0;
+  z-index: 20; /* Lower than corner */
   background-color: var(--bg-surface-secondary);
-  border: 1px solid var(--border-color);
-  margin-bottom: var(--space-2);
-  box-sizing: border-box;
-  overflow: hidden;
-  margin-left: var(--timeline-label-width);
+  border-bottom: 1px solid var(--border-color);
+  height: 40px;
+  overflow: hidden; /* Markers are absolute */
 }
 
-.time-marker {
+/* Left Column: Row Labels (Candidates/Global) */
+.timeline-row-label {
+  grid-column: 1;
+  position: sticky;
+  left: 0;
+  z-index: 10; /* Above track but below corner */
+  background-color: var(--bg-surface);
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color-subtle);
+  padding: var(--space-2);
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  min-height: 50px;
+}
+
+/* Right Column: Timeline Tracks */
+.timeline-row-track {
+  grid-column: 2;
+  position: relative;
+  border-bottom: 1px solid var(--border-color-subtle);
+  min-height: 50px;
+  background-color: var(--bg-surface);
+  /* Grid lines will be handled by background-image in JS or helper class */
+}
+
+/* Grid Lines (Vertical) */
+.timeline-grid-lines {
   position: absolute;
   top: 0;
-  height: 100%;
-  border-left: 1px solid var(--border-color);
-  padding-left: 4px;
-  font-size: 10px;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-  user-select: none;
+  left: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+.timeline-grid-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px dashed var(--border-color-subtle);
 }
 
-.time-marker:first-child {
-  padding-left: 2px;
-}
-
-.main-timeline-header::after {
-  content: '';
+/* Time Markers in Header */
+.time-marker {
   position: absolute;
   bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background-color: var(--border-color);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  transform: translateX(-50%);
+  padding-bottom: 4px;
+}
+.time-marker-tick {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  height: 4px;
+  width: 1px;
+  background-color: var(--text-secondary);
 }
 
-.timeline-offset-segment {
-  height: 40px;
-  margin-right: 2px;
-  box-sizing: border-box;
-}
-
-/* Styles for Global Slot Entries */
-.global-slot-entry {
+/* Segments */
+.timeline-segment {
+  position: absolute;
+  top: 8px; /* Vertical centering/padding */
+  bottom: 8px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
-  margin-bottom: var(--space-1);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background-color: var(--bg-surface-secondary);
-}
-
-.global-slot-name {
-  width: var(--timeline-label-width);
-  padding: var(--space-2);
-  font-weight: bold;
-  color: var(--text-primary);
-  border-right: 1px solid var(--border-color);
-  box-sizing: border-box;
-  flex-shrink: 0;
+  justify-content: center;
+  padding: 0 8px;
+  font-size: 0.75rem;
   white-space: nowrap;
-}
-
-/* Specific styles for candidate interview segments */
-.welcome-segment {
-  background-color: var(--timeline-welcome);
-  color: var(--timeline-welcome-text);
-}
-
-/* Specific styles for global timeline segments */
-.lunch-segment,
-.final-debriefing-segment,
-.jury-welcome-segment {
-  background-color: var(--timeline-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
   color: white;
+  transition: opacity 0.2s;
+  cursor: default;
 }
 
-.unknown-segment {
-  background-color: var(--text-secondary);
-  color: white;
+.timeline-segment:hover {
+  opacity: 0.9;
+  z-index: 5; /* Bring to front on hover */
+}
+
+/* Segment Colors */
+.segment-darkblue { background-color: var(--timeline-dark); }
+.segment-neutral { background-color: var(--timeline-neutral); }
+.segment-lightblue { background-color: var(--timeline-light); color: var(--timeline-light-text); }
+.segment-welcome { background-color: var(--timeline-welcome); color: var(--timeline-welcome-text); }
+.segment-unknown { background-color: var(--text-secondary); }
+
+/* Global Slot Specifics */
+.row-global {
+  background-color: var(--bg-surface-secondary); /* Slight contrast for global rows */
+}
+.track-global {
+  background-color: var(--bg-surface-secondary);
 }
