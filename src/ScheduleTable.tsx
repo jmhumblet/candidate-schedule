@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { FinalDebriefingSlot, InterviewSlot, JuryWelcomeSlot, LunchSlot, Slot } from "./domain/interviewSlot";
 import Time from "./domain/time"; // Import Time
 import { FaPause, FaUser, FaEdit, FaCopy, FaCheck, FaEnvelope } from 'react-icons/fa';
@@ -30,11 +30,12 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date,
     date = typedDate.toLocaleDateString('fr-FR');
 
     // Sort the schedule by jury intervention time
-    const sortedSchedule = [...schedule].sort((a, b) => {
+    // Memoize to prevent re-sorting on every render (e.g. when confirming candidates)
+    const sortedSchedule = useMemo(() => [...schedule].sort((a, b) => {
         const timeA = timeToMinutes(getJurySortTime(a));
         const timeB = timeToMinutes(getJurySortTime(b));
         return timeA - timeB;
-    });
+    }), [schedule]);
 
     React.useEffect(() => {
         if (isCopied) {
