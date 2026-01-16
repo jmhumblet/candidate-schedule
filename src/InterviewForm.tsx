@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { JuryDayParameters, Candidate, InterviewParameters, Duration } from './domain/parameters'; // Assuming you have these models in a separate file
-import { Button, Col, Form, Row, OverlayTrigger, Tooltip, InputGroup } from 'react-bootstrap'
+import { JuryDayParameters, Candidate, InterviewParameters, Duration } from './domain/parameters';
+import { Button, Col, Form, Row, OverlayTrigger, Tooltip, InputGroup, Card } from 'react-bootstrap'
 import { FaClock, FaHourglassHalf } from 'react-icons/fa';
 import Time from './domain/time';
 import SchedulingService from './domain/schedulingService';
@@ -10,9 +10,20 @@ import { JuryDayParametersModel } from './domain/session';
 type InterviewFormProps = {
     onSubmit: (parameters: JuryDayParameters) => void;
     initialParameters?: JuryDayParametersModel | null;
+    juryDate: string;
+    setJuryDate: (date: string) => void;
+    jobTitle: string;
+    setJobTitle: (title: string) => void;
 };
 
-const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit, initialParameters }) => {
+const InterviewForm: React.FC<InterviewFormProps> = ({
+    onSubmit,
+    initialParameters,
+    juryDate,
+    setJuryDate,
+    jobTitle,
+    setJobTitle
+}) => {
     const DEFAULT_CANDIDATE_COUNT: number = 5;
     // States to hold form data
     const date = new Date();
@@ -58,18 +69,18 @@ const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit, initialParamete
             setCandidatesInput(candidatesStr);
             setCandidatesCount(initialParameters.candidates.length);
         } else {
-             // Reset to defaults if initialParameters is explicitly null (New Session)
-             setJurorsStartTime('09:00');
-             setWelcomeDuration(15);
-             setCasusDuration(60);
-             setCorrectionDuration(15);
-             setInterviewDuration(60);
-             setDebriefingDuration(15);
-             setLunchTargetTime('12:45');
-             setLunchDuration(30);
-             setFinalDebriefingDuration(15);
-             setCandidatesInput('');
-             setCandidatesCount(DEFAULT_CANDIDATE_COUNT);
+            // Reset to defaults if initialParameters is explicitly null (New Session)
+            setJurorsStartTime('09:00');
+            setWelcomeDuration(15);
+            setCasusDuration(60);
+            setCorrectionDuration(15);
+            setInterviewDuration(60);
+            setDebriefingDuration(15);
+            setLunchTargetTime('12:45');
+            setLunchDuration(30);
+            setFinalDebriefingDuration(15);
+            setCandidatesInput('');
+            setCandidatesCount(DEFAULT_CANDIDATE_COUNT);
         }
     }, [initialParameters]);
 
@@ -196,209 +207,190 @@ const InterviewForm: React.FC<InterviewFormProps> = ({ onSubmit, initialParamete
     }, [candidatesCount, candidatesInput, jurorsStartTime, welcomeDuration, casusDuration, correctionDuration, interviewDuration, debriefingDuration, lunchTargetTime, lunchDuration, finalDebriefingDuration]);
 
     return (
-        <div className="container">
+        <div className="container-fluid p-0">
             <Form ref={formRef} className="form-horizontal" onSubmit={handleSubmit}>
-
-                <Form.Group className="mb-3" as={Row} controlId="candidateNames">
-                    <Form.Label column sm={4} className="control-label">Nombre de candidats</Form.Label>
-                    <Col sm={2}>
-                        <OverlayTrigger
-                            placement="top"
-                            overlay={hasCandidatesNames ? <Tooltip id="tooltip-disabled">Désactivé car des noms ont été fournis</Tooltip> : <div></div>}>
-                            <Form.Control
-                                type="number"
-                                value={candidatesCount}
-                                onChange={(e) => setCandidatesCount(Number(e.target.value))}
-                                disabled={hasCandidatesNames}
-                            />
-                        </OverlayTrigger>
+                <Row>
+                    {/* Card 1: Informations Session */}
+                    <Col md={12} lg={4} className="mb-3">
+                        <Card className="h-100 shadow-sm border-0">
+                            <Card.Header className="bg-body-secondary fw-bold">Informations Session</Card.Header>
+                            <Card.Body>
+                                <Form.Group className="mb-3">
+                                    <Form.Label htmlFor="juryDate" className="small fw-bold text-uppercase text-secondary">Date du jury</Form.Label>
+                                    <Form.Control
+                                        id="juryDate"
+                                        type="date"
+                                        value={juryDate}
+                                        onChange={(e) => setJuryDate(e.target.value)}
+                                        required
+                                    />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label htmlFor="jobTitle" className="small fw-bold text-uppercase text-secondary">Poste</Form.Label>
+                                    <Form.Control
+                                        id="jobTitle"
+                                        type="text"
+                                        value={jobTitle}
+                                        onChange={(e) => setJobTitle(e.target.value)}
+                                        placeholder='Gestionnaire de projet'
+                                    />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label htmlFor="candidatesCount" className="small fw-bold text-uppercase text-secondary">Candidats</Form.Label>
+                                    <InputGroup className="mb-2">
+                                        <InputGroup.Text>Nombre</InputGroup.Text>
+                                        <OverlayTrigger
+                                            placement="top"
+                                            overlay={hasCandidatesNames ? <Tooltip id="tooltip-disabled">Désactivé car des noms ont été fournis</Tooltip> : <div></div>}>
+                                            <Form.Control
+                                                id="candidatesCount"
+                                                type="number"
+                                                value={candidatesCount}
+                                                onChange={(e) => setCandidatesCount(Number(e.target.value))}
+                                                disabled={hasCandidatesNames}
+                                            />
+                                        </OverlayTrigger>
+                                    </InputGroup>
+                                    <Form.Text className="text-muted mb-1 d-block small">Ou saisir la liste :</Form.Text>
+                                    <Form.Control
+                                        id="candidatesInput"
+                                        as="textarea"
+                                        rows={5}
+                                        value={candidatesInput}
+                                        onChange={(e) => onCandidatesListChange(e.target.value)}
+                                        placeholder={`Un nom par ligne...\nJohn Doe\nJane Doe; jane@example.com`}
+                                        title={hasCandidatesNames ? 'Désactivé car des noms ont été fournis' : ''}
+                                        style={{ resize: 'none' }}
+                                    />
+                                </Form.Group>
+                            </Card.Body>
+                        </Card>
                     </Col>
-                    <Form.Label column sm={1} className="control-label">Ou</Form.Label>
-                    <Col sm={5}>
-                        <Form.Control
-                            as="textarea"
-                            rows={6}
-                            value={candidatesInput}
-                            onChange={(e) => onCandidatesListChange(e.target.value)}
-                            placeholder={`Un nom par ligne, par exemple\nJohn Doe\nJane Doe; jane.doe@gmail.com`}
-                            title={hasCandidatesNames ? 'Désactivé car des noms ont été fournis' : ''}
-                        />
-                    </Col>
-                </Form.Group>
 
-                <Form.Group className="mb-3" as={Row} controlId="juryStartTime">
-                    <Form.Label column sm={4} className="control-label">Heure de début pour le jury</Form.Label>
-                    <Col sm={8}>
-                        <InputGroup>
-                            <InputGroup.Text className="input-group-text-time">
-                                <FaClock className="indicator-icon" /> Heure
-                            </InputGroup.Text>
-                            <Form.Control
-                                type="time"
-                                step="300"
-                                value={jurorsStartTime}
-                                onChange={(e) => setJurorsStartTime(e.target.value)}
-                                className="input-time"
-                                required
-                            />
-                        </InputGroup>
+                    {/* Card 2: Planification */}
+                    <Col md={12} lg={4} className="mb-3">
+                        <Card className="h-100 shadow-sm border-0">
+                            <Card.Header className="bg-body-secondary fw-bold">Planification</Card.Header>
+                            <Card.Body>
+                                <Form.Group className="mb-3">
+                                    <Form.Label htmlFor="jurorsStartTime" className="small fw-bold text-uppercase text-secondary">Début jury</Form.Label>
+                                    <InputGroup>
+                                        <InputGroup.Text><FaClock /></InputGroup.Text>
+                                        <Form.Control
+                                            id="jurorsStartTime"
+                                            type="time"
+                                            step="300"
+                                            value={jurorsStartTime}
+                                            onChange={(e) => setJurorsStartTime(e.target.value)}
+                                            required
+                                        />
+                                    </InputGroup>
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label htmlFor="lunchTargetTime" className="small fw-bold text-uppercase text-secondary">Cible Déjeuner</Form.Label>
+                                    <InputGroup>
+                                        <InputGroup.Text><FaClock /></InputGroup.Text>
+                                        <Form.Control
+                                            id="lunchTargetTime"
+                                            type="time"
+                                            step="300"
+                                            value={lunchTargetTime}
+                                            onChange={(e) => setLunchTargetTime(e.target.value)}
+                                            required
+                                        />
+                                    </InputGroup>
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label htmlFor="lunchDuration" className="small fw-bold text-uppercase text-secondary">Durée Déjeuner</Form.Label>
+                                    <InputGroup>
+                                        <InputGroup.Text><FaHourglassHalf /></InputGroup.Text>
+                                        <Form.Control
+                                            id="lunchDuration"
+                                            type="number"
+                                            value={lunchDuration}
+                                            onChange={(e) => setLunchDuration(Number(e.target.value))}
+                                            required
+                                        />
+                                        <InputGroup.Text>min</InputGroup.Text>
+                                    </InputGroup>
+                                </Form.Group>
+                            </Card.Body>
+                        </Card>
                     </Col>
-                </Form.Group>
 
-                <Form.Group className="mb-3" as={Row} controlId="welcomeDuration">
-                    <Form.Label column sm={4} className="control-label">Durée de l'accueil</Form.Label>
-                    <Col sm={8}>
-                        <InputGroup>
-                            <InputGroup.Text className="input-group-text-duration">
-                                <FaHourglassHalf className="indicator-icon" /> Durée
-                            </InputGroup.Text>
-                            <Form.Control
-                                type="number"
-                                value={welcomeDuration}
-                                onChange={(e) => setWelcomeDuration(Number(e.target.value))}
-                                required
-                            />
-                            <InputGroup.Text className="input-group-text-unit">min</InputGroup.Text>
-                        </InputGroup>
+                    {/* Card 3: Séquence d'Entretien */}
+                    <Col md={12} lg={4} className="mb-3">
+                        <Card className="h-100 shadow-sm border-0">
+                            <Card.Header className="bg-body-secondary fw-bold">Séquence d'Entretien</Card.Header>
+                            <Card.Body>
+                                <Row>
+                                    <Col sm={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label htmlFor="welcomeDuration" className="small fw-bold text-uppercase text-secondary">Accueil</Form.Label>
+                                            <InputGroup size="sm">
+                                                <Form.Control id="welcomeDuration" type="number" value={welcomeDuration} onChange={(e) => setWelcomeDuration(Number(e.target.value))} required />
+                                                <InputGroup.Text>min</InputGroup.Text>
+                                            </InputGroup>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col sm={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label htmlFor="casusDuration" className="small fw-bold text-uppercase text-secondary">Casus</Form.Label>
+                                            <InputGroup size="sm">
+                                                <Form.Control id="casusDuration" type="number" value={casusDuration} onChange={(e) => setCasusDuration(Number(e.target.value))} required />
+                                                <InputGroup.Text>min</InputGroup.Text>
+                                            </InputGroup>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col sm={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label htmlFor="correctionDuration" className="small fw-bold text-uppercase text-secondary">Correction</Form.Label>
+                                            <InputGroup size="sm">
+                                                <Form.Control id="correctionDuration" type="number" value={correctionDuration} onChange={(e) => setCorrectionDuration(Number(e.target.value))} required />
+                                                <InputGroup.Text>min</InputGroup.Text>
+                                            </InputGroup>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col sm={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label htmlFor="interviewDuration" className="small fw-bold text-uppercase text-secondary">Entretien</Form.Label>
+                                            <InputGroup size="sm">
+                                                <Form.Control id="interviewDuration" type="number" value={interviewDuration} onChange={(e) => setInterviewDuration(Number(e.target.value))} required />
+                                                <InputGroup.Text>min</InputGroup.Text>
+                                            </InputGroup>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col sm={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label htmlFor="debriefingDuration" className="small fw-bold text-uppercase text-secondary">Débriefing</Form.Label>
+                                            <InputGroup size="sm">
+                                                <Form.Control id="debriefingDuration" type="number" value={debriefingDuration} onChange={(e) => setDebriefingDuration(Number(e.target.value))} required />
+                                                <InputGroup.Text>min</InputGroup.Text>
+                                            </InputGroup>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col sm={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label htmlFor="finalDebriefingDuration" className="small fw-bold text-uppercase text-secondary">Débr. Final</Form.Label>
+                                            <InputGroup size="sm">
+                                                <Form.Control id="finalDebriefingDuration" type="number" value={finalDebriefingDuration} onChange={(e) => setFinalDebriefingDuration(Number(e.target.value))} required />
+                                                <InputGroup.Text>min</InputGroup.Text>
+                                            </InputGroup>
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                            </Card.Body>
+                        </Card>
                     </Col>
-                </Form.Group>
-
-                <Form.Group className="mb-3" as={Row} controlId="casusDuration">
-                    <Form.Label column sm={4} className="control-label">Durée du casus</Form.Label>
-                    <Col sm={8}>
-                        <InputGroup>
-                            <InputGroup.Text className="input-group-text-duration">
-                                <FaHourglassHalf className="indicator-icon" /> Durée
-                            </InputGroup.Text>
-                            <Form.Control
-                                type="number"
-                                value={casusDuration}
-                                onChange={(e) => setCasusDuration(Number(e.target.value))}
-                                required
-                            />
-                            <InputGroup.Text className="input-group-text-unit">min</InputGroup.Text>
-                        </InputGroup>
-                    </Col>
-                </Form.Group>
-
-                <Form.Group className="mb-3" as={Row} controlId="correctionDuration">
-                    <Form.Label column sm={4} className="control-label">Durée de correction</Form.Label>
-                    <Col sm={8}>
-                        <InputGroup>
-                            <InputGroup.Text className="input-group-text-duration">
-                                <FaHourglassHalf className="indicator-icon" /> Durée
-                            </InputGroup.Text>
-                            <Form.Control
-                                type="number"
-                                value={correctionDuration}
-                                onChange={(e) => setCorrectionDuration(Number(e.target.value))}
-                                required
-                            />
-                            <InputGroup.Text className="input-group-text-unit">min</InputGroup.Text>
-                        </InputGroup>
-                    </Col>
-                </Form.Group>
-
-                <Form.Group className="mb-3" as={Row} controlId="interviewDuration">
-                    <Form.Label column sm={4} className="control-label">Durée de l'entretien</Form.Label>
-                    <Col sm={8}>
-                        <InputGroup>
-                            <InputGroup.Text className="input-group-text-duration">
-                                <FaHourglassHalf className="indicator-icon" /> Durée
-                            </InputGroup.Text>
-                            <Form.Control
-                                type="number"
-                                value={interviewDuration}
-                                onChange={(e) => setInterviewDuration(Number(e.target.value))}
-                                required
-                            />
-                            <InputGroup.Text className="input-group-text-unit">min</InputGroup.Text>
-                        </InputGroup>
-                    </Col>
-                </Form.Group>
-
-                <Form.Group className="mb-3" as={Row} controlId="debriefingDuration">
-                    <Form.Label column sm={4} className="control-label">Durée du débriefing</Form.Label>
-                    <Col sm={8}>
-                        <InputGroup>
-                            <InputGroup.Text className="input-group-text-duration">
-                                <FaHourglassHalf className="indicator-icon" /> Durée
-                            </InputGroup.Text>
-                            <Form.Control
-                                type="number"
-                                value={debriefingDuration}
-                                onChange={(e) => setDebriefingDuration(Number(e.target.value))}
-                                required
-                            />
-                            <InputGroup.Text className="input-group-text-unit">min</InputGroup.Text>
-                        </InputGroup>
-                    </Col>
-                </Form.Group>
-
-                <Form.Group className="mb-3" as={Row} controlId="lunchTargetTime">
-                    <Form.Label column sm={4} className="control-label">Heure ciblée pour la pause déjeuner</Form.Label>
-                    <Col sm={8}>
-                        <InputGroup>
-                            <InputGroup.Text className="input-group-text-time">
-                                <FaClock className="indicator-icon" /> Heure
-                            </InputGroup.Text>
-                            <Form.Control
-                                type="time"
-                                step="300"
-                                value={lunchTargetTime}
-                                onChange={(e) => setLunchTargetTime(e.target.value)}
-                                className="input-time"
-                                required
-                            />
-                        </InputGroup>
-                    </Col>
-                </Form.Group>
-
-                <Form.Group className="mb-3" as={Row} controlId="lunchDuration">
-                    <Form.Label column sm={4} className="control-label">Durée de la pause déjeuner</Form.Label>
-                    <Col sm={8}>
-                        <InputGroup>
-                            <InputGroup.Text className="input-group-text-duration">
-                                <FaHourglassHalf className="indicator-icon" /> Durée
-                            </InputGroup.Text>
-                            <Form.Control
-                                type="number"
-                                value={lunchDuration}
-                                onChange={(e) => setLunchDuration(Number(e.target.value))}
-                                required
-                            />
-                            <InputGroup.Text className="input-group-text-unit">min</InputGroup.Text>
-                        </InputGroup>
-                    </Col>
-                </Form.Group>
-
-                <Form.Group className="mb-3" as={Row} controlId="finalDebriefingDuration">
-                    <Form.Label column sm={4} className="control-label">Durée du débriefing final</Form.Label>
-                    <Col sm={8}>
-                        <InputGroup>
-                            <InputGroup.Text className="input-group-text-duration">
-                                <FaHourglassHalf className="indicator-icon" /> Durée
-                            </InputGroup.Text>
-                            <Form.Control
-                                type="number"
-                                value={finalDebriefingDuration}
-                                onChange={(e) => setFinalDebriefingDuration(Number(e.target.value))}
-                                required
-                            />
-                            <InputGroup.Text className="input-group-text-unit">min</InputGroup.Text>
-                        </InputGroup>
-                    </Col>
-                </Form.Group>
-
-                <Form.Group className="mb-3" as={Row}>
-                    <Col sm={{ span: 8, offset: 4 }}>
-                        <div className="mb-3">
-                            <strong>Durée totale de la journée : {totalDuration}</strong>
+                </Row>
+                <Row>
+                    <Col className="d-flex justify-content-between align-items-center mb-3">
+                        <div className="text-muted small">
+                            <strong>Durée totale de la journée estimée : {totalDuration}</strong>
                         </div>
                         <Button type="submit" variant="orange">Générer (Ctrl + Enter)</Button>
-                        {/* <Button type="reset" variant="warning" className="ml-2">Reset</Button> */}
                     </Col>
-                </Form.Group>
+                </Row>
             </Form>
         </div>
     );

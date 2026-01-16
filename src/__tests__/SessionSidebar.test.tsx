@@ -16,24 +16,29 @@ const mockSessions: SavedSession[] = [
 
 describe('SessionSidebar', () => {
     test('renders delete button with accessibility attributes', () => {
-        const onHide = jest.fn();
         const onLoadSession = jest.fn();
         const onDeleteSession = jest.fn();
         const onNewSession = jest.fn();
+        const onOpenTemplateEditor = jest.fn();
+        const setWidth = jest.fn();
+        const setCollapsed = jest.fn();
 
         render(
             <SessionSidebar
-                show={true}
-                onHide={onHide}
                 sessions={mockSessions}
                 onLoadSession={onLoadSession}
                 onDeleteSession={onDeleteSession}
                 onNewSession={onNewSession}
+                onOpenTemplateEditor={onOpenTemplateEditor}
+                width={300}
+                setWidth={setWidth}
+                collapsed={false}
+                setCollapsed={setCollapsed}
             />
         );
 
         // This should find the button by its aria-label
-        const deleteButton = screen.getByRole('button', { name: /Supprimer la session/i });
+        const deleteButton = screen.getByRole('button', { name: /Supprimer/i });
 
         expect(deleteButton).toBeInTheDocument();
 
