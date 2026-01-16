@@ -12,7 +12,7 @@ test.describe('Interview Scheduler Integration', () => {
     // But let's change the candidate count to ensure we are testing interactivity
 
     // Using accessible selectors
-    const candidatesInput = page.getByLabel('Nombre de candidats');
+    const candidatesInput = page.getByLabel('Candidats');
     await candidatesInput.fill('3');
 
     // Click Generate

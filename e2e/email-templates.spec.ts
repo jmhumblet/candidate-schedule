@@ -36,7 +36,7 @@ test.describe('Email Templates Integration', () => {
 
   test('should display email buttons in schedule', async ({ page }) => {
     // Generate Schedule
-    const candidatesInput = page.getByLabel('Nombre de candidats');
+    const candidatesInput = page.getByLabel('Candidats');
     await candidatesInput.fill('1');
     const generateButton = page.getByRole('button', { name: /Générer/i });
     await generateButton.click();
