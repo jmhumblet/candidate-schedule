@@ -1,0 +1,72 @@
+name: Deploy Preview
+on:
+  push:
+    branches-ignore:
+      - main
+      - gh-pages
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: "preview-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: 'npm'
+
+      - name: Install and Build
+        run: |
+          npm ci
+          npm run build
+        env:
+          PUBLIC_URL: /candidate-schedule/previews/${{ github.ref_name }}
+
+      - name: Deploy Preview and Update Index
+        run: |
+           # Configure git
+           git config --global user.name "github-actions[bot]"
+           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+           # Clone gh-pages branch
+           # We use a token to authenticate
+           git clone --branch=gh-pages --depth=1 https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git public || (mkdir public && cd public && git init && git checkout -b gh-pages)
+
+           # Prepare destination directory
+           mkdir -p public/previews/${{ github.ref_name }}
+
+           # Clean old preview content for this branch (if any) but keep the dir structure
+           rm -rf public/previews/${{ github.ref_name }}/*
+
+           # Copy new build artifacts
+           cp -r build/* public/previews/${{ github.ref_name }}/
+
+           # Copy generation script to public root (where it can see previews folder)
+           cp scripts/generate-dashboard.js public/
+
+           # Navigate to public and generate dashboard
+           cd public
+           node generate-dashboard.js
+           rm generate-dashboard.js
+
+           # Stage changes
+           git add .
+
+           # Commit and Push (only if there are changes)
+           if ! git diff-index --quiet HEAD; then
+             git commit -m "Deploy preview for ${{ github.ref_name }}"
+             git push origin gh-pages
+           else
+             echo "No changes to deploy."
+           fi
