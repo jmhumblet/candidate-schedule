@@ -184,7 +184,7 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo((
     
     if (durationInMinutes <= 0) return null;
 
-    const segmentWidth = durationInMinutes * PIXELS_PER_MINUTE;
+    const segmentWidth = Math.max(0, durationInMinutes * PIXELS_PER_MINUTE - 2);
 
     return (
       <div
@@ -226,7 +226,7 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo((
                 {candidateSchedule.interviewSlots.length > 0 && overallDayStartTime && (() => {
                   const offsetMinutes = timeToMinutes(candidateRowDisplayStartTime) - timeToMinutes(overallDayStartTime);
                   if (offsetMinutes > 0) {
-                    const offsetWidth = offsetMinutes * PIXELS_PER_MINUTE;
+                    const offsetWidth = Math.max(0, offsetMinutes * PIXELS_PER_MINUTE - 2);
                     return <div className="timeline-offset-segment" style={{ width: `${offsetWidth}px`, height: '40px' }} />;
                   }
                   return null;
@@ -278,7 +278,7 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo((
           if (overallDayStartTime && globalSlot.timeSlot.startTime) {
             const offsetMinutes = timeToMinutes(globalSlot.timeSlot.startTime) - timeToMinutes(overallDayStartTime);
             if (offsetMinutes > 0) {
-              const offsetWidth = offsetMinutes * PIXELS_PER_MINUTE;
+              const offsetWidth = Math.max(0, offsetMinutes * PIXELS_PER_MINUTE - 2);
               offsetSegmentRender = <div className="timeline-offset-segment" style={{ width: `${offsetWidth}px`, height: '40px' }} />;
             }
           }
