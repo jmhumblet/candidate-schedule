@@ -30,11 +30,11 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date,
     date = typedDate.toLocaleDateString('fr-FR');
 
     // Sort the schedule by jury intervention time
-    const sortedSchedule = [...schedule].sort((a, b) => {
+    const sortedSchedule = React.useMemo(() => [...schedule].sort((a, b) => {
         const timeA = timeToMinutes(getJurySortTime(a));
         const timeB = timeToMinutes(getJurySortTime(b));
         return timeA - timeB;
-    });
+    }), [schedule]);
 
     React.useEffect(() => {
         if (isCopied) {
