@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { FinalDebriefingSlot, InterviewSlot, JuryWelcomeSlot, LunchSlot, Slot } from "./domain/interviewSlot";
-import Time from "./domain/time"; // Import Time
+import { FinalDebriefingSlot, InterviewSlot, JuryWelcomeSlot, LunchSlot, Slot } from "../domain/interviewSlot";
+import Time from "../domain/time"; // Import Time
 import { FaPause, FaUser, FaEdit, FaCopy, FaCheck, FaEnvelope } from 'react-icons/fa';
 import Clipboard from 'react-clipboard.js';
-import { EmailTemplateService } from "./domain/EmailTemplates";
+import { EmailTemplateService } from "../domain/EmailTemplates";
 import { Button } from "react-bootstrap";
 
 type ScheduleTableProps = {

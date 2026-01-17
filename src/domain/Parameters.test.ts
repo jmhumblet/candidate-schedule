@@ -1,6 +1,6 @@
-﻿import { InterviewParameters, Candidate, JuryDayParameters } from '../../domain/parameters';
-import Duration from '../../domain/duration';
-import Time from '../../domain/time';
+﻿import { InterviewParameters, Candidate, JuryDayParameters } from './parameters';
+import Duration from './duration';
+import Time from './time';
 
 describe('InterviewParameters', () => {
   describe('constructor and calculated properties', () => {

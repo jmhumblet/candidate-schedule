@@ -1,15 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import InterviewForm from "./InterviewForm";
+import InterviewForm from "./components/InterviewForm";
 import SchedulingService from "./domain/schedulingService";
 import { JuryDayParameters } from "./domain/parameters";
 import { StructuredSchedule } from "./domain/scheduleTypes";
-import ScheduleTable from "./ScheduleTable";
-import TimelineVisualization from "./TimelineVisualization";
+import ScheduleTable from "./components/ScheduleTable";
+import TimelineVisualization from "./components/TimelineVisualization";
 import { Button } from "react-bootstrap";
-import SessionSidebar from "./SessionSidebar";
+import SessionSidebar from "./components/SessionSidebar";
 import { SessionService, SavedSession, JuryDayParametersModel } from "./domain/session";
 import { FaEnvelope } from "react-icons/fa";
-import EmailTemplateEditor from "./EmailTemplateEditor";
+import EmailTemplateEditor from "./components/EmailTemplateEditor";
 import { EmailTemplateService } from "./domain/EmailTemplates";
 
 const App: React.FC = () => {

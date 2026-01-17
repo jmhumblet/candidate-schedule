@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
-import { Slot, InterviewSlot, LunchSlot, FinalDebriefingSlot, JuryWelcomeSlot } from './domain/interviewSlot';
-import { Candidate } from './domain/parameters';
-import Time from './domain/time';
+import { Slot, InterviewSlot, LunchSlot, FinalDebriefingSlot, JuryWelcomeSlot } from '../domain/interviewSlot';
+import { Candidate } from '../domain/parameters';
+import Time from '../domain/time';
 import './TimelineVisualization.css';
 
 interface TimelineVisualizationProps {

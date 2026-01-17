@@ -1,5 +1,5 @@
-﻿import Time from '../../domain/time';
-import Duration from '../../domain/duration';
+﻿import Time from './time';
+import Duration from './duration';
 
 describe('Time', () => {
   describe('constructor', () => {

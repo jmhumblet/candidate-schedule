@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Tabs, Tab, Badge, OverlayTrigger, Tooltip, Card } from 'react-bootstrap';
-import { EmailTemplate, EmailTemplateService, EmailTemplateType, DEFAULT_TEMPLATES } from './domain/EmailTemplates';
+import { EmailTemplate, EmailTemplateService, EmailTemplateType, DEFAULT_TEMPLATES } from '../domain/EmailTemplates';
 
 interface EmailTemplateEditorProps {
     show: boolean;

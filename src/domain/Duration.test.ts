@@ -1,4 +1,4 @@
-﻿import Duration from '../../domain/duration';
+﻿import Duration from './duration';
 
 describe('Duration', () => {
   describe('constructor', () => {
