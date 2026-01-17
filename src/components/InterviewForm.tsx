@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { JuryDayParameters, Candidate, InterviewParameters, Duration } from './domain/parameters';
+import { JuryDayParameters, Candidate, InterviewParameters, Duration } from '../domain/parameters';
 import { Button, Col, Form, Row, OverlayTrigger, Tooltip, InputGroup, Card } from 'react-bootstrap'
 import { FaClock, FaHourglassHalf } from 'react-icons/fa';
-import Time from './domain/time';
-import SchedulingService from './domain/schedulingService';
+import Time from '../domain/time';
+import SchedulingService from '../domain/schedulingService';
 
-import { JuryDayParametersModel } from './domain/session';
+import { JuryDayParametersModel } from '../domain/session';
 
 type InterviewFormProps = {
     onSubmit: (parameters: JuryDayParameters) => void;

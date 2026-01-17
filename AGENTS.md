@@ -5,9 +5,11 @@ This is a React application written in TypeScript for scheduling interviews. It 
 
 ## Key Directories
 - **`src/domain/`**: Contains the core business logic (e.g., `schedule.ts`, `interviewSlot.ts`). **Read this first** to understand the data models and rules.
-- **`src/`**: Contains the UI components (e.g., `App.tsx`, `ScheduleTable.tsx`).
-- **`src/__tests__/`**: Contains unit and integration tests.
+- **`src/components/`**: Contains the UI components (e.g., `InterviewForm.tsx`, `ScheduleTable.tsx`).
+- **`src/assets/`**: Contains static assets like images and icons.
 - **`e2e/`**: Contains Playwright integration tests.
+
+> **Note on Tests:** Unit tests are co-located with their source files (e.g., `InterviewForm.test.tsx` is next to `InterviewForm.tsx`).
 
 ## How to Run
 - **Start App:** `npm start` (Runs on port 3000. Interactive watch mode.)

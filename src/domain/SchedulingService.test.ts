@@ -1,7 +1,7 @@
-﻿import SchedulingService from '../../domain/schedulingService';
-import { JuryDayParameters, InterviewParameters, Candidate } from '../../domain/parameters';
-import Duration from '../../domain/duration';
-import Time from '../../domain/time';
+﻿import SchedulingService from './schedulingService';
+import { JuryDayParameters, InterviewParameters, Candidate } from './parameters';
+import Duration from './duration';
+import Time from './time';
 
 describe('SchedulingService', () => {
   const createBasicParameters = (candidatesCount: number = 2): JuryDayParameters => {

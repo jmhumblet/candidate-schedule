@@ -1,14 +1,14 @@
 
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import App from '../App';
-import TimelineVisualization from '../TimelineVisualization';
-import ScheduleTable from '../ScheduleTable';
+import App from './App';
+import TimelineVisualization from './components/TimelineVisualization';
+import ScheduleTable from './components/ScheduleTable';
 
 // Mock the child components as React.memo(jest.fn()) to simulate memoization behavior
 // and allow tracking of the inner render function.
 
-jest.mock('../TimelineVisualization', () => {
+jest.mock('./components/TimelineVisualization', () => {
     const React = require('react');
     return {
         __esModule: true,
@@ -16,7 +16,7 @@ jest.mock('../TimelineVisualization', () => {
     };
 });
 
-jest.mock('../ScheduleTable', () => {
+jest.mock('./components/ScheduleTable', () => {
     const React = require('react');
     return {
         __esModule: true,
@@ -24,7 +24,7 @@ jest.mock('../ScheduleTable', () => {
     };
 });
 
-jest.mock('../ThemeToggle', () => {
+jest.mock('./components/ThemeToggle', () => {
     return () => null;
 });
 

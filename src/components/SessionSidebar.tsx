@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { OverlayTrigger, Tooltip, Button } from 'react-bootstrap';
-import { SavedSession } from './domain/session';
+import { SavedSession } from '../domain/session';
 import { FaTrash, FaGithub, FaChevronRight, FaPlus, FaColumns, FaEnvelope } from 'react-icons/fa';
 import Logo, { LogoIcon } from './Logo';
 import ThemeToggle from './ThemeToggle';

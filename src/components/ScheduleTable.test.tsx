@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import ScheduleTable from '../ScheduleTable';
+import ScheduleTable from './ScheduleTable';
 import Time from '../domain/time';
 import { JuryWelcomeSlot } from '../domain/interviewSlot';
 

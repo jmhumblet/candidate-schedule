@@ -1,7 +1,7 @@
-import { EmailTemplateService, DEFAULT_TEMPLATES } from '../../domain/EmailTemplates';
-import { InterviewSlot, LunchSlot, JuryWelcomeSlot } from '../../domain/interviewSlot';
-import { Candidate, InterviewParameters, Duration } from '../../domain/parameters';
-import Time from '../../domain/time';
+import { EmailTemplateService, DEFAULT_TEMPLATES } from './EmailTemplates';
+import { InterviewSlot, LunchSlot, JuryWelcomeSlot } from './interviewSlot';
+import { Candidate, InterviewParameters, Duration } from './parameters';
+import Time from './time';
 
 // Mock localStorage
 const localStorageMock = (() => {

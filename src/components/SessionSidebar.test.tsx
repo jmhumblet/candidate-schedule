@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import SessionSidebar from '../SessionSidebar';
+import SessionSidebar from './SessionSidebar';
 import { SavedSession } from '../domain/session';
 
 const mockSessions: SavedSession[] = [
