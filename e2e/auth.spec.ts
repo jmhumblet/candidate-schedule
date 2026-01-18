@@ -41,7 +41,7 @@ test.describe('Authentication and Cloud Integration', () => {
         // Check for Cloud Icon (Synchronisé) to ensure it's saved to cloud
         // The icon has title="Synchronisé"
         // We look inside the sessionItem
-        await expect(sessionItem.getByTitle('Synchronisé')).toBeVisible();
+        await expect(sessionItem.getByRole('img', { name: 'Synchronisé' })).toBeVisible();
 
         // 4. Cleanup: Delete the Session
         // Locate the trash icon within the session item
