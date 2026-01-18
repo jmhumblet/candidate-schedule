@@ -62,7 +62,7 @@ export class SessionService {
 
     static mapToModel(params: JuryDayParameters): JuryDayParametersModel {
         return {
-            candidates: params.candidates,
+            candidates: params.candidates.map(c => ({ name: c.name, email: c.email })),
             jurorsStartTime: params.jurorsStartTime.toInputString(),
             interviewParameters: {
                 welcomeDuration: params.interviewParameters.welcomeDuration.toInputString(),
