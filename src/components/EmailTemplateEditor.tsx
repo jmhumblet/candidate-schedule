@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Tabs, Tab, Badge, OverlayTrigger, Tooltip, Card } from 'react-bootstrap';
-import { EmailTemplate, EmailTemplateService, EmailTemplateType, DEFAULT_TEMPLATES } from '../domain/EmailTemplates';
+import { EmailTemplate, EmailTemplateType, DEFAULT_TEMPLATES } from '../domain/EmailTemplates';
+import { usePreferences } from '../hooks/usePreferences';
 
 interface EmailTemplateEditorProps {
     show: boolean;
@@ -40,14 +41,15 @@ const LABELS: Record<EmailTemplateType, string> = {
 };
 
 const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({ show, onHide }) => {
+    const { emailTemplates: storedTemplates, saveTemplates } = usePreferences();
     const [templates, setTemplates] = useState<Record<EmailTemplateType, EmailTemplate>>(DEFAULT_TEMPLATES);
     const [activeTab, setActiveTab] = useState<EmailTemplateType>('candidate');
 
     useEffect(() => {
-        if (show) {
-            setTemplates(EmailTemplateService.getTemplates());
+        if (show && storedTemplates) {
+            setTemplates(storedTemplates);
         }
-    }, [show]);
+    }, [show, storedTemplates]);
 
     const handleChange = (field: 'subject' | 'body', value: string) => {
         setTemplates(prev => ({
@@ -59,21 +61,20 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({ show, onHide 
         }));
     };
 
-    const handleSave = () => {
-        EmailTemplateService.saveTemplates(templates);
+    const handleSave = async () => {
+        await saveTemplates(templates);
         onHide();
     };
 
-    const handleReset = () => {
+    const handleReset = async () => {
         if (window.confirm("Êtes-vous sûr de vouloir réinitialiser les modèles par défaut ?")) {
-            EmailTemplateService.resetTemplates();
+            await saveTemplates(DEFAULT_TEMPLATES);
             setTemplates(DEFAULT_TEMPLATES);
         }
     };
 
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
-        // Could add a toast here but let's keep it simple for now
     };
 
     const getPreview = (type: EmailTemplateType, template: EmailTemplate) => {

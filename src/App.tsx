@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import InterviewForm from "./components/InterviewForm";
 import SchedulingService from "./domain/schedulingService";
 import { JuryDayParameters } from "./domain/parameters";
@@ -11,17 +11,21 @@ import { SessionService, SavedSession, JuryDayParametersModel } from "./domain/s
 import { FaEnvelope } from "react-icons/fa";
 import EmailTemplateEditor from "./components/EmailTemplateEditor";
 import { EmailTemplateService } from "./domain/EmailTemplates";
+import { useSessions } from "./hooks/useSessions";
+import { usePreferences } from "./hooks/usePreferences";
 
 const App: React.FC = () => {
     const date = new Date();
     date.setDate(date.getDate() + 10);
+
+    const { sessions, saveSession, deleteSession, shareSession, isCloud } = useSessions();
+    const { emailTemplates } = usePreferences();
 
     const [schedule, setSchedule] = useState<StructuredSchedule | null>(null);
     const [juryDate, setJuryDate] = useState<string>(date.toISOString().split('T')[0]);
     const [jobTitle, setJobTitle] = useState<string>('');
 
     // Session Management State
-    const [sessions, setSessions] = useState<SavedSession[]>([]);
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
     const [initialParameters, setInitialParameters] = useState<JuryDayParametersModel | null>(null);
     const [confirmedCandidates, setConfirmedCandidates] = useState<string[]>([]);
@@ -31,28 +35,45 @@ const App: React.FC = () => {
     const [sidebarWidth, setSidebarWidth] = useState(300);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-    useEffect(() => {
-        setSessions(SessionService.getSessions());
-    }, []);
-
-    const handleFormSubmit = useCallback((parameters: JuryDayParameters) => {
+    const handleFormSubmit = useCallback(async (parameters: JuryDayParameters) => {
         const newStructuredSchedule = SchedulingService.generateSchedule(parameters);
         setSchedule(newStructuredSchedule);
 
         // Auto-save logic
+        // We preserve the existing session ID if editing, or create a new one
+        const sessionId = currentSessionId || crypto.randomUUID();
+
+        // If we are updating an existing session, we need to preserve its metadata (like ownerId)
+        // The repository handles ownerId preservation if we don't pass it,
+        // BUT if we have the session object in memory, passing it is safer.
+        // Let's find the existing session object to merge if needed, or just build fresh data.
+        // Since SavedSession is just data, we construct it:
+
+        // However, if we are editing a shared session, we want to ensure we don't break it.
+        // The repository handles the merge. We just send the data fields we know about.
+        // We do want to ensure we don't lose the 'confirmedCandidates' if we didn't touch them?
+        // confirmedCandidates are part of the state here.
+
+        const modelParams = SessionService.mapToModel(parameters);
         const sessionToSave: SavedSession = {
-            id: currentSessionId || crypto.randomUUID(),
+            id: sessionId,
             createdAt: new Date().toISOString(),
             juryDate: juryDate,
             jobTitle: jobTitle,
-            parameters: SessionService.mapToModel(parameters),
+            parameters: modelParams,
             confirmedCandidates: confirmedCandidates
         };
 
-        SessionService.saveSession(sessionToSave);
-        setSessions(SessionService.getSessions()); // Refresh list
-        setCurrentSessionId(sessionToSave.id);
-    }, [currentSessionId, juryDate, jobTitle, confirmedCandidates]);
+        // We try to pass the existing ownerId if we know it (from sessions list) to avoid ambiguity
+        const existingSession = sessions.find(s => s.id === sessionId);
+        if (existingSession) {
+            (sessionToSave as any).ownerId = existingSession.ownerId;
+        }
+
+        await saveSession(sessionToSave);
+        setCurrentSessionId(sessionId);
+        setInitialParameters(modelParams);
+    }, [currentSessionId, juryDate, jobTitle, confirmedCandidates, saveSession, sessions]);
 
     const slots = useMemo(() => {
         if (!schedule) return [];
@@ -72,9 +93,8 @@ const App: React.FC = () => {
         setSchedule(newStructuredSchedule);
     };
 
-    const handleDeleteSession = (id: string) => {
-        SessionService.deleteSession(id);
-        setSessions(SessionService.getSessions());
+    const handleDeleteSession = async (id: string) => {
+        await deleteSession(id);
         if (currentSessionId === id) {
              handleNewSession();
         }
@@ -89,7 +109,7 @@ const App: React.FC = () => {
         setSchedule(null);
     };
 
-    const handleConfirmCandidate = useCallback((candidateName: string, isConfirmed: boolean) => {
+    const handleConfirmCandidate = useCallback(async (candidateName: string, isConfirmed: boolean) => {
         const newConfirmed = isConfirmed
             ? [...confirmedCandidates, candidateName]
             : confirmedCandidates.filter(c => c !== candidateName);
@@ -97,29 +117,41 @@ const App: React.FC = () => {
         setConfirmedCandidates(newConfirmed);
 
         // Auto-save if we are in a session
-        if (currentSessionId) {
+        if (currentSessionId && initialParameters) {
+            // Reconstruct session from state to ensure we can save even if sessions list is syncing
             const currentSession = sessions.find(s => s.id === currentSessionId);
+
+            const sessionToSave: SavedSession = {
+                id: currentSessionId,
+                createdAt: currentSession?.createdAt || new Date().toISOString(),
+                juryDate,
+                jobTitle,
+                parameters: initialParameters,
+                confirmedCandidates: newConfirmed
+            };
+
+            // Preserve ownerId if available
             if (currentSession) {
-                const updatedSession = { ...currentSession, confirmedCandidates: newConfirmed };
-                SessionService.saveSession(updatedSession);
-                setSessions(SessionService.getSessions());
+                (sessionToSave as any).ownerId = currentSession.ownerId;
             }
+
+            await saveSession(sessionToSave);
         }
-    }, [confirmedCandidates, sessions, currentSessionId]);
+    }, [confirmedCandidates, sessions, currentSessionId, saveSession, initialParameters, juryDate, jobTitle]);
 
     const handleSendJuryEmail = () => {
         if (!slots.length) return;
-        const templates = EmailTemplateService.getTemplates();
         const formattedDate = new Date(juryDate).toLocaleDateString('fr-FR');
-        const link = EmailTemplateService.generateJuryLink(templates.jury, formattedDate, slots);
+        // Use templates from hook
+        const link = EmailTemplateService.generateJuryLink(emailTemplates.jury, formattedDate, slots);
         window.location.href = link;
     };
 
     const handleSendWelcomeEmail = () => {
          if (!slots.length) return;
-        const templates = EmailTemplateService.getTemplates();
         const formattedDate = new Date(juryDate).toLocaleDateString('fr-FR');
-        const link = EmailTemplateService.generateWelcomeLink(templates.welcome, formattedDate, slots);
+        // Use templates from hook
+        const link = EmailTemplateService.generateWelcomeLink(emailTemplates.welcome, formattedDate, slots);
         window.location.href = link;
     };
 
@@ -130,6 +162,8 @@ const App: React.FC = () => {
                 onLoadSession={handleLoadSession}
                 onDeleteSession={handleDeleteSession}
                 onNewSession={handleNewSession}
+                onShareSession={shareSession}
+                isCloud={isCloud}
                 onOpenTemplateEditor={() => setShowTemplateEditor(true)}
                 width={sidebarWidth}
                 setWidth={setSidebarWidth}
@@ -171,6 +205,7 @@ const App: React.FC = () => {
                                     date={juryDate}
                                     confirmedCandidates={confirmedCandidates}
                                     onConfirmCandidate={handleConfirmCandidate}
+                                    emailTemplates={emailTemplates}
                                 />
                                 <TimelineVisualization slots={slots} />
                             </>

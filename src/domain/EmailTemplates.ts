@@ -7,7 +7,9 @@ export interface EmailTemplate {
     body: string;
 }
 
-export const DEFAULT_TEMPLATES: Record<EmailTemplateType, EmailTemplate> = {
+export type EmailTemplatesMap = Record<EmailTemplateType, EmailTemplate>;
+
+export const DEFAULT_TEMPLATES: EmailTemplatesMap = {
     candidate: {
         subject: "Confirmation de votre entretien",
         body: "Bonjour {{name}},\n\nVoici les détails de votre entretien du {{date}} :\n\nArrivée : {{startTime}}\nCasus : {{casusTime}}\nCorrection : {{correctionTime}}\nEntretien : {{interviewTime}}\nDébriefing : {{debriefingTime}}\n\nCordialement,"
@@ -25,7 +27,7 @@ export const DEFAULT_TEMPLATES: Record<EmailTemplateType, EmailTemplate> = {
 const STORAGE_KEY = 'email_templates';
 
 export class EmailTemplateService {
-    static getTemplates(): Record<EmailTemplateType, EmailTemplate> {
+    static getTemplates(): EmailTemplatesMap {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
             try {
@@ -40,7 +42,7 @@ export class EmailTemplateService {
         return DEFAULT_TEMPLATES;
     }
 
-    static saveTemplates(templates: Record<EmailTemplateType, EmailTemplate>) {
+    static saveTemplates(templates: EmailTemplatesMap) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
     }
 

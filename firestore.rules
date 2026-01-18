@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Sessions: Users can read/write their own, or read/write those shared with them by email
+    match /sessions/{sessionId} {
+      // Allow creation if authenticated and the ownerId matches the user's UID
+      allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
+
+      // Allow read/update/delete if:
+      // 1. The user is the owner
+      // 2. OR The user's email is in the 'sharedWith' list
+      allow read, update, delete: if request.auth != null && (
+        resource.data.ownerId == request.auth.uid ||
+        (resource.data.sharedWith != null && request.auth.token.email in resource.data.sharedWith)
+      );
+    }
+
+    // User Preferences: Private to the user
+    match /user_preferences/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

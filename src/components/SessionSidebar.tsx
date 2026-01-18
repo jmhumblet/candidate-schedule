@@ -1,17 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { OverlayTrigger, Tooltip, Button } from 'react-bootstrap';
+import { OverlayTrigger, Tooltip, Button, Modal, Form, Spinner } from 'react-bootstrap';
 import { SavedSession } from '../domain/session';
-import { FaTrash, FaGithub, FaChevronRight, FaPlus, FaColumns, FaEnvelope } from 'react-icons/fa';
+import { FaTrash, FaGithub, FaChevronRight, FaPlus, FaColumns, FaEnvelope, FaCloud, FaCloudUploadAlt, FaUserFriends, FaSignOutAlt, FaGoogle, FaShareAlt } from 'react-icons/fa';
 import Logo, { LogoIcon } from './Logo';
 import ThemeToggle from './ThemeToggle';
 import './Sidebar.css';
+import { useAuth } from '../contexts/AuthContext';
+import { SessionWithStatus } from '../repositories/types';
 
 interface SessionSidebarProps {
-    sessions: SavedSession[];
+    sessions: SessionWithStatus[];
     onLoadSession: (session: SavedSession) => void;
     onDeleteSession: (id: string) => void;
     onNewSession: () => void;
+    onShareSession: (id: string, email: string) => Promise<void>;
     onOpenTemplateEditor: () => void;
+    isCloud: boolean;
 
     // Layout props
     width: number;
@@ -25,13 +29,22 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
     onLoadSession,
     onDeleteSession,
     onNewSession,
+    onShareSession,
     onOpenTemplateEditor,
+    isCloud,
     width,
     setWidth,
     collapsed,
     setCollapsed
 }) => {
+    const { user, login, logout } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Sharing State
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [sessionToShare, setSessionToShare] = useState<SavedSession | null>(null);
+    const [shareEmail, setShareEmail] = useState('');
+    const [sharing, setSharing] = useState(false);
 
     // Resize logic
     const isResizing = useRef(false);
@@ -64,6 +77,27 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
         e.preventDefault();
     };
 
+    const handleShareClick = (e: React.MouseEvent, session: SavedSession) => {
+        e.stopPropagation();
+        setSessionToShare(session);
+        setShareEmail('');
+        setShowShareModal(true);
+    };
+
+    const handleShareSubmit = async () => {
+        if (!sessionToShare || !shareEmail) return;
+        setSharing(true);
+        try {
+            await onShareSession(sessionToShare.id, shareEmail);
+            setShowShareModal(false);
+            // Optional: toast or alert
+        } catch (e: any) {
+            alert("Erreur lors du partage : " + (e.message || e));
+        } finally {
+            setSharing(false);
+        }
+    };
+
     // Filter sessions
     const sortedSessions = [...sessions].sort((a, b) => {
         return new Date(b.juryDate).getTime() - new Date(a.juryDate).getTime();
@@ -79,6 +113,22 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
         today.setHours(0, 0, 0, 0);
         const date = new Date(dateStr);
         return date < today;
+    };
+
+    const getSyncIcon = (session: SessionWithStatus) => {
+        if (!isCloud) return null;
+        if (session.syncStatus === 'offline') {
+            return <FaCloudUploadAlt className="text-warning ms-1" title="En attente de synchronisation" size={12} />;
+        }
+        if (session.ownerId && user && session.ownerId !== user.uid) {
+             return <FaUserFriends className="text-info ms-1" title="Partagé avec vous" size={12} />;
+        }
+        // If shared with others?
+        if (session.sharedWith && session.sharedWith.length > 0) {
+             return <FaUserFriends className="text-primary ms-1" title="Partagé par vous" size={12} />;
+        }
+
+        return <FaCloud className="text-success ms-1" title="Synchronisé" size={12} />;
     };
 
     if (collapsed) {
@@ -107,6 +157,17 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
 
                     <div className="mt-auto pb-3 d-flex flex-column gap-3 align-items-center">
                          <ThemeToggle className="btn btn-link text-secondary p-0 border-0" showLabel={false} variant="link" />
+                         {user ? (
+                             <OverlayTrigger placement="right" overlay={<Tooltip>{user.displayName || 'Compte'}</Tooltip>}>
+                                 <img src={user.photoURL || undefined} alt="User" className="rounded-circle border" style={{width: 24, height: 24}} />
+                             </OverlayTrigger>
+                         ) : (
+                             <OverlayTrigger placement="right" overlay={<Tooltip>Se connecter</Tooltip>}>
+                                 <Button variant="link" className="text-secondary p-0" onClick={() => login()}>
+                                     <FaGoogle size={20} />
+                                 </Button>
+                             </OverlayTrigger>
+                         )}
                     </div>
                 </div>
             </div>
@@ -154,23 +215,41 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
                         className={`sidebar-item ${isPast(session.juryDate) ? 'text-muted' : ''}`}
                         onClick={() => onLoadSession(session)}
                     >
-                        <div className="text-truncate me-2" style={{ maxWidth: '80%' }}>
-                            <div className="fw-bold text-truncate" style={{ fontSize: '0.9em' }}>{session.jobTitle || "Sans titre"}</div>
+                        <div className="text-truncate me-2 flex-grow-1" style={{ overflow: 'hidden' }}>
+                            <div className="fw-bold text-truncate d-flex align-items-center gap-1" style={{ fontSize: '0.9em' }}>
+                                {session.jobTitle || "Sans titre"}
+                                {getSyncIcon(session)}
+                            </div>
                             <div style={{ fontSize: '0.75em', opacity: 0.7 }}>{session.juryDate}</div>
                         </div>
-                         <OverlayTrigger overlay={<Tooltip>Supprimer</Tooltip>}>
-                            <div
-                                className="text-secondary p-1 rounded hover-bg-dark"
-                                role="button"
-                                aria-label="Supprimer"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onDeleteSession(session.id);
-                                }}
-                            >
-                                <FaTrash size={12} />
-                            </div>
-                        </OverlayTrigger>
+
+                        <div className="d-flex align-items-center gap-1">
+                             {isCloud && (
+                                <OverlayTrigger overlay={<Tooltip>Partager</Tooltip>}>
+                                    <div
+                                        className="text-secondary p-1 rounded hover-bg-dark action-icon"
+                                        role="button"
+                                        aria-label="Partager"
+                                        onClick={(e) => handleShareClick(e, session)}
+                                    >
+                                        <FaShareAlt size={12} />
+                                    </div>
+                                </OverlayTrigger>
+                             )}
+                             <OverlayTrigger overlay={<Tooltip>Supprimer</Tooltip>}>
+                                <div
+                                    className="text-secondary p-1 rounded hover-bg-dark action-icon"
+                                    role="button"
+                                    aria-label="Supprimer"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onDeleteSession(session.id);
+                                    }}
+                                >
+                                    <FaTrash size={12} />
+                                </div>
+                            </OverlayTrigger>
+                        </div>
                     </div>
                 ))}
 
@@ -189,14 +268,57 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
             </div>
 
             <div className="sidebar-footer">
-                <div className="d-flex justify-content-between text-secondary">
+                <div className="border-bottom pb-2 mb-2">
+                    {user ? (
+                        <div className="d-flex align-items-center gap-2 px-2">
+                             <img src={user.photoURL || undefined} className="rounded-circle" width="32" height="32" alt={user.displayName || 'User'} />
+                             <div className="text-truncate flex-grow-1" style={{fontSize: '0.85em'}}>
+                                 <div className="fw-bold text-truncate">{user.displayName}</div>
+                                 <div className="small text-muted text-truncate">{user.email}</div>
+                             </div>
+                             <Button variant="link" size="sm" onClick={() => logout()} className="text-secondary p-0" title="Se déconnecter">
+                                <FaSignOutAlt />
+                             </Button>
+                        </div>
+                    ) : (
+                        <Button variant="outline-primary" size="sm" className="w-100 d-flex align-items-center justify-content-center gap-2" onClick={() => login()}>
+                            <FaGoogle /> Se connecter
+                        </Button>
+                    )}
+                </div>
+                <div className="d-flex justify-content-between text-secondary pt-1">
                     <div className="d-flex gap-3">
-                        <a href="https://github.com/jmhumblet/candidate-schedule" target="_blank" rel="noopener noreferrer" className="d-flex align-items-center gap-1 text-decoration-none text-secondary">
+                        <a href="https://github.com/jmhumblet/candidate-schedule" target="_blank" rel="noopener noreferrer" className="d-flex align-items-center gap-1 text-decoration-none text-secondary" style={{fontSize: '0.9em'}}>
                             <FaGithub /> GitHub
                         </a>
                     </div>
                 </div>
             </div>
+
+            <Modal show={showShareModal} onHide={() => setShowShareModal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Partager la session</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>Entrez l'adresse email de l'utilisateur avec qui vous souhaitez partager <strong>{sessionToShare?.jobTitle}</strong>.</p>
+                    <Form.Group>
+                        <Form.Label>Email</Form.Label>
+                        <Form.Control
+                            type="email"
+                            placeholder="exemple@email.com"
+                            value={shareEmail}
+                            onChange={e => setShareEmail(e.target.value)}
+                            autoFocus
+                        />
+                    </Form.Group>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowShareModal(false)} disabled={sharing}>Annuler</Button>
+                    <Button variant="primary" onClick={handleShareSubmit} disabled={!shareEmail || sharing}>
+                        {sharing ? <Spinner size="sm" animation="border" /> : 'Partager'}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 };
