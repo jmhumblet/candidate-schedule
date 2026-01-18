@@ -43,7 +43,11 @@ export const useSessions = () => {
     useEffect(() => {
         setLoading(true);
         const unsubscribe = repository.subscribe((updatedSessions) => {
-            setSessions(updatedSessions);
+            // Deduplicate sessions based on ID
+            const uniqueSessions = updatedSessions.filter((session, index, self) =>
+                index === self.findIndex((s) => s.id === session.id)
+            );
+            setSessions(uniqueSessions);
             setLoading(false);
         });
         return unsubscribe;
