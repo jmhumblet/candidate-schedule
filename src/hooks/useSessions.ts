@@ -29,7 +29,7 @@ export const useSessions = () => {
                     for (const session of localSessions) {
                         try {
                             await repository.save(session);
-                            LocalSessionRepository.deleteLocal(session.id);
+                            LocalSessionRepository.deleteFromStorage(session.id);
                         } catch (error) {
                             console.error("Error syncing session:", session.id, error);
                         }
