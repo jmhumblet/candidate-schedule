@@ -24,6 +24,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     padding: var(--space-2) 0;
+    scrollbar-gutter: stable;
 }
 
 .sidebar-footer {
@@ -130,4 +131,17 @@
 
 .sidebar-content::-webkit-scrollbar-thumb:hover {
     background-color: var(--text-secondary);
+}
+
+/* Action Icons */
+.hover-bg-dark {
+    transition: background-color 0.2s;
+}
+
+.hover-bg-dark:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-bs-theme='dark'] .hover-bg-dark:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
