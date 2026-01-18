@@ -3,7 +3,7 @@ import { FinalDebriefingSlot, InterviewSlot, JuryWelcomeSlot, LunchSlot, Slot } 
 import Time from "../domain/time"; // Import Time
 import { FaPause, FaUser, FaEdit, FaCopy, FaCheck, FaEnvelope } from 'react-icons/fa';
 import Clipboard from 'react-clipboard.js';
-import { EmailTemplateService } from "../domain/EmailTemplates";
+import { EmailTemplateService, EmailTemplatesMap } from "../domain/EmailTemplates";
 import { Button } from "react-bootstrap";
 
 type ScheduleTableProps = {
@@ -11,6 +11,7 @@ type ScheduleTableProps = {
     date : string;
     confirmedCandidates: string[];
     onConfirmCandidate: (candidateName: string, isConfirmed: boolean) => void;
+    emailTemplates?: EmailTemplatesMap;
 }
 
 // Helper function for time comparison
@@ -24,7 +25,7 @@ const getJurySortTime = (slot: Slot): Time => {
     return slot.timeSlot.startTime;
 };
 
-const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date, confirmedCandidates, onConfirmCandidate}) => {
+const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date, confirmedCandidates, onConfirmCandidate, emailTemplates}) => {
     const [isCopied, setIsCopied] = useState(false);
     let typedDate = new Date(date);
     date = typedDate.toLocaleDateString('fr-FR');
@@ -85,6 +86,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date,
                         isConfirmed={confirmedCandidates.includes(slot.candidate.name)}
                         onConfirm={(confirmed) => onConfirmCandidate(slot.candidate.name, confirmed)}
                         date={date}
+                        emailTemplates={emailTemplates}
                     />;
                 } else if (slot instanceof LunchSlot) {
                     return <LunchSlotRow key={index} slot={slot} />;
@@ -102,9 +104,10 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date,
     )
 });
 
-const InterviewSlotRow = ({ slot, isConfirmed, onConfirm, date }: { slot: InterviewSlot, isConfirmed: boolean, onConfirm: (confirmed: boolean) => void, date: string }) => {
+const InterviewSlotRow = ({ slot, isConfirmed, onConfirm, date, emailTemplates }: { slot: InterviewSlot, isConfirmed: boolean, onConfirm: (confirmed: boolean) => void, date: string, emailTemplates?: EmailTemplatesMap }) => {
     const handleEmail = () => {
-        const templates = EmailTemplateService.getTemplates();
+        // Use passed templates or fall back to service (legacy/local)
+        const templates = emailTemplates || EmailTemplateService.getTemplates();
         const link = EmailTemplateService.generateCandidateLink(templates.candidate, slot.candidate.name, date, slot);
         window.location.href = link;
     };
@@ -122,6 +125,7 @@ const InterviewSlotRow = ({ slot, isConfirmed, onConfirm, date }: { slot: Interv
                     type="checkbox"
                     checked={isConfirmed}
                     onChange={(e) => onConfirm(e.target.checked)}
+                    aria-label={`Confirmer ${slot.candidate.name}`}
                 />
             </td>
             <td>

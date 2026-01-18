@@ -4,6 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
 import TimelineVisualization from './components/TimelineVisualization';
 import ScheduleTable from './components/ScheduleTable';
+import { AuthProvider } from './contexts/AuthContext';
 
 // Mock the child components as React.memo(jest.fn()) to simulate memoization behavior
 // and allow tracking of the inner render function.
@@ -34,7 +35,11 @@ describe('App Performance', () => {
     });
 
     test('Child components do not re-render when typing in Job Title', () => {
-        render(<App />);
+        render(
+            <AuthProvider>
+                <App />
+            </AuthProvider>
+        );
 
         // Get the inner mock functions
         // TimelineVisualization is the Memo object. .type is the inner component (the mock).

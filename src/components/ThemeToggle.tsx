@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from 'react-bootstrap';
 import { FaSun, FaMoon } from 'react-icons/fa';
+import { usePreferences } from '../hooks/usePreferences';
 
 interface ThemeToggleProps {
     className?: string;
@@ -15,34 +16,50 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
     variant = "outline-secondary",
     showLabel = true
 }) => {
-    const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'light' || savedTheme === 'dark') {
-            return savedTheme;
-        }
+    const { theme: storedTheme, saveTheme } = usePreferences();
+    const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>(() => {
+        // Initial state
+        if (storedTheme === 'light' || storedTheme === 'dark') return storedTheme;
         return getSystemTheme();
     });
 
+    // Update effective theme when stored preference changes
     useEffect(() => {
-        document.documentElement.setAttribute('data-bs-theme', theme);
-    }, [theme]);
+        if (storedTheme === 'light' || storedTheme === 'dark') {
+            setEffectiveTheme(storedTheme);
+        } else {
+             // If no preference (e.g. freshly loaded or explicitly null), check system
+             // But if we just loaded and storedTheme is undefined/null, we might already be correct.
+             // This mainly handles if the user logs out or data syncs.
+             // We can check local storage as fallback if usePreferences returns null?
+             // No, usePreferences handles local storage if logged out.
+             if (storedTheme === null) {
+                 setEffectiveTheme(getSystemTheme());
+             }
+        }
+    }, [storedTheme]);
 
+    // Apply theme to document
+    useEffect(() => {
+        document.documentElement.setAttribute('data-bs-theme', effectiveTheme);
+    }, [effectiveTheme]);
+
+    // Listen to system changes
     useEffect(() => {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
         const handleChange = () => {
-             // Only update from system if no user preference is stored
-             if (!localStorage.getItem('theme')) {
-                 setTheme(mediaQuery.matches ? 'dark' : 'light');
+             if (!storedTheme) {
+                 setEffectiveTheme(mediaQuery.matches ? 'dark' : 'light');
              }
         };
         mediaQuery.addEventListener('change', handleChange);
         return () => mediaQuery.removeEventListener('change', handleChange);
-    }, []);
+    }, [storedTheme]);
 
     const toggleTheme = () => {
-        const newTheme = theme === 'light' ? 'dark' : 'light';
-        setTheme(newTheme);
-        localStorage.setItem('theme', newTheme);
+        const newTheme = effectiveTheme === 'light' ? 'dark' : 'light';
+        setEffectiveTheme(newTheme); // Optimistic UI update
+        saveTheme(newTheme);
     };
 
     return (
@@ -50,14 +67,14 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
             variant={variant}
             onClick={toggleTheme}
             className={className}
-            title={`Passer en mode ${theme === 'light' ? 'sombre' : 'clair'}`}
+            title={`Passer en mode ${effectiveTheme === 'light' ? 'sombre' : 'clair'}`}
             size="sm"
-            aria-label={theme === 'light' ? 'Activer le mode sombre' : 'Activer le mode clair'}
+            aria-label={effectiveTheme === 'light' ? 'Activer le mode sombre' : 'Activer le mode clair'}
         >
-            {theme === 'light' ? <FaMoon /> : <FaSun />}
+            {effectiveTheme === 'light' ? <FaMoon /> : <FaSun />}
             {showLabel && (
                 <span className="d-none d-sm-inline">
-                    {theme === 'light' ? 'Sombre' : 'Clair'}
+                    {effectiveTheme === 'light' ? 'Sombre' : 'Clair'}
                 </span>
             )}
         </Button>
