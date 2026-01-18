@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Slot, InterviewSlot, LunchSlot, FinalDebriefingSlot, JuryWelcomeSlot } from '../domain/interviewSlot';
 import { Candidate } from '../domain/parameters';
 import Time from '../domain/time';
@@ -24,6 +24,8 @@ interface RenderableGlobalSlot {
 
 type RenderableItem = RenderableCandidateSchedule | RenderableGlobalSlot;
 
+type ViewMode = 'all' | 'jury' | 'greeter';
+
 const timeToMinutes = (time: Time): number => time.hour * 60 + time.minute;
 const PIXELS_PER_MINUTE = 2;
 const HOUR_WIDTH = 60 * PIXELS_PER_MINUTE;
@@ -43,6 +45,7 @@ const getGlobalSlotSegmentClass = (slot: Slot): string => {
 };
 
 const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo(({ slots }) => {
+  const [viewMode, setViewMode] = useState<ViewMode>('all');
 
   // Calculate global start/end times, rounded to hours for the grid
   const { roundedStartTime, totalWidth, totalHours, startHour } = useMemo(() => {
@@ -192,7 +195,32 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo((
 
   return (
     <div className="timeline-container">
-      <h2>Chronologie des candidats</h2>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2>Chronologie des candidats</h2>
+        <div className="btn-group" role="group" aria-label="Vue">
+          <button
+            type="button"
+            className={`btn btn-sm ${viewMode === 'all' ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => setViewMode('all')}
+          >
+            Vue d'ensemble
+          </button>
+          <button
+            type="button"
+            className={`btn btn-sm ${viewMode === 'jury' ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => setViewMode('jury')}
+          >
+            Vue Jury
+          </button>
+          <button
+            type="button"
+            className={`btn btn-sm ${viewMode === 'greeter' ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => setViewMode('greeter')}
+          >
+            Vue Accueil
+          </button>
+        </div>
+      </div>
       
       <div className="timeline-grid">
         {/* Top Left Corner */}
@@ -224,22 +252,36 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo((
               <div className={`timeline-row-track ${isGlobal ? 'track-global' : ''}`} style={gridBackgroundStyle}>
                 {isGlobal ? (
                    // Global Slot Render
-                   renderSegment(
-                     (item as RenderableGlobalSlot).slot.timeSlot.startTime,
-                     (item as RenderableGlobalSlot).slot.timeSlot.endTime,
-                     getGlobalSlotSegmentClass((item as RenderableGlobalSlot).slot),
-                     label,
-                     'seg-global'
+                   (viewMode === 'all' ||
+                    viewMode === 'jury' || // Jury sees all currently defined global slots
+                    (viewMode === 'greeter' && (item as RenderableGlobalSlot).slot instanceof LunchSlot)
+                   ) && (
+                     // Custom logic for hiding specific global slots based on view if needed.
+                     // For now: Jury sees everything global except maybe pure greeter stuff if any.
+                     // Greeter sees Lunch.
+                     (viewMode === 'greeter' && !((item as RenderableGlobalSlot).slot instanceof LunchSlot)) ? null :
+                     renderSegment(
+                       (item as RenderableGlobalSlot).slot.timeSlot.startTime,
+                       (item as RenderableGlobalSlot).slot.timeSlot.endTime,
+                       getGlobalSlotSegmentClass((item as RenderableGlobalSlot).slot),
+                       label,
+                       'seg-global'
+                     )
                    )
                 ) : (
                    // Candidate Slots Render
                    (item as RenderableCandidateSchedule).interviewSlots.map((slot, sIdx) => (
                      <React.Fragment key={`slot-${sIdx}`}>
-                        {renderSegment(slot.timeSlot.startTime, slot.casusStartTime, 'segment-welcome', 'Accueil', `s${sIdx}-1`)}
-                        {renderSegment(slot.casusStartTime, slot.correctionStartTime, 'segment-neutral', 'Casus', `s${sIdx}-2`)}
-                        {renderSegment(slot.correctionStartTime, slot.meetingStartTime, 'segment-lightblue', 'Correction', `s${sIdx}-3`)}
-                        {renderSegment(slot.meetingStartTime, slot.debriefingStartTime, 'segment-darkblue', 'Entretien', `s${sIdx}-4`)}
-                        {renderSegment(slot.debriefingStartTime, slot.timeSlot.endTime, 'segment-lightblue', 'Délibération', `s${sIdx}-5`)}
+                        {(viewMode === 'all' || viewMode === 'greeter') &&
+                          renderSegment(slot.timeSlot.startTime, slot.casusStartTime, 'segment-welcome', 'Accueil', `s${sIdx}-1`)}
+                        {(viewMode === 'all' || viewMode === 'greeter') &&
+                          renderSegment(slot.casusStartTime, slot.correctionStartTime, 'segment-neutral', 'Casus', `s${sIdx}-2`)}
+                        {(viewMode === 'all' || viewMode === 'jury') &&
+                          renderSegment(slot.correctionStartTime, slot.meetingStartTime, 'segment-lightblue', 'Correction', `s${sIdx}-3`)}
+                        {(viewMode === 'all' || viewMode === 'jury') &&
+                          renderSegment(slot.meetingStartTime, slot.debriefingStartTime, 'segment-darkblue', 'Entretien', `s${sIdx}-4`)}
+                        {(viewMode === 'all' || viewMode === 'jury') &&
+                          renderSegment(slot.debriefingStartTime, slot.timeSlot.endTime, 'segment-lightblue', 'Délibération', `s${sIdx}-5`)}
                      </React.Fragment>
                    ))
                 )}
