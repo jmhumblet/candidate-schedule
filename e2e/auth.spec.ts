@@ -16,11 +16,11 @@ test.describe('Authentication and Cloud Integration', () => {
         await page.getByRole('button', { name: 'Se connecter avec Email' }).click();
 
         // Fill credentials
-        await page.getByLabel('Email').fill(TEST_EMAIL);
-        await page.getByLabel('Mot de passe').fill(TEST_PASSWORD);
+        await page.getByLabel('Email', { exact: true }).fill(TEST_EMAIL);
+        await page.getByLabel('Mot de passe', { exact: true }).fill(TEST_PASSWORD);
 
         // Submit
-        await page.getByRole('button', { name: 'Se connecter', exact: true }).click();
+        await page.locator('.modal-content').getByRole('button', { name: 'Se connecter', exact: true }).click();
 
         // Verify login success (Sidebar footer shows email or user icon)
         // We look for the "Se déconnecter" button as proof of being logged in
