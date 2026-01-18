@@ -263,10 +263,14 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
                         className={`sidebar-item ${isPast(session.juryDate) ? 'text-muted' : ''}`}
                         onClick={() => onLoadSession(session)}
                     >
-                        <div className="text-truncate me-2 flex-grow-1" style={{ overflow: 'hidden' }}>
-                            <div className="fw-bold text-truncate d-flex align-items-center gap-1" style={{ fontSize: '0.9em' }}>
-                                {session.jobTitle || "Sans titre"}
-                                {getSyncIcon(session)}
+                        <div className="me-2 flex-grow-1" style={{ overflow: 'hidden', minWidth: 0 }}>
+                            <div className="d-flex align-items-center gap-1" style={{ fontSize: '0.9em' }}>
+                                <span className="fw-bold text-truncate">
+                                    {session.jobTitle || "Sans titre"}
+                                </span>
+                                <span className="flex-shrink-0">
+                                    {getSyncIcon(session)}
+                                </span>
                             </div>
                             <div style={{ fontSize: '0.75em', opacity: 0.7 }}>{session.juryDate}</div>
                         </div>
