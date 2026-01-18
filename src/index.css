@@ -54,7 +54,11 @@
   /* Map to Bootstrap Variables (Light Mode) */
   --bs-body-bg: var(--bg-body);
   --bs-body-color: var(--text-primary);
+  --bs-secondary-color: var(--text-secondary);
   --bs-border-color: var(--border-color);
+  --bs-card-bg: var(--bg-surface);
+  --bs-secondary-bg: var(--bg-surface-secondary);
+  --bs-tertiary-bg: var(--bg-surface-secondary);
 }
 
 [data-bs-theme='dark'] {
@@ -95,7 +99,11 @@
   /* Map to Bootstrap Variables (Dark Mode) */
   --bs-body-bg: var(--bg-body);
   --bs-body-color: var(--text-primary);
+  --bs-secondary-color: var(--text-secondary);
   --bs-border-color: var(--border-color);
+  --bs-card-bg: var(--bg-surface);
+  --bs-secondary-bg: var(--bg-surface-secondary);
+  --bs-tertiary-bg: var(--bg-surface-secondary);
 }
 
 body {
@@ -116,6 +124,17 @@ code {
 }
 
 /* Component Overrides using Semantic Variables */
+
+/* Shadows */
+.shadow-sm, .shadow, .shadow-lg {
+  box-shadow: var(--shadow-card) !important;
+}
+
+/* Typography - Fluid Headers */
+h1, .h1 { font-size: var(--font-xl); }
+h2, .h2 { font-size: var(--font-lg); }
+h3, .h3 { font-size: var(--font-base); font-weight: bold; }
+
 
 .btn-orange {
   background-color: var(--accent-primary) !important;
