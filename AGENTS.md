@@ -44,6 +44,14 @@ To operate with maximum efficiency and leverage your large context window ("Anti
     -   **Local:** Playwright runs against `npm start` (dev server).
     -   **CI/GitHub Actions:** Playwright runs against `npm run build` (production build) served via `serve`.
 
+## Verification Workflow
+When modifying the UI or user-facing features, you must verify your work visually.
+
+1.  **Create Verification Scripts:** Create temporary Playwright scripts in a `verification/` directory to generate screenshots of your changes.
+2.  **Do Not Commit Verification Files:** Never add files from the `verification/` directory to the repository. These are temporary artifacts for your own checking.
+3.  **Provide Visual Proofs:** When submitting your work, paste the visual proofs (screenshots) or confirm their existence in the chat for the user to see.
+4.  **Clean Up:** Delete the `verification/` directory before submitting your final changes.
+
 ## Coding Standards
 - **Framework:** React (Functional Components + Hooks).
 - **Language:** TypeScript. Strictly type all interfaces and props.
