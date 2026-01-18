@@ -4,6 +4,7 @@ import { Button, Col, Form, Row, OverlayTrigger, Tooltip, InputGroup, Card } fro
 import { FaClock, FaHourglassHalf } from 'react-icons/fa';
 import Time from '../domain/time';
 import SchedulingService from '../domain/schedulingService';
+import useDebounce from '../hooks/useDebounce';
 
 import { JuryDayParametersModel } from '../domain/session';
 
@@ -40,6 +41,10 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
     const [lunchTargetTime, setLunchTargetTime] = useState<string>('12:45');
     const [lunchDuration, setLunchDuration] = useState<number>(30);
     const [finalDebriefingDuration, setFinalDebriefingDuration] = useState<number>(15);
+
+    // Debounce inputs that trigger expensive recalculations
+    const debouncedCandidatesInput = useDebounce(candidatesInput, 300);
+    const debouncedCandidatesCount = useDebounce(candidatesCount, 300);
 
     const parseDurationToMinutes = (time: string): number => {
         const [hours, minutes] = time.split(':').map(Number);
@@ -168,10 +173,10 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
 
     const totalDuration = React.useMemo(() => {
         let candidateList: Candidate[] = [];
-        if (candidatesInput.trim()) {
-            candidateList = candidatesInput.split('\n').map((line) => parseCandidate(line));
-        } else if (candidatesCount !== undefined) {
-            candidateList = Array.from({ length: candidatesCount }, (_, index) => {
+        if (debouncedCandidatesInput.trim()) {
+            candidateList = debouncedCandidatesInput.split('\n').map((line) => parseCandidate(line));
+        } else if (debouncedCandidatesCount !== undefined) {
+            candidateList = Array.from({ length: debouncedCandidatesCount }, (_, index) => {
                 return new Candidate(`${index + 1}`, null);
             });
         }
@@ -204,7 +209,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
 
         const diff = maxMinutes - minMinutes;
         return new Duration(Math.floor(diff / 60), diff % 60).toString();
-    }, [candidatesCount, candidatesInput, jurorsStartTime, welcomeDuration, casusDuration, correctionDuration, interviewDuration, debriefingDuration, lunchTargetTime, lunchDuration, finalDebriefingDuration]);
+    }, [debouncedCandidatesCount, debouncedCandidatesInput, jurorsStartTime, welcomeDuration, casusDuration, correctionDuration, interviewDuration, debriefingDuration, lunchTargetTime, lunchDuration, finalDebriefingDuration]);
 
     return (
         <div className="container-fluid p-0">
