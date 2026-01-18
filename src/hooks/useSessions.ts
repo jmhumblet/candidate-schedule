@@ -6,7 +6,7 @@ import {
 } from '../repositories/types';
 import { LocalSessionRepository } from '../repositories/LocalSessionRepository';
 import { FirebaseSessionRepository } from '../repositories/FirebaseSessionRepository';
-import { SavedSession } from '../domain/session';
+import { SavedSession, SessionService } from '../domain/session';
 
 export const useSessions = () => {
     const { user, loading: authLoading } = useAuth();
@@ -20,6 +20,25 @@ export const useSessions = () => {
         }
         return new LocalSessionRepository();
     }, [user, authLoading]);
+
+    useEffect(() => {
+        const syncSessions = async () => {
+            if (user && !authLoading) {
+                const localSessions = SessionService.getSessions();
+                if (localSessions.length > 0) {
+                    for (const session of localSessions) {
+                        try {
+                            await repository.save(session);
+                            SessionService.deleteSession(session.id);
+                        } catch (error) {
+                            console.error("Error syncing session:", session.id, error);
+                        }
+                    }
+                }
+            }
+        };
+        syncSessions();
+    }, [user, authLoading, repository]);
 
     useEffect(() => {
         setLoading(true);
