@@ -9,10 +9,13 @@ PlanIt is a modern, responsive web application designed to streamline the proces
 *   **Visual Timeline:** Automatically generate and visualize interview schedules for multiple candidates.
 *   **Email Templates:** Built-in editor for invitation and confirmation emails with live preview.
 *   **Theme Support:** Fully responsive design with automatic Dark/Light mode support based on system preferences.
+*   **Cloud Sync & Sharing:** (New) Optional Google Login to sync sessions across devices and share them with colleagues via email.
+*   **Offline First:** Works offline with local storage and syncs changes to the cloud when connectivity is restored.
 
 ## 🛠 Tech Stack
 
 *   **Core:** [React](https://reactjs.org/), [TypeScript](https://www.typescriptlang.org/)
+*   **Backend (BaaS):** [Firebase](https://firebase.google.com/) (Authentication & Firestore)
 *   **Styling:** [Bootstrap 5](https://getbootstrap.com/), [React-Bootstrap](https://react-bootstrap.github.io/)
 *   **Testing:** [Jest](https://jestjs.io/), [React Testing Library](https://testing-library.com/), [Playwright](https://playwright.dev/)
 *   **CI/CD:** GitHub Actions, GitHub Pages
@@ -36,6 +39,17 @@ PlanIt is a modern, responsive web application designed to streamline the proces
     ```bash
     npm install
     ```
+
+### Configuration (Firebase)
+
+To enable cloud features (Login, Sync, Sharing), you need to configure Firebase.
+
+1.  Create a project in the [Firebase Console](https://console.firebase.google.com/).
+2.  Enable **Authentication** (Google Sign-In).
+3.  Enable **Firestore Database**.
+4.  Copy the contents of `firestore.rules` from this repository to your Firestore Rules in the console.
+5.  Create a Web App in Firebase and copy the configuration object.
+6.  Update `src/firebase/config.ts` with your API keys.
 
 ### Running Locally
 
