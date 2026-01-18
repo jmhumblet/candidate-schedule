@@ -76,6 +76,7 @@ We use a fluid type scale utilizing `clamp()` to ensure readability across all d
 ### Cards & Surfaces
 *   **Light Mode:** Use subtle shadows (`--shadow-card`) for depth.
 *   **Dark Mode:** Avoid black shadows. Use lighter background overlays (`--bg-surface` vs `--bg-body`) to define depth.
+*   **Note:** Standard shadow utility classes (`.shadow-sm`, `.shadow`, `.shadow-lg`) are globally overridden in `src/index.css` to use `--shadow-card`, ensuring they vanish in dark mode.
 
 ## 5. Accessibility Checklist
 
