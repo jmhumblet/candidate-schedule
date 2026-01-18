@@ -12,6 +12,8 @@ type ScheduleTableProps = {
     confirmedCandidates: string[];
     onConfirmCandidate: (candidateName: string, isConfirmed: boolean) => void;
     emailTemplates?: EmailTemplatesMap;
+    onSendJuryEmail?: () => void;
+    onSendWelcomeEmail?: () => void;
 }
 
 // Helper function for time comparison
@@ -25,7 +27,7 @@ const getJurySortTime = (slot: Slot): Time => {
     return slot.timeSlot.startTime;
 };
 
-const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date, confirmedCandidates, onConfirmCandidate, emailTemplates}) => {
+const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date, confirmedCandidates, onConfirmCandidate, emailTemplates, onSendJuryEmail, onSendWelcomeEmail}) => {
     const [isCopied, setIsCopied] = useState(false);
     let typedDate = new Date(date);
     date = typedDate.toLocaleDateString('fr-FR');
@@ -50,20 +52,33 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date,
 
     return (
 <div>
-    <div className="d-flex align-items-center mb-3">
-        <Clipboard
-            data-clipboard-target="#schedule-content"
-            className={`btn ${isCopied ? 'btn-success' : 'btn-outline-primary'} me-3`}
-            onSuccess={handleCopySuccess}
-            title="Copier l'horaire"
-        >
-            {isCopied ? <><FaCheck /> Copié !</> : <><FaCopy /> Copier</>}
-        </Clipboard>
+    <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2 className="mb-0">Horaire du {date}</h2>
+        <div className="d-flex gap-2">
+            {onSendJuryEmail && (
+                <Button variant="outline-primary" onClick={onSendJuryEmail}>
+                    <FaEnvelope className="me-2" />
+                    Email Jury
+                </Button>
+            )}
+            {onSendWelcomeEmail && (
+                <Button variant="outline-primary" onClick={onSendWelcomeEmail}>
+                    <FaEnvelope className="me-2" />
+                    Email Accueil
+                </Button>
+            )}
+            <Clipboard
+                data-clipboard-target="#schedule-content"
+                className={`btn ${isCopied ? 'btn-success' : 'btn-outline-primary'}`}
+                onSuccess={handleCopySuccess}
+                title="Copier l'horaire"
+            >
+                {isCopied ? <><FaCheck className="me-2" /> Copié !</> : <><FaCopy className="me-2" /> Copier</>}
+            </Clipboard>
+        </div>
     </div>
 
     <div id="schedule-content">
-        <h2>Horaire du {date}</h2>
-
         <table id="result" className="table table-striped table-hover text-center">
             <thead>
                 <tr>

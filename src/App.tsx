@@ -5,10 +5,8 @@ import { JuryDayParameters } from "./domain/parameters";
 import { StructuredSchedule } from "./domain/scheduleTypes";
 import ScheduleTable from "./components/ScheduleTable";
 import TimelineVisualization from "./components/TimelineVisualization";
-import { Button } from "react-bootstrap";
 import SessionSidebar from "./components/SessionSidebar";
 import { SessionService, SavedSession, JuryDayParametersModel } from "./domain/session";
-import { FaEnvelope } from "react-icons/fa";
 import EmailTemplateEditor from "./components/EmailTemplateEditor";
 import { EmailTemplateService } from "./domain/EmailTemplates";
 import { useSessions } from "./hooks/useSessions";
@@ -139,21 +137,21 @@ const App: React.FC = () => {
         }
     }, [confirmedCandidates, sessions, currentSessionId, saveSession, initialParameters, juryDate, jobTitle]);
 
-    const handleSendJuryEmail = () => {
+    const handleSendJuryEmail = useCallback(() => {
         if (!slots.length) return;
         const formattedDate = new Date(juryDate).toLocaleDateString('fr-FR');
         // Use templates from hook
         const link = EmailTemplateService.generateJuryLink(emailTemplates.jury, formattedDate, slots);
         window.location.href = link;
-    };
+    }, [slots, juryDate, emailTemplates]);
 
-    const handleSendWelcomeEmail = () => {
+    const handleSendWelcomeEmail = useCallback(() => {
          if (!slots.length) return;
         const formattedDate = new Date(juryDate).toLocaleDateString('fr-FR');
         // Use templates from hook
         const link = EmailTemplateService.generateWelcomeLink(emailTemplates.welcome, formattedDate, slots);
         window.location.href = link;
-    };
+    }, [slots, juryDate, emailTemplates]);
 
     return (
         <div className="d-flex vh-100 overflow-hidden bg-body">
@@ -190,22 +188,14 @@ const App: React.FC = () => {
 
                         {schedule && (
                             <>
-                                <div className="d-flex justify-content-end mb-2 gap-2">
-                                    <Button variant="outline-primary" onClick={handleSendJuryEmail}>
-                                        <FaEnvelope className="me-2" />
-                                        Email Jury
-                                    </Button>
-                                    <Button variant="outline-primary" onClick={handleSendWelcomeEmail}>
-                                        <FaEnvelope className="me-2" />
-                                        Email Accueil
-                                    </Button>
-                                </div>
                                 <ScheduleTable
                                     schedule={slots}
                                     date={juryDate}
                                     confirmedCandidates={confirmedCandidates}
                                     onConfirmCandidate={handleConfirmCandidate}
                                     emailTemplates={emailTemplates}
+                                    onSendJuryEmail={handleSendJuryEmail}
+                                    onSendWelcomeEmail={handleSendWelcomeEmail}
                                 />
                                 <TimelineVisualization slots={slots} />
                             </>

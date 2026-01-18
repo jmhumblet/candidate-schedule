@@ -1,5 +1,4 @@
 .timeline-container {
-  margin: var(--space-3);
   font-family: inherit;
   display: flex;
   flex-direction: column;
