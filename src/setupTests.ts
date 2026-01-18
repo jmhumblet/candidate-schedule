@@ -32,3 +32,15 @@ if (typeof global.crypto === 'undefined') {
     // Extend existing crypto
     Object.assign(global.crypto, cryptoMock);
 }
+
+// Mock Firebase Analytics and Performance to avoid ESM issues in Jest
+jest.mock('firebase/analytics', () => ({
+  getAnalytics: jest.fn(),
+  initializeAnalytics: jest.fn(), // Added this
+  logEvent: jest.fn(),
+  isSupported: jest.fn().mockResolvedValue(false),
+}));
+
+jest.mock('firebase/performance', () => ({
+  getPerformance: jest.fn(),
+}));
