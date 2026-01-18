@@ -31,16 +31,10 @@ export class FirebaseSessionRepository implements SessionRepository {
         // Query: Owner is me OR SharedWith contains my email
         let q;
         if (this.userEmail) {
-            try {
-                q = query(sessionsRef, or(
-                    where('ownerId', '==', this.userId),
-                    where('sharedWith', 'array-contains', this.userEmail)
-                ));
-            } catch (e) {
-                // Fallback for older SDKs if 'or' fails (though unlikely with latest)
-                console.error("Query creation failed", e);
-                q = query(sessionsRef, where('ownerId', '==', this.userId));
-            }
+            q = query(sessionsRef, or(
+                where('ownerId', '==', this.userId),
+                where('sharedWith', 'array-contains', this.userEmail)
+            ));
         } else {
             q = query(sessionsRef, where('ownerId', '==', this.userId));
         }

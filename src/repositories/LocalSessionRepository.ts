@@ -1,13 +1,44 @@
 import { SessionRepository, SessionWithStatus } from './types';
-import { SessionService, SavedSession } from '../domain/session';
+import { SavedSession } from '../domain/session';
 
 type Listener = (sessions: SessionWithStatus[]) => void;
 
 export class LocalSessionRepository implements SessionRepository {
     private static listeners: Listener[] = [];
+    private static STORAGE_KEY = 'interview_scheduler_sessions';
+
+    static readAll(): SavedSession[] {
+        const data = localStorage.getItem(LocalSessionRepository.STORAGE_KEY);
+        if (!data) return [];
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            console.error("Failed to parse sessions", e);
+            return [];
+        }
+    }
+
+    static saveLocal(session: SavedSession): void {
+        const sessions = LocalSessionRepository.readAll();
+        const existingIndex = sessions.findIndex(s => s.id === session.id);
+
+        if (existingIndex >= 0) {
+            sessions[existingIndex] = session;
+        } else {
+            sessions.push(session);
+        }
+
+        localStorage.setItem(LocalSessionRepository.STORAGE_KEY, JSON.stringify(sessions));
+    }
+
+    static deleteLocal(id: string): void {
+        const sessions = LocalSessionRepository.readAll();
+        const filtered = sessions.filter(s => s.id !== id);
+        localStorage.setItem(LocalSessionRepository.STORAGE_KEY, JSON.stringify(filtered));
+    }
 
     private static notify() {
-        const sessions = SessionService.getSessions().map(s => ({
+        const sessions = LocalSessionRepository.readAll().map(s => ({
             ...s,
             syncStatus: 'local' as const
         }));
@@ -18,7 +49,7 @@ export class LocalSessionRepository implements SessionRepository {
         LocalSessionRepository.listeners.push(onUpdate);
 
         // Initial data
-        const sessions = SessionService.getSessions().map(s => ({
+        const sessions = LocalSessionRepository.readAll().map(s => ({
             ...s,
             syncStatus: 'local' as const
         }));
@@ -30,13 +61,12 @@ export class LocalSessionRepository implements SessionRepository {
     }
 
     async save(session: SavedSession): Promise<void> {
-        // Simulate async delay if needed, but not strictly necessary for local
-        SessionService.saveSession(session);
+        LocalSessionRepository.saveLocal(session);
         LocalSessionRepository.notify();
     }
 
     async delete(id: string): Promise<void> {
-        SessionService.deleteSession(id);
+        LocalSessionRepository.deleteLocal(id);
         LocalSessionRepository.notify();
     }
 }
