@@ -4,7 +4,8 @@ import {
     GoogleAuthProvider,
     signInWithPopup,
     signOut,
-    onAuthStateChanged
+    onAuthStateChanged,
+    signInWithEmailAndPassword
 } from 'firebase/auth';
 import { auth } from '../firebase';
 
@@ -12,6 +13,7 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     login: () => Promise<void>;
+    loginWithEmail: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -19,6 +21,7 @@ const AuthContext = createContext<AuthContextType>({
     user: null,
     loading: true,
     login: async () => {},
+    loginWithEmail: async () => {},
     logout: async () => {}
 });
 
@@ -56,6 +59,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    const loginWithEmail = async (email: string, password: string) => {
+        if (!auth) {
+            alert("Firebase is not configured.");
+            return;
+        }
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+            console.error("Email login failed", error);
+            throw error;
+        }
+    };
+
     const logout = async () => {
         if (!auth) return;
         try {
@@ -66,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, loginWithEmail, logout }}>
             {children}
         </AuthContext.Provider>
     );

@@ -37,7 +37,7 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
     collapsed,
     setCollapsed
 }) => {
-    const { user, login, logout } = useAuth();
+    const { user, login, loginWithEmail, logout } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
 
     // Sharing State
@@ -45,6 +45,14 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
     const [sessionToShare, setSessionToShare] = useState<SavedSession | null>(null);
     const [shareEmail, setShareEmail] = useState('');
     const [sharing, setSharing] = useState(false);
+
+    // Login State
+    const [showLoginModal, setShowLoginModal] = useState(false);
+    const [loginEmail, setLoginEmail] = useState('');
+    const [loginPassword, setLoginPassword] = useState('');
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
+    const [loginError, setLoginError] = useState('');
+
 
     // Online Status State
     const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -113,6 +121,23 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
             setSharing(false);
         }
     };
+
+    const handleEmailLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoggingIn(true);
+        setLoginError('');
+        try {
+            await loginWithEmail(loginEmail, loginPassword);
+            setShowLoginModal(false);
+            setLoginEmail('');
+            setLoginPassword('');
+        } catch (err: any) {
+            setLoginError("Échec de la connexion. Vérifiez vos identifiants.");
+        } finally {
+            setIsLoggingIn(false);
+        }
+    };
+
 
     // Filter sessions
     const sortedSessions = [...sessions].sort((a, b) => {
@@ -306,7 +331,7 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
                         <div className="d-flex align-items-center gap-2 px-2">
                              <img src={user.photoURL || undefined} className="rounded-circle" width="32" height="32" alt={user.displayName || 'User'} />
                              <div className="text-truncate flex-grow-1" style={{fontSize: '0.85em'}}>
-                                 <div className="fw-bold text-truncate">{user.displayName}</div>
+                                 <div className="fw-bold text-truncate">{user.displayName || user.email}</div>
                                  <div className="small text-muted text-truncate">{user.email}</div>
                              </div>
                              <Button variant="link" size="sm" onClick={() => logout()} className="text-secondary p-0" title="Se déconnecter">
@@ -314,9 +339,14 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
                              </Button>
                         </div>
                     ) : (
-                        <Button variant="outline-primary" size="sm" className="w-100 d-flex align-items-center justify-content-center gap-2" onClick={() => login()}>
-                            <FaGoogle /> Se connecter
-                        </Button>
+                        <div className="d-flex flex-column gap-2">
+                            <Button variant="outline-primary" size="sm" className="w-100 d-flex align-items-center justify-content-center gap-2" onClick={() => login()}>
+                                <FaGoogle /> Se connecter
+                            </Button>
+                             <Button variant="link" size="sm" className="w-100 d-flex align-items-center justify-content-center gap-2 text-decoration-none text-secondary" onClick={() => setShowLoginModal(true)}>
+                                <small>Se connecter avec Email</small>
+                            </Button>
+                        </div>
                     )}
                 </div>
                 <div className="d-flex justify-content-between text-secondary pt-1">
@@ -351,6 +381,43 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
                         {sharing ? <Spinner size="sm" animation="border" /> : 'Partager'}
                     </Button>
                 </Modal.Footer>
+            </Modal>
+
+            <Modal show={showLoginModal} onHide={() => setShowLoginModal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Connexion Email</Modal.Title>
+                </Modal.Header>
+                <Form onSubmit={handleEmailLogin}>
+                    <Modal.Body>
+                        {loginError && <Alert variant="danger">{loginError}</Alert>}
+                        <Form.Group className="mb-3" controlId="loginEmail">
+                            <Form.Label>Email</Form.Label>
+                            <Form.Control
+                                type="email"
+                                placeholder="name@example.com"
+                                value={loginEmail}
+                                onChange={e => setLoginEmail(e.target.value)}
+                                required
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3" controlId="loginPassword">
+                            <Form.Label>Mot de passe</Form.Label>
+                            <Form.Control
+                                type="password"
+                                placeholder="Mot de passe"
+                                value={loginPassword}
+                                onChange={e => setLoginPassword(e.target.value)}
+                                required
+                            />
+                        </Form.Group>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => setShowLoginModal(false)} disabled={isLoggingIn}>Annuler</Button>
+                        <Button variant="primary" type="submit" disabled={isLoggingIn}>
+                            {isLoggingIn ? <Spinner size="sm" animation="border" /> : 'Se connecter'}
+                        </Button>
+                    </Modal.Footer>
+                </Form>
             </Modal>
         </div>
     );
