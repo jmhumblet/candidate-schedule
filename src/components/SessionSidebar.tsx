@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { OverlayTrigger, Tooltip, Button, Modal, Form, Spinner } from 'react-bootstrap';
+import { OverlayTrigger, Tooltip, Button, Modal, Form, Spinner, Alert } from 'react-bootstrap';
 import { SavedSession } from '../domain/session';
-import { FaTrash, FaGithub, FaChevronRight, FaPlus, FaColumns, FaEnvelope, FaCloud, FaCloudUploadAlt, FaUserFriends, FaSignOutAlt, FaGoogle, FaShareAlt } from 'react-icons/fa';
+import { FaTrash, FaGithub, FaChevronRight, FaPlus, FaColumns, FaEnvelope, FaCloud, FaCloudUploadAlt, FaUserFriends, FaSignOutAlt, FaGoogle, FaShareAlt, FaWifi } from 'react-icons/fa';
 import Logo, { LogoIcon } from './Logo';
 import ThemeToggle from './ThemeToggle';
 import './Sidebar.css';
@@ -45,6 +45,22 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
     const [sessionToShare, setSessionToShare] = useState<SavedSession | null>(null);
     const [shareEmail, setShareEmail] = useState('');
     const [sharing, setSharing] = useState(false);
+
+    // Online Status State
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+    useEffect(() => {
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
 
     // Resize logic
     const isResizing = useRef(false);
@@ -168,6 +184,13 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
                                  </Button>
                              </OverlayTrigger>
                          )}
+                         {!isOnline && (
+                             <OverlayTrigger placement="right" overlay={<Tooltip>Mode hors ligne</Tooltip>}>
+                                 <div className="text-warning">
+                                     <FaWifi size={16} />
+                                 </div>
+                             </OverlayTrigger>
+                         )}
                     </div>
                 </div>
             </div>
@@ -268,6 +291,16 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
             </div>
 
             <div className="sidebar-footer">
+                {!isOnline && (
+                    <Alert variant="warning" className="m-2 p-2 small">
+                        <FaWifi className="me-2" /> Mode hors ligne. Vos modifications sont sauvegardées localement.
+                    </Alert>
+                )}
+                {!user && isOnline && (
+                    <div className="px-3 pb-2 text-center text-muted" style={{ fontSize: '0.75em' }}>
+                        Connectez-vous pour sauvegarder vos données dans le cloud et y accéder partout.
+                    </div>
+                )}
                 <div className="border-bottom pb-2 mb-2">
                     {user ? (
                         <div className="d-flex align-items-center gap-2 px-2">

@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import App from '../App';
 import InterviewForm from './InterviewForm';
+import { AuthProvider } from '../contexts/AuthContext';
 
 // Mock child components
 jest.mock('./InterviewForm', () => {
@@ -25,7 +26,11 @@ jest.mock('./EmailTemplateEditor', () => () => <div />);
 
 describe('InterviewForm Performance', () => {
     test('InterviewForm does not re-render when Sidebar is toggled', () => {
-        const { container } = render(<App />);
+        const { container } = render(
+            <AuthProvider>
+                <App />
+            </AuthProvider>
+        );
 
         // Get the mock function
         // InterviewForm is the default export (React.memo). .type is the inner component (the mock).
