@@ -1,10 +1,9 @@
-// Replace the values below with your specific Firebase configuration.
-// You can find these values in the Firebase Console: Project Settings > General > Your Apps > Firebase SDK Snippet > Config
 export const firebaseConfig = {
-  apiKey: "PLACEHOLDER_API_KEY",
-  authDomain: "PLACEHOLDER_PROJECT_ID.firebaseapp.com",
-  projectId: "PLACEHOLDER_PROJECT_ID",
-  storageBucket: "PLACEHOLDER_PROJECT_ID.appspot.com",
-  messagingSenderId: "PLACEHOLDER_SENDER_ID",
-  appId: "PLACEHOLDER_APP_ID"
+  apiKey: "AIzaSyCMlXA5bF_Vi9zID8qm0cdb1HZJfNr76es",
+  authDomain: "candidate-schedule.firebaseapp.com",
+  projectId: "candidate-schedule",
+  storageBucket: "candidate-schedule.firebasestorage.app",
+  messagingSenderId: "642894138683",
+  appId: "1:642894138683:web:7d9c008100bc1564583b1e",
+  measurementId: "G-3Q2KB5GESJ"
 };
