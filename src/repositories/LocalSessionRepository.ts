@@ -18,7 +18,7 @@ export class LocalSessionRepository implements SessionRepository {
         }
     }
 
-    static saveLocal(session: SavedSession): void {
+    static saveToStorage(session: SavedSession): void {
         const sessions = LocalSessionRepository.readAll();
         const existingIndex = sessions.findIndex(s => s.id === session.id);
 
@@ -31,7 +31,7 @@ export class LocalSessionRepository implements SessionRepository {
         localStorage.setItem(LocalSessionRepository.STORAGE_KEY, JSON.stringify(sessions));
     }
 
-    static deleteLocal(id: string): void {
+    static deleteFromStorage(id: string): void {
         const sessions = LocalSessionRepository.readAll();
         const filtered = sessions.filter(s => s.id !== id);
         localStorage.setItem(LocalSessionRepository.STORAGE_KEY, JSON.stringify(filtered));
@@ -61,12 +61,12 @@ export class LocalSessionRepository implements SessionRepository {
     }
 
     async save(session: SavedSession): Promise<void> {
-        LocalSessionRepository.saveLocal(session);
+        LocalSessionRepository.saveToStorage(session);
         LocalSessionRepository.notify();
     }
 
     async delete(id: string): Promise<void> {
-        LocalSessionRepository.deleteLocal(id);
+        LocalSessionRepository.deleteFromStorage(id);
         LocalSessionRepository.notify();
     }
 }
