@@ -6,7 +6,7 @@ import {
 } from '../repositories/types';
 import { LocalSessionRepository } from '../repositories/LocalSessionRepository';
 import { FirebaseSessionRepository } from '../repositories/FirebaseSessionRepository';
-import { SavedSession, SessionService } from '../domain/session';
+import { SavedSession } from '../domain/session';
 
 export const useSessions = () => {
     const { user, loading: authLoading } = useAuth();
@@ -24,12 +24,12 @@ export const useSessions = () => {
     useEffect(() => {
         const syncSessions = async () => {
             if (user && !authLoading) {
-                const localSessions = SessionService.getSessions();
+                const localSessions = LocalSessionRepository.readAll();
                 if (localSessions.length > 0) {
                     for (const session of localSessions) {
                         try {
                             await repository.save(session);
-                            SessionService.deleteSession(session.id);
+                            LocalSessionRepository.deleteLocal(session.id);
                         } catch (error) {
                             console.error("Error syncing session:", session.id, error);
                         }
@@ -43,11 +43,7 @@ export const useSessions = () => {
     useEffect(() => {
         setLoading(true);
         const unsubscribe = repository.subscribe((updatedSessions) => {
-            // Deduplicate sessions based on ID
-            const uniqueSessions = updatedSessions.filter((session, index, self) =>
-                index === self.findIndex((s) => s.id === session.id)
-            );
-            setSessions(uniqueSessions);
+            setSessions(updatedSessions);
             setLoading(false);
         });
         return unsubscribe;

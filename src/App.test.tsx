@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from './App';
-import { SessionService } from './domain/session';
+import { LocalSessionRepository } from './repositories/LocalSessionRepository';
 import { AuthProvider } from './contexts/AuthContext';
 
 // Mock localStorage
@@ -55,7 +55,7 @@ describe('App Integration Test', () => {
       // Wait for session to be saved and appear in Sidebar
       // This ensures the internal 'sessions' state in App is updated via the useSessions hook
       await waitFor(() => {
-          const sessions = SessionService.getSessions();
+          const sessions = LocalSessionRepository.readAll();
           expect(sessions.length).toBe(1);
       });
 

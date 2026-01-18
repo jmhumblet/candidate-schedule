@@ -27,39 +27,7 @@ export interface JuryDayParametersModel {
     finalDebriefingDuration: string;
 }
 
-const STORAGE_KEY = 'interview_scheduler_sessions';
-
 export class SessionService {
-    static saveSession(session: SavedSession): void {
-        const sessions = this.getSessions();
-        const existingIndex = sessions.findIndex(s => s.id === session.id);
-
-        if (existingIndex >= 0) {
-            sessions[existingIndex] = session;
-        } else {
-            sessions.push(session);
-        }
-
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
-    }
-
-    static getSessions(): SavedSession[] {
-        const data = localStorage.getItem(STORAGE_KEY);
-        if (!data) return [];
-        try {
-            return JSON.parse(data);
-        } catch (e) {
-            console.error("Failed to parse sessions", e);
-            return [];
-        }
-    }
-
-    static deleteSession(id: string): void {
-        const sessions = this.getSessions();
-        const filtered = sessions.filter(s => s.id !== id);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
-    }
-
     static mapToModel(params: JuryDayParameters): JuryDayParametersModel {
         return {
             candidates: params.candidates.map(c => ({ name: c.name, email: c.email })),
