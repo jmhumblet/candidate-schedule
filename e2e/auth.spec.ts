@@ -28,7 +28,7 @@ test.describe('Authentication and Cloud Integration', () => {
 
         // 2. Create a Session
         // Fill Job Title
-        await page.getByLabel('Titre du poste').fill(uniqueTitle);
+        await page.getByLabel('Poste').fill(uniqueTitle);
 
         // Click Generate (which triggers save)
         await page.getByRole('button', { name: 'Générer' }).click();
