@@ -27,6 +27,7 @@
   /* Timeline Colors */
   --timeline-dark: #345B63;
   --timeline-neutral: #D4B996;
+  --timeline-neutral-text: #212529; /* Dark text for light background */
   --timeline-light: #A2D5F2;
   --timeline-light-text: #333333;
   --timeline-welcome: #90EE90;
@@ -88,6 +89,8 @@
   --status-neutral-text: #adb5bd;
 
   /* Timeline Colors - Adjusted */
+  --timeline-neutral: #8f7050; /* Darker brown for dark mode */
+  --timeline-neutral-text: #ffffff;
   --timeline-welcome: #1a6d1a;
   --timeline-welcome-text: #ffffff;
   --timeline-light: #5ba8d4;
