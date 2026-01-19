@@ -11,6 +11,7 @@ import EmailTemplateEditor from "./components/EmailTemplateEditor";
 import { EmailTemplateService } from "./domain/EmailTemplates";
 import { useSessions } from "./hooks/useSessions";
 import { usePreferences } from "./hooks/usePreferences";
+import { SessionWithStatus } from "./repositories/types";
 
 const App: React.FC = () => {
     const date = new Date();
@@ -25,6 +26,9 @@ const App: React.FC = () => {
 
     // Session Management State
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+    // Store metadata like ownerId and createdAt to avoid dependency on the full sessions list
+    const [currentSessionMeta, setCurrentSessionMeta] = useState<{ ownerId?: string; createdAt?: string } | null>(null);
+
     const [initialParameters, setInitialParameters] = useState<JuryDayParametersModel | null>(null);
     const [confirmedCandidates, setConfirmedCandidates] = useState<string[]>([]);
     const [showTemplateEditor, setShowTemplateEditor] = useState<boolean>(false);
@@ -40,6 +44,7 @@ const App: React.FC = () => {
         // Auto-save logic
         // We preserve the existing session ID if editing, or create a new one
         const sessionId = currentSessionId || crypto.randomUUID();
+        const createdAt = currentSessionMeta?.createdAt || new Date().toISOString();
 
         // If we are updating an existing session, we need to preserve its metadata (like ownerId)
         // The repository handles ownerId preservation if we don't pass it,
@@ -55,23 +60,28 @@ const App: React.FC = () => {
         const modelParams = SessionService.mapToModel(parameters);
         const sessionToSave: SavedSession = {
             id: sessionId,
-            createdAt: new Date().toISOString(),
+            createdAt: createdAt,
             juryDate: juryDate,
             jobTitle: jobTitle,
             parameters: modelParams,
             confirmedCandidates: confirmedCandidates
         };
 
-        // We try to pass the existing ownerId if we know it (from sessions list) to avoid ambiguity
-        const existingSession = sessions.find(s => s.id === sessionId);
-        if (existingSession) {
-            (sessionToSave as any).ownerId = existingSession.ownerId;
+        // We try to pass the existing ownerId if we know it (from currentSessionMeta) to avoid ambiguity
+        if (currentSessionMeta?.ownerId) {
+            (sessionToSave as any).ownerId = currentSessionMeta.ownerId;
         }
 
         await saveSession(sessionToSave);
         setCurrentSessionId(sessionId);
+
+        // If this was a new session, we need to latch onto the creation time we just set
+        if (!currentSessionMeta) {
+            setCurrentSessionMeta({ createdAt });
+        }
+
         setInitialParameters(modelParams);
-    }, [currentSessionId, juryDate, jobTitle, confirmedCandidates, saveSession, sessions]);
+    }, [currentSessionId, juryDate, jobTitle, confirmedCandidates, saveSession, currentSessionMeta]);
 
     const slots = useMemo(() => {
         if (!schedule) return [];
@@ -80,6 +90,12 @@ const App: React.FC = () => {
 
     const handleLoadSession = (session: SavedSession) => {
         setCurrentSessionId(session.id);
+        // Cast to SessionWithStatus to access ownerId if available (passed from sidebar)
+        setCurrentSessionMeta({
+            ownerId: (session as SessionWithStatus).ownerId,
+            createdAt: session.createdAt
+        });
+
         setJuryDate(session.juryDate);
         setJobTitle(session.jobTitle);
         setInitialParameters(session.parameters);
@@ -100,6 +116,7 @@ const App: React.FC = () => {
 
     const handleNewSession = () => {
         setCurrentSessionId(null);
+        setCurrentSessionMeta(null);
         setJuryDate(date.toISOString().split('T')[0]);
         setJobTitle('');
         setInitialParameters(null);
@@ -117,11 +134,11 @@ const App: React.FC = () => {
         // Auto-save if we are in a session
         if (currentSessionId && initialParameters) {
             // Reconstruct session from state to ensure we can save even if sessions list is syncing
-            const currentSession = sessions.find(s => s.id === currentSessionId);
+            const createdAt = currentSessionMeta?.createdAt || new Date().toISOString();
 
             const sessionToSave: SavedSession = {
                 id: currentSessionId,
-                createdAt: currentSession?.createdAt || new Date().toISOString(),
+                createdAt: createdAt,
                 juryDate,
                 jobTitle,
                 parameters: initialParameters,
@@ -129,13 +146,13 @@ const App: React.FC = () => {
             };
 
             // Preserve ownerId if available
-            if (currentSession) {
-                (sessionToSave as any).ownerId = currentSession.ownerId;
+            if (currentSessionMeta?.ownerId) {
+                (sessionToSave as any).ownerId = currentSessionMeta.ownerId;
             }
 
             await saveSession(sessionToSave);
         }
-    }, [confirmedCandidates, sessions, currentSessionId, saveSession, initialParameters, juryDate, jobTitle]);
+    }, [confirmedCandidates, currentSessionId, saveSession, initialParameters, juryDate, jobTitle, currentSessionMeta]);
 
     const handleSendJuryEmail = useCallback(() => {
         if (!slots.length) return;
