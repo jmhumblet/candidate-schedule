@@ -6,7 +6,7 @@ This document serves as the source of truth for the application's UI/UX standard
 
 The application uses a semantic CSS variable system to handle Light and Dark modes. **Do not use hex values directly in component CSS.** Instead, use the semantic variables defined in `:root`.
 
-Theme toggling is handled via the `data-bs-theme` attribute on the `<html>` element (`light` or `dark`).
+Theme toggling is handled via the `data-bs-theme` attribute on the `<html>` element (`light` or `dark`), managed by `src/components/ThemeToggle.tsx` and persisted via `localStorage` (or Firestore if logged in).
 
 ### Semantic Color Reference
 
@@ -43,10 +43,10 @@ We adhere to an 8-point grid for spacing to ensure visual rhythm. Use the define
 | `--space-4` | `2rem` | 32px | Large section breaks |
 | `--space-6` | `3rem` | 48px | Major layout divisions |
 
-**Do:**
+**Guidelines:**
 *   Use Flexbox for component alignment.
 *   Use CSS Grid for macro layouts.
-*   Ensure generous whitespace to maintain a "sleek" aesthetic.
+*   Ensure generous whitespace to maintain a "sleek" aesthetic. Avoid clutter.
 
 ## 3. Typography
 
@@ -82,6 +82,7 @@ We use a fluid type scale utilizing `clamp()` to ensure readability across all d
 
 *   [ ] **Semantic HTML:** Use `<main>`, `<nav>`, `<article>`, `<header>`, `<footer>` appropriately.
 *   [ ] **Contrast:** Ensure text meets WCAG AA standards (4.5:1 ratio).
+    *   *Note:* Timeline colors have been adjusted for Dark Mode to ensure compliance.
 *   [ ] **Keyboard Navigation:** All interactive elements must be focusable and usable via keyboard.
 *   [ ] **ARIA Labels:** Use `aria-label` or `aria-labelledby` when visual context is insufficient (e.g., icon-only buttons).
 *   [ ] **Focus Management:** Ensure focus order is logical and visible.

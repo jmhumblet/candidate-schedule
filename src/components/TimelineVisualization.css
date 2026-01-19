@@ -137,7 +137,7 @@
 
 /* Segment Colors */
 .segment-darkblue { background-color: var(--timeline-dark); }
-.segment-neutral { background-color: var(--timeline-neutral); }
+.segment-neutral { background-color: var(--timeline-neutral); color: var(--timeline-neutral-text); }
 .segment-lightblue { background-color: var(--timeline-light); color: var(--timeline-light-text); }
 .segment-welcome { background-color: var(--timeline-welcome); color: var(--timeline-welcome-text); }
 .segment-unknown { background-color: var(--text-secondary); }
