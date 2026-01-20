@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useRef, useEffect } from "react";
 import InterviewForm from "./components/InterviewForm";
 import SchedulingService from "./domain/schedulingService";
 import { JuryDayParameters } from "./domain/parameters";
@@ -23,6 +23,11 @@ const App: React.FC = () => {
     const [schedule, setSchedule] = useState<StructuredSchedule | null>(null);
     const [juryDate, setJuryDate] = useState<string>(date.toISOString().split('T')[0]);
     const [jobTitle, setJobTitle] = useState<string>('');
+
+    // Optimization: Use ref for jobTitle to avoid re-creating callbacks that depend on it
+    // but don't need to trigger re-renders of children (like ScheduleTable)
+    const jobTitleRef = useRef(jobTitle);
+    useEffect(() => { jobTitleRef.current = jobTitle; }, [jobTitle]);
 
     // Session Management State
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
@@ -140,7 +145,7 @@ const App: React.FC = () => {
                 id: currentSessionId,
                 createdAt: createdAt,
                 juryDate,
-                jobTitle,
+                jobTitle: jobTitleRef.current, // Use ref to avoid dependency on changing jobTitle
                 parameters: initialParameters,
                 confirmedCandidates: newConfirmed
             };
@@ -152,7 +157,7 @@ const App: React.FC = () => {
 
             await saveSession(sessionToSave);
         }
-    }, [confirmedCandidates, currentSessionId, saveSession, initialParameters, juryDate, jobTitle, currentSessionMeta]);
+    }, [confirmedCandidates, currentSessionId, saveSession, initialParameters, juryDate, currentSessionMeta]);
 
     const handleSendJuryEmail = useCallback(() => {
         if (!slots.length) return;
