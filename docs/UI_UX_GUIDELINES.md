@@ -6,7 +6,11 @@ This document serves as the source of truth for the application's UI/UX standard
 
 The application uses a semantic CSS variable system to handle Light and Dark modes. **Do not use hex values directly in component CSS.** Instead, use the semantic variables defined in `:root`.
 
-Theme toggling is handled via the `data-bs-theme` attribute on the `<html>` element (`light` or `dark`), managed by `src/components/ThemeToggle.tsx` and persisted via `localStorage` (or Firestore if logged in).
+### Mechanism
+*   **Auto-detection:** The app respects the user's system preference (`prefers-color-scheme`) by default.
+*   **Persistence:** The user's choice is persisted in `localStorage` under the key `theme` (`light` | `dark`) and synced to Firestore (if logged in).
+*   **Initialization:** To prevent a Flash of Unstyled Content (FOUC), a script in `public/index.html` reads `localStorage` and sets the `data-bs-theme` attribute on `<html>` before React hydrates.
+*   **Toggling:** Managed by `src/components/ThemeToggle.tsx`.
 
 ### Semantic Color Reference
 
@@ -44,9 +48,9 @@ We adhere to an 8-point grid for spacing to ensure visual rhythm. Use the define
 | `--space-6` | `3rem` | 48px | Major layout divisions |
 
 **Guidelines:**
-*   Use Flexbox for component alignment.
-*   Use CSS Grid for macro layouts.
-*   Ensure generous whitespace to maintain a "sleek" aesthetic. Avoid clutter.
+*   **Whitespace:** Generous whitespace is mandatory to avoid cluttered interfaces.
+*   **Alignment:** Use Flexbox for component alignment and CSS Grid for macro layouts.
+*   **Sleekness:** Prioritize clean lines and open space.
 
 ## 3. Typography
 
@@ -94,3 +98,4 @@ We use a fluid type scale utilizing `clamp()` to ensure readability across all d
 *   `src/components/`: Reusable UI components.
 *   `src/domain/`: Business logic and types (agnostic of UI).
 *   `src/App.tsx`: Main application layout.
+*   `docs/UI_UX_GUIDELINES.md`: This file.
