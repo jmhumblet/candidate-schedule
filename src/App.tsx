@@ -35,7 +35,7 @@ const App: React.FC = () => {
 
     // Sidebar State
     const [sidebarWidth, setSidebarWidth] = useState(300);
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth < 768);
 
     const handleFormSubmit = useCallback(async (parameters: JuryDayParameters) => {
         const newStructuredSchedule = SchedulingService.generateSchedule(parameters);
@@ -105,6 +105,10 @@ const App: React.FC = () => {
         const parameters = SessionService.mapFromModel(session.parameters);
         const newStructuredSchedule = SchedulingService.generateSchedule(parameters);
         setSchedule(newStructuredSchedule);
+
+        if (window.innerWidth < 768) {
+            setSidebarCollapsed(true);
+        }
     };
 
     const handleDeleteSession = async (id: string) => {
@@ -186,7 +190,7 @@ const App: React.FC = () => {
                 setCollapsed={setSidebarCollapsed}
             />
 
-            <div className="flex-grow-1 d-flex flex-column overflow-hidden position-relative">
+            <div className="flex-grow-1 d-flex flex-column overflow-hidden position-relative main-content">
                 <div className="overflow-auto h-100 w-100 p-3">
                     <div className="container-fluid" style={{ maxWidth: '1200px' }}>
 
