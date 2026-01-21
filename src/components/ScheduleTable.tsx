@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { FinalDebriefingSlot, InterviewSlot, JuryWelcomeSlot, LunchSlot, Slot } from "../domain/interviewSlot";
 import Time from "../domain/time"; // Import Time
 import { FaPause, FaUser, FaEdit, FaCopy, FaCheck, FaEnvelope } from 'react-icons/fa';
@@ -31,6 +31,17 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date,
     const [isCopied, setIsCopied] = useState(false);
     let typedDate = new Date(date);
     date = typedDate.toLocaleDateString('fr-FR');
+
+    // Create stable handler ref
+    const onConfirmRef = useRef(onConfirmCandidate);
+    useEffect(() => {
+        onConfirmRef.current = onConfirmCandidate;
+    }, [onConfirmCandidate]);
+
+    // Create stable callback that calls the ref
+    const handleConfirm = useCallback((name: string, confirmed: boolean) => {
+        onConfirmRef.current(name, confirmed);
+    }, []);
 
     // Sort the schedule by jury intervention time
     const sortedSchedule = React.useMemo(() => [...schedule].sort((a, b) => {
@@ -99,7 +110,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date,
                         key={index}
                         slot={slot}
                         isConfirmed={confirmedCandidates.includes(slot.candidate.name)}
-                        onConfirm={(confirmed) => onConfirmCandidate(slot.candidate.name, confirmed)}
+                        onConfirm={handleConfirm}
                         date={date}
                         emailTemplates={emailTemplates}
                     />;
@@ -119,13 +130,18 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date,
     )
 });
 
-const InterviewSlotRow = ({ slot, isConfirmed, onConfirm, date, emailTemplates }: { slot: InterviewSlot, isConfirmed: boolean, onConfirm: (confirmed: boolean) => void, date: string, emailTemplates?: EmailTemplatesMap }) => {
-    const handleEmail = () => {
+// Optimized: Wrapped in React.memo and takes stable onConfirm + name
+const InterviewSlotRow = React.memo(({ slot, isConfirmed, onConfirm, date, emailTemplates }: { slot: InterviewSlot, isConfirmed: boolean, onConfirm: (candidateName: string, confirmed: boolean) => void, date: string, emailTemplates?: EmailTemplatesMap }) => {
+    const handleEmail = useCallback(() => {
         // Use passed templates or fall back to service (legacy/local)
         const templates = emailTemplates || EmailTemplateService.getTemplates();
         const link = EmailTemplateService.generateCandidateLink(templates.candidate, slot.candidate.name, date, slot);
         window.location.href = link;
-    };
+    }, [emailTemplates, slot, date]);
+
+    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        onConfirm(slot.candidate.name, e.target.checked);
+    }, [onConfirm, slot.candidate.name]);
 
     return (
         <tr>
@@ -139,7 +155,7 @@ const InterviewSlotRow = ({ slot, isConfirmed, onConfirm, date, emailTemplates }
                 <input
                     type="checkbox"
                     checked={isConfirmed}
-                    onChange={(e) => onConfirm(e.target.checked)}
+                    onChange={handleChange}
                     aria-label={`Confirmer ${slot.candidate.name}`}
                 />
             </td>
@@ -150,30 +166,30 @@ const InterviewSlotRow = ({ slot, isConfirmed, onConfirm, date, emailTemplates }
             </td>
         </tr>
     );
-};
+});
 
-const LunchSlotRow = ({ slot }: { slot: LunchSlot }) => (
+const LunchSlotRow = React.memo(({ slot }: { slot: LunchSlot }) => (
     <tr>
         <td colSpan={8} className="text-center">
             <FaPause /> <b>Pause midi ({slot.timeSlot.startTime.toString()} - {slot.timeSlot.endTime.toString()})</b>
         </td>
     </tr>
-);
+));
 
-const FinalDebriefingSlotRow = ({ slot }: { slot: FinalDebriefingSlot }) => (
+const FinalDebriefingSlotRow = React.memo(({ slot }: { slot: FinalDebriefingSlot }) => (
     <tr>
         <td colSpan={8} className="text-center">
             <FaEdit /> <b>Débriefing final ({slot.timeSlot.startTime.toString()} - {slot.timeSlot.endTime.toString()})</b>
         </td>
     </tr>
-);
+));
 
-const JuryWelcomeSlotRow = ({ slot }: { slot: JuryWelcomeSlot }) => (
+const JuryWelcomeSlotRow = React.memo(({ slot }: { slot: JuryWelcomeSlot }) => (
     <tr>
         <td colSpan={8} className="text-center">
             <FaUser /> <b>Accueil du jury ({slot.timeSlot.startTime.toString()} - {slot.timeSlot.endTime.toString()})</b>
         </td>
     </tr>
-);
+));
 
 export default ScheduleTable;
