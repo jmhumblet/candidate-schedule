@@ -1,9 +1,9 @@
 export const firebaseConfig = {
-  apiKey: "AIzaSyCMlXA5bF_Vi9zID8qm0cdb1HZJfNr76es",
-  authDomain: "candidate-schedule.firebaseapp.com",
-  projectId: "candidate-schedule",
-  storageBucket: "candidate-schedule.firebasestorage.app",
-  messagingSenderId: "642894138683",
-  appId: "1:642894138683:web:7d9c008100bc1564583b1e",
-  measurementId: "G-3Q2KB5GESJ"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "PLACEHOLDER_API_KEY",
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "placeholder-app.firebaseapp.com",
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "placeholder-project",
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "placeholder-bucket.appspot.com",
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "00000000000",
+  appId: process.env.REACT_APP_FIREBASE_APP_ID || "1:00000000000:web:00000000000000",
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || "G-PLACEHOLDER"
 };
