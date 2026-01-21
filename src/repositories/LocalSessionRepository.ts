@@ -18,7 +18,7 @@ export class LocalSessionRepository implements SessionRepository {
         }
     }
 
-    static saveToStorage(session: SavedSession): void {
+    static saveToStorage(session: SavedSession): SavedSession[] {
         const sessions = LocalSessionRepository.readAll();
         const existingIndex = sessions.findIndex(s => s.id === session.id);
 
@@ -29,20 +29,22 @@ export class LocalSessionRepository implements SessionRepository {
         }
 
         localStorage.setItem(LocalSessionRepository.STORAGE_KEY, JSON.stringify(sessions));
+        return sessions;
     }
 
-    static deleteFromStorage(id: string): void {
+    static deleteFromStorage(id: string): SavedSession[] {
         const sessions = LocalSessionRepository.readAll();
         const filtered = sessions.filter(s => s.id !== id);
         localStorage.setItem(LocalSessionRepository.STORAGE_KEY, JSON.stringify(filtered));
+        return filtered;
     }
 
-    private static notify() {
-        const sessions = LocalSessionRepository.readAll().map(s => ({
+    private static notify(sessions: SavedSession[]) {
+        const sessionsWithStatus = sessions.map(s => ({
             ...s,
             syncStatus: 'local' as const
         }));
-        LocalSessionRepository.listeners.forEach(l => l(sessions));
+        LocalSessionRepository.listeners.forEach(l => l(sessionsWithStatus));
     }
 
     subscribe(onUpdate: Listener): () => void {
