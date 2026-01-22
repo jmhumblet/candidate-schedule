@@ -21,7 +21,7 @@ const timeToMinutes = (time: Time): number => time.hour * 60 + time.minute;
 
 // Helper function to get the relevant time for jury intervention based sorting
 const getJurySortTime = (slot: Slot): Time => {
-    if (slot instanceof InterviewSlot) {
+    if (slot.type === 'interview') {
         return (slot as InterviewSlot).correctionStartTime;
     }
     return slot.timeSlot.startTime;
@@ -105,21 +105,21 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date,
             </thead>
             <tbody>
             {sortedSchedule.map((slot, index) => {
-                if (slot instanceof InterviewSlot) {
+                if (slot.type === 'interview') {
                     return <InterviewSlotRow
                         key={index}
-                        slot={slot}
-                        isConfirmed={confirmedCandidates.includes(slot.candidate.name)}
+                        slot={slot as InterviewSlot}
+                        isConfirmed={confirmedCandidates.includes((slot as InterviewSlot).candidate.name)}
                         onConfirm={handleConfirm}
                         date={date}
                         emailTemplates={emailTemplates}
                     />;
-                } else if (slot instanceof LunchSlot) {
-                    return <LunchSlotRow key={index} slot={slot} />;
-                } else if (slot instanceof FinalDebriefingSlot) {
-                    return <FinalDebriefingSlotRow key={index} slot={slot} />;
-                } else if (slot instanceof JuryWelcomeSlot) {
-                    return <JuryWelcomeSlotRow key={index} slot={slot} />;
+                } else if (slot.type === 'lunch') {
+                    return <LunchSlotRow key={index} slot={slot as LunchSlot} />;
+                } else if (slot.type === 'final_debriefing') {
+                    return <FinalDebriefingSlotRow key={index} slot={slot as FinalDebriefingSlot} />;
+                } else if (slot.type === 'jury_welcome') {
+                    return <JuryWelcomeSlotRow key={index} slot={slot as JuryWelcomeSlot} />;
                 }
                 return null;
             })}

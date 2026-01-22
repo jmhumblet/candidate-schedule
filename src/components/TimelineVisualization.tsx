@@ -29,16 +29,16 @@ const PIXELS_PER_MINUTE = 2;
 const HOUR_WIDTH = 60 * PIXELS_PER_MINUTE;
 
 const getGlobalSlotName = (slot: Slot): string => {
-  if (slot instanceof LunchSlot) return "Pause déjeuner";
-  if (slot instanceof FinalDebriefingSlot) return "Débriefing final";
-  if (slot instanceof JuryWelcomeSlot) return "Accueil du jury";
+  if (slot.type === 'lunch') return "Pause déjeuner";
+  if (slot.type === 'final_debriefing') return "Débriefing final";
+  if (slot.type === 'jury_welcome') return "Accueil du jury";
   return "Événement inconnu";
 };
 
 const getGlobalSlotSegmentClass = (slot: Slot): string => {
-  if (slot instanceof LunchSlot) return "segment-darkblue"; // Match CSS class
-  if (slot instanceof FinalDebriefingSlot) return "segment-darkblue";
-  if (slot instanceof JuryWelcomeSlot) return "segment-darkblue";
+  if (slot.type === 'lunch') return "segment-darkblue"; // Match CSS class
+  if (slot.type === 'final_debriefing') return "segment-darkblue";
+  if (slot.type === 'jury_welcome') return "segment-darkblue";
   return "segment-unknown";
 };
 
@@ -82,14 +82,15 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo((
     const globalSlotInputs: (LunchSlot | FinalDebriefingSlot | JuryWelcomeSlot)[] = [];
 
     slots.forEach(slot => {
-      if (slot instanceof InterviewSlot) {
-        const candidateName = slot.candidate.name;
+      if (slot.type === 'interview') {
+        const interviewSlot = slot as InterviewSlot;
+        const candidateName = interviewSlot.candidate.name;
         if (!interviewSlotsByCandidate.has(candidateName)) {
-          interviewSlotsByCandidate.set(candidateName, { candidate: slot.candidate, interviewSlots: [] });
+          interviewSlotsByCandidate.set(candidateName, { candidate: interviewSlot.candidate, interviewSlots: [] });
         }
-        interviewSlotsByCandidate.get(candidateName)!.interviewSlots.push(slot);
-      } else if (slot instanceof LunchSlot || slot instanceof FinalDebriefingSlot || slot instanceof JuryWelcomeSlot) {
-        globalSlotInputs.push(slot);
+        interviewSlotsByCandidate.get(candidateName)!.interviewSlots.push(interviewSlot);
+      } else if (slot.type === 'lunch' || slot.type === 'final_debriefing' || slot.type === 'jury_welcome') {
+        globalSlotInputs.push(slot as LunchSlot | FinalDebriefingSlot | JuryWelcomeSlot);
       }
     });
 

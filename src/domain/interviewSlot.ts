@@ -2,11 +2,15 @@ import { Candidate, Duration, InterviewParameters } from './parameters';
 import Time from './time';
 import { TimeSlot } from './timeSlot'
 
+export type SlotType = 'interview' | 'jury_welcome' | 'lunch' | 'final_debriefing';
+
 export interface Slot {
     timeSlot : TimeSlot;
+    readonly type: SlotType;
 }
 
 export class InterviewSlot implements Slot {
+    readonly type = 'interview' as const;
     public timeSlot : TimeSlot;
     casusStartTime: Time;
     correctionStartTime: Time;
@@ -29,6 +33,7 @@ export class InterviewSlot implements Slot {
 }
 
 export class JuryWelcomeSlot implements Slot {
+    readonly type = 'jury_welcome' as const;
     private static DURATION : Duration = new Duration(0,15);
 
     static ToBeReadyAt(correctionStartTime: Time) {
@@ -42,6 +47,7 @@ export class JuryWelcomeSlot implements Slot {
 }
 
 export class LunchSlot implements Slot {
+    readonly type = 'lunch' as const;
     public timeSlot: TimeSlot;
 
     constructor(startTime : Time, duration : Duration){
@@ -50,6 +56,7 @@ export class LunchSlot implements Slot {
 }
 
 export class FinalDebriefingSlot implements Slot {
+    readonly type = 'final_debriefing' as const;
     public timeSlot : TimeSlot;
 
     constructor(startTime : Time, duration : Duration){

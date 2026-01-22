@@ -1,4 +1,4 @@
-import { Slot, InterviewSlot, JuryWelcomeSlot, LunchSlot, FinalDebriefingSlot } from "./interviewSlot";
+import { Slot, InterviewSlot } from "./interviewSlot";
 
 export type EmailTemplateType = 'candidate' | 'jury' | 'welcome';
 
@@ -121,35 +121,36 @@ export class EmailTemplateService {
         const events: ScheduleEvent[] = [];
 
         schedule.forEach(slot => {
-            if (slot instanceof InterviewSlot) {
+            if (slot.type === 'interview') {
+                const s = slot as InterviewSlot;
                 // 1. Correction
                 events.push({
-                    startTime: slot.correctionStartTime.hour * 60 + slot.correctionStartTime.minute,
-                    startTimeStr: slot.correctionStartTime.toString(),
-                    endTimeStr: slot.meetingStartTime.toString(),
-                    description: `Correction du casus (${slot.candidate.name})`
+                    startTime: s.correctionStartTime.hour * 60 + s.correctionStartTime.minute,
+                    startTimeStr: s.correctionStartTime.toString(),
+                    endTimeStr: s.meetingStartTime.toString(),
+                    description: `Correction du casus (${s.candidate.name})`
                 });
                 // 2. Interview
                 events.push({
-                    startTime: slot.meetingStartTime.hour * 60 + slot.meetingStartTime.minute,
-                    startTimeStr: slot.meetingStartTime.toString(),
-                    endTimeStr: slot.debriefingStartTime.toString(),
-                    description: `Entretien (${slot.candidate.name})`
+                    startTime: s.meetingStartTime.hour * 60 + s.meetingStartTime.minute,
+                    startTimeStr: s.meetingStartTime.toString(),
+                    endTimeStr: s.debriefingStartTime.toString(),
+                    description: `Entretien (${s.candidate.name})`
                 });
                 // 3. Debriefing
                 events.push({
-                    startTime: slot.debriefingStartTime.hour * 60 + slot.debriefingStartTime.minute,
-                    startTimeStr: slot.debriefingStartTime.toString(),
-                    endTimeStr: slot.timeSlot.endTime.toString(),
-                    description: `Débriefing (${slot.candidate.name})`
+                    startTime: s.debriefingStartTime.hour * 60 + s.debriefingStartTime.minute,
+                    startTimeStr: s.debriefingStartTime.toString(),
+                    endTimeStr: s.timeSlot.endTime.toString(),
+                    description: `Débriefing (${s.candidate.name})`
                 });
             } else {
                 let description = "";
-                if (slot instanceof LunchSlot) {
+                if (slot.type === 'lunch') {
                     description = "Pause midi";
-                } else if (slot instanceof FinalDebriefingSlot) {
+                } else if (slot.type === 'final_debriefing') {
                     description = "Débriefing final";
-                } else if (slot instanceof JuryWelcomeSlot) {
+                } else if (slot.type === 'jury_welcome') {
                     description = "Accueil du jury";
                 } else {
                     description = "Autre";
@@ -174,7 +175,7 @@ export class EmailTemplateService {
 
     private static formatArrivals(schedule: Slot[]): string {
         // Only interested in candidates
-        const candidates = schedule.filter(s => s instanceof InterviewSlot) as InterviewSlot[];
+        const candidates = schedule.filter(s => s.type === 'interview') as InterviewSlot[];
 
         // Sort by start time (arrival)
         const sorted = candidates.sort((a, b) =>
