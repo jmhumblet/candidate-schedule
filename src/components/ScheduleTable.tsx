@@ -67,20 +67,20 @@ const ScheduleTable: React.FC<ScheduleTableProps> = React.memo(({schedule, date,
         <h2 className="mb-0">Horaire du {date}</h2>
         <div className="d-flex gap-2">
             {onSendJuryEmail && (
-                <Button variant="outline-primary" onClick={onSendJuryEmail}>
+                <Button variant="outline-orange" onClick={onSendJuryEmail}>
                     <FaEnvelope className="me-2" />
                     Email Jury
                 </Button>
             )}
             {onSendWelcomeEmail && (
-                <Button variant="outline-primary" onClick={onSendWelcomeEmail}>
+                <Button variant="outline-orange" onClick={onSendWelcomeEmail}>
                     <FaEnvelope className="me-2" />
                     Email Accueil
                 </Button>
             )}
             <Clipboard
                 data-clipboard-target="#schedule-content"
-                className={`btn ${isCopied ? 'btn-success' : 'btn-outline-primary'}`}
+                className={`btn ${isCopied ? 'btn-success' : 'btn-outline-orange'}`}
                 onSuccess={handleCopySuccess}
                 title="Copier l'horaire"
             >
@@ -160,7 +160,7 @@ const InterviewSlotRow = React.memo(({ slot, isConfirmed, onConfirm, date, email
                 />
             </td>
             <td>
-                <Button variant="outline-primary" size="sm" onClick={handleEmail} title="Envoyer email au candidat">
+                <Button variant="outline-orange" size="sm" onClick={handleEmail} title="Envoyer email au candidat">
                     <FaEnvelope />
                 </Button>
             </td>

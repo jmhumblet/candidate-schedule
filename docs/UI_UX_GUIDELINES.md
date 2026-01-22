@@ -1,101 +1,84 @@
-# UI/UX Guidelines
+# UI/UX Guidelines & Design System
 
-This document serves as the source of truth for the application's UI/UX standards, theming engine, and component usage. Adherence to these guidelines ensures a consistent, sleek, and modern interface.
+This document serves as the single source of truth for the application's user interface, theming engine, and design standards. It is intended for developers and designers ensuring consistency across the application.
 
-## 1. Theming Engine & Color Palette
+## 1. Theming Engine (Light & Dark Mode)
 
-The application uses a semantic CSS variable system to handle Light and Dark modes. **Do not use hex values directly in component CSS.** Instead, use the semantic variables defined in `:root`.
+The application uses a robust theming engine built on **CSS Custom Properties (Variables)**.
+- **Do not hardcode hex values** in components.
+- Use semantic variables (e.g., `var(--bg-surface)`) instead of descriptive ones.
+- Dark mode is handled via `[data-bs-theme='dark']` on the root element.
 
-### Mechanism
-*   **Auto-detection:** The app respects the user's system preference (`prefers-color-scheme`) by default.
-*   **Persistence:** The user's choice is persisted in `localStorage` under the key `theme` (`light` | `dark`) and synced to Firestore (if logged in).
-*   **Initialization:** To prevent a Flash of Unstyled Content (FOUC), a script in `public/index.html` reads `localStorage` and sets the `data-bs-theme` attribute on `<html>` before React hydrates.
-*   **Toggling:** Managed by `src/components/ThemeToggle.tsx`.
+### Color Palette Reference
 
-### Semantic Color Reference
+| Semantic Variable | Description | Light Mode Value | Dark Mode Value |
+|-------------------|-------------|------------------|-----------------|
+| `--bg-body` | Main page background | `#f8f9fa` | `#212529` |
+| `--bg-surface` | Card/Container background | `#ffffff` | `#2b3035` |
+| `--bg-surface-secondary` | Secondary background / Headers | `#e9ecef` | `#343a40` |
+| `--text-primary` | Primary text color | `#212529` | `#f8f9fa` |
+| `--text-secondary` | Secondary text color | `#6c757d` | `#adb5bd` |
+| `--text-inverse` | Text on accent backgrounds | `#ffffff` | `#ffffff` |
+| `--border-color` | Default border color | `#dee2e6` | `#495057` |
+| `--accent-primary` | Brand/Action color (Orange) | `#fd7e14` | `#d96d12` |
 
-| Variable | Light Mode | Dark Mode | Description |
-| :--- | :--- | :--- | :--- |
-| **Backgrounds** | | | |
-| `--bg-body` | `#f8f9fa` | `#212529` | Main page background |
-| `--bg-surface` | `#ffffff` | `#2b3035` | Card, sidebar, modal backgrounds |
-| `--bg-surface-secondary` | `#e9ecef` | `#343a40` | Hover states, secondary sections |
-| **Text** | | | |
-| `--text-primary` | `#212529` | `#f8f9fa` | Primary content text |
-| `--text-secondary` | `#6c757d` | `#adb5bd` | Metadata, subtitles, helper text |
-| `--text-inverse` | `#ffffff` | `#ffffff` | Text on high-contrast backgrounds (buttons) |
-| **Borders** | | | |
-| `--border-color` | `#dee2e6` | `#495057` | Standard borders |
-| `--border-color-subtle` | `#e9ecef` | `#343a40` | Subtle dividers |
-| **Accent / Brand** | | | |
-| `--accent-primary` | `#fd7e14` | `#d96d12` | Primary action color (Orange) |
-| `--accent-primary-hover` | `#e36802` | `#bf5f0f` | Hover state for primary actions |
-| **Shadows** | | | |
-| `--shadow-card` | `0 1px 3px rgba(...)` | `none` | Card depth (relies on bg color in dark mode) |
+### Spacing System (8-point Grid)
 
-## 2. Layout & Spacing
+Use strict spacing variables to maintain rhythm.
 
-### 8-Point Grid System
-We adhere to an 8-point grid for spacing to ensure visual rhythm. Use the defined CSS variables:
+| Variable | Size | Value |
+|----------|------|-------|
+| `--space-1` | 8px | 0.5rem |
+| `--space-2` | 16px | 1rem |
+| `--space-3` | 24px | 1.5rem |
+| `--space-4` | 32px | 2rem |
+| `--space-6` | 48px | 3rem |
+| `--space-8` | 64px | 4rem |
 
-| Variable | Value | Pixels | Usage |
-| :--- | :--- | :--- | :--- |
-| `--space-0_5` | `0.25rem` | 4px | Minimal adjustments |
-| `--space-1` | `0.5rem` | 8px | Small gaps, icon spacing |
-| `--space-2` | `1rem` | 16px | Standard padding, card gaps |
-| `--space-3` | `1.5rem` | 24px | Section separation |
-| `--space-4` | `2rem` | 32px | Large section breaks |
-| `--space-6` | `3rem` | 48px | Major layout divisions |
-
-**Guidelines:**
-*   **Whitespace:** Generous whitespace is mandatory to avoid cluttered interfaces.
-*   **Alignment:** Use Flexbox for component alignment and CSS Grid for macro layouts.
-*   **Sleekness:** Prioritize clean lines and open space.
-
-## 3. Typography
-
-We use a fluid type scale utilizing `clamp()` to ensure readability across all devices.
-
-| Variable | Usage |
-| :--- | :--- |
-| `--font-xs` | Captions, small metadata |
-| `--font-sm` | Sidebar items, secondary text |
-| `--font-base` | Body text, form inputs |
-| `--font-lg` | Section headers, modal titles |
-| `--font-xl` | Page titles, major headings |
-
-## 4. Component Rules
+## 2. Component Rules
 
 ### Buttons
-*   **Primary Actions:** Use `.btn-orange` (mapped to `--accent-primary`).
-*   **Secondary Actions:** Use Outline variants.
-*   **States:** Ensure distinct styles for `:hover`, `:active`, `:focus`, and `:disabled`.
-*   **Icons:** Always pair icons with text or provide `aria-label` for icon-only buttons.
+- **Primary Actions:** Use `.btn-orange` (mapped to `--accent-primary`).
+- **Secondary Actions:** Use `.btn-outline-orange` or text links.
+- **States:** All buttons must have visible hover, active, and focus states (handled via global CSS overrides).
 
 ### Inputs
-*   **Background:** Use `--bg-body` or `--bg-surface`.
-*   **Focus:** Must have a clear focus ring (using box-shadow) for accessibility.
-*   **Labels:** Always associate labels with inputs using `htmlFor`.
+- **Focus Ring:** All inputs use a custom focus ring color (`--accent-primary` with opacity) instead of the default browser blue. This is globally enforced in `index.css`.
+- **Labels:** Always use proper `<label>` or `aria-label`.
 
-### Cards & Surfaces
-*   **Light Mode:** Use subtle shadows (`--shadow-card`) for depth.
-*   **Dark Mode:** Avoid black shadows. Use lighter background overlays (`--bg-surface` vs `--bg-body`) to define depth.
-*   **Note:** Standard shadow utility classes (`.shadow-sm`, `.shadow`, `.shadow-lg`) are globally overridden in `src/index.css` to use `--shadow-card`, ensuring they vanish in dark mode.
+### Cards
+- **Light Mode:** Use subtle shadows (`--shadow-card`) to create depth.
+- **Dark Mode:** Shadows are removed or made very subtle. Depth is communicated via lighter background colors (`--bg-surface` vs `--bg-body`).
+- **Structure:** Use `Card.Header` with `--bg-surface-secondary` for clear separation.
 
-## 5. Accessibility Checklist
+### Typography
+- **Font Family:** `Inter`, sans-serif.
+- **Scale:** Use fluid typography variables (`--font-sm`, `--font-base`, `--font-xl`) which use `clamp()` to scale across devices.
 
-*   [ ] **Semantic HTML:** Use `<main>`, `<nav>`, `<article>`, `<header>`, `<footer>` appropriately.
-*   [ ] **Contrast:** Ensure text meets WCAG AA standards (4.5:1 ratio).
-    *   *Note:* Timeline colors have been adjusted for Dark Mode to ensure compliance.
-*   [ ] **Keyboard Navigation:** All interactive elements must be focusable and usable via keyboard.
-*   [ ] **ARIA Labels:** Use `aria-label` or `aria-labelledby` when visual context is insufficient (e.g., icon-only buttons).
-*   [ ] **Focus Management:** Ensure focus order is logical and visible.
+## 3. Accessibility Checklist
 
-## 6. Directory Structure
+- [ ] **Semantic HTML:** Use `<main>`, `<nav>`, `<article>`, `<header>`, `<footer>` appropriately.
+- [ ] **Contrast:** Ensure text contrast meets WCAG AA standards (checked via variable definitions).
+- [ ] **Focus Management:** Ensure keyboard navigation is visible and logical.
+- [ ] **ARIA:** Use `aria-label` for icon-only buttons.
+- [ ] **Screen Readers:** Hide decorative icons with `aria-hidden="true"`.
 
-*   `src/index.css`: Global styles, CSS Variables (Theming), Reset.
-*   `src/components/*.css`: Component-specific styles (must use variables).
-*   `src/components/`: Reusable UI components.
-*   `src/domain/`: Business logic and types (agnostic of UI).
-*   `src/App.tsx`: Main application layout.
-*   `docs/UI_UX_GUIDELINES.md`: This file.
+## 4. Directory Structure
+
+- **`src/index.css`**: The core definition of the design system. Contains all CSS variables, resets, and global overrides.
+- **`src/components/`**: React components.
+  - Components should generally avoid using separate CSS files unless necessary for complex, isolated layout logic (e.g., `TimelineVisualization.css`).
+  - Prefer using utility classes and global semantic variables.
+- **`src/domain/`**: Business logic and types (agnostic of UI).
+- **`src/hooks/`**: Custom React hooks (e.g., `usePreferences` for theme persistence).
+
+## 5. Layout Architecture
+
+- **Macro Layout:** The main application shell (`App.tsx`) uses **CSS Grid** (`grid-template-columns: auto 1fr`).
+- **Responsive Behavior:**
+  - **Desktop:** Sidebar is persistent and resizable.
+  - **Mobile (<768px):** Grid collapses to 1 column. Sidebar becomes fixed/overlay.
+- **Component Alignment:** Use Flexbox for internal component alignment.
+
+---
+*Generated by Jules AI - Phase 2 Persistence*
