@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { OverlayTrigger, Tooltip, Button, Modal, Form, Spinner, Alert } from 'react-bootstrap';
 import { SavedSession } from '../domain/session';
 import { FaTrash, FaGithub, FaChevronRight, FaPlus, FaColumns, FaEnvelope, FaCloud, FaCloudUploadAlt, FaUserFriends, FaSignOutAlt, FaGoogle, FaShareAlt, FaWifi } from 'react-icons/fa';
@@ -140,14 +140,16 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
 
 
     // Filter sessions
-    const sortedSessions = [...sessions].sort((a, b) => {
-        return new Date(b.juryDate).getTime() - new Date(a.juryDate).getTime();
-    });
+    const sortedSessions = useMemo(() => {
+        return [...sessions].sort((a, b) => {
+            return new Date(b.juryDate).getTime() - new Date(a.juryDate).getTime();
+        });
+    }, [sessions]);
 
-    const filteredSessions = sortedSessions.filter(s =>
+    const filteredSessions = useMemo(() => sortedSessions.filter(s =>
         (s.jobTitle?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         s.juryDate.includes(searchTerm)
-    );
+    ), [sortedSessions, searchTerm]);
 
     const isPast = (dateStr: string) => {
         const today = new Date();
