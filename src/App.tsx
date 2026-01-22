@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import InterviewForm from "./components/InterviewForm";
 import SchedulingService from "./domain/schedulingService";
 import { JuryDayParameters } from "./domain/parameters";
@@ -36,26 +36,26 @@ const App: React.FC = () => {
     // Sidebar State
     const [sidebarWidth, setSidebarWidth] = useState(300);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth < 768);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => {
+            const mobile = window.innerWidth < 768;
+            setIsMobile(mobile);
+            if (mobile) {
+                setSidebarCollapsed(true);
+            }
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const handleFormSubmit = useCallback(async (parameters: JuryDayParameters) => {
         const newStructuredSchedule = SchedulingService.generateSchedule(parameters);
         setSchedule(newStructuredSchedule);
 
-        // Auto-save logic
-        // We preserve the existing session ID if editing, or create a new one
         const sessionId = currentSessionId || crypto.randomUUID();
         const createdAt = currentSessionMeta?.createdAt || new Date().toISOString();
-
-        // If we are updating an existing session, we need to preserve its metadata (like ownerId)
-        // The repository handles ownerId preservation if we don't pass it,
-        // BUT if we have the session object in memory, passing it is safer.
-        // Let's find the existing session object to merge if needed, or just build fresh data.
-        // Since SavedSession is just data, we construct it:
-
-        // However, if we are editing a shared session, we want to ensure we don't break it.
-        // The repository handles the merge. We just send the data fields we know about.
-        // We do want to ensure we don't lose the 'confirmedCandidates' if we didn't touch them?
-        // confirmedCandidates are part of the state here.
 
         const modelParams = SessionService.mapToModel(parameters);
         const sessionToSave: SavedSession = {
@@ -67,7 +67,6 @@ const App: React.FC = () => {
             confirmedCandidates: confirmedCandidates
         };
 
-        // We try to pass the existing ownerId if we know it (from currentSessionMeta) to avoid ambiguity
         if (currentSessionMeta?.ownerId) {
             (sessionToSave as any).ownerId = currentSessionMeta.ownerId;
         }
@@ -75,7 +74,6 @@ const App: React.FC = () => {
         await saveSession(sessionToSave);
         setCurrentSessionId(sessionId);
 
-        // If this was a new session, we need to latch onto the creation time we just set
         if (!currentSessionMeta) {
             setCurrentSessionMeta({ createdAt });
         }
@@ -90,7 +88,6 @@ const App: React.FC = () => {
 
     const handleLoadSession = (session: SavedSession) => {
         setCurrentSessionId(session.id);
-        // Cast to SessionWithStatus to access ownerId if available (passed from sidebar)
         setCurrentSessionMeta({
             ownerId: (session as SessionWithStatus).ownerId,
             createdAt: session.createdAt
@@ -101,7 +98,6 @@ const App: React.FC = () => {
         setInitialParameters(session.parameters);
         setConfirmedCandidates(session.confirmedCandidates);
 
-        // Regenerate schedule
         const parameters = SessionService.mapFromModel(session.parameters);
         const newStructuredSchedule = SchedulingService.generateSchedule(parameters);
         setSchedule(newStructuredSchedule);
@@ -135,9 +131,7 @@ const App: React.FC = () => {
 
         setConfirmedCandidates(newConfirmed);
 
-        // Auto-save if we are in a session
         if (currentSessionId && initialParameters) {
-            // Reconstruct session from state to ensure we can save even if sessions list is syncing
             const createdAt = currentSessionMeta?.createdAt || new Date().toISOString();
 
             const sessionToSave: SavedSession = {
@@ -149,7 +143,6 @@ const App: React.FC = () => {
                 confirmedCandidates: newConfirmed
             };
 
-            // Preserve ownerId if available
             if (currentSessionMeta?.ownerId) {
                 (sessionToSave as any).ownerId = currentSessionMeta.ownerId;
             }
@@ -161,7 +154,6 @@ const App: React.FC = () => {
     const handleSendJuryEmail = useCallback(() => {
         if (!slots.length) return;
         const formattedDate = new Date(juryDate).toLocaleDateString('fr-FR');
-        // Use templates from hook
         const link = EmailTemplateService.generateJuryLink(emailTemplates.jury, formattedDate, slots);
         window.location.href = link;
     }, [slots, juryDate, emailTemplates]);
@@ -169,13 +161,23 @@ const App: React.FC = () => {
     const handleSendWelcomeEmail = useCallback(() => {
          if (!slots.length) return;
         const formattedDate = new Date(juryDate).toLocaleDateString('fr-FR');
-        // Use templates from hook
         const link = EmailTemplateService.generateWelcomeLink(emailTemplates.welcome, formattedDate, slots);
         window.location.href = link;
     }, [slots, juryDate, emailTemplates]);
 
+    // Grid Layout Style
+    const gridStyle: React.CSSProperties = {
+        display: 'grid',
+        gridTemplateColumns: isMobile
+            ? '1fr'
+            : `${sidebarCollapsed ? '60px' : `${sidebarWidth}px`} 1fr`,
+        height: '100vh',
+        overflow: 'hidden',
+        backgroundColor: 'var(--bg-body)'
+    };
+
     return (
-        <div className="d-flex vh-100 overflow-hidden bg-body">
+        <div style={gridStyle}>
             <SessionSidebar
                 sessions={sessions}
                 onLoadSession={handleLoadSession}
@@ -190,7 +192,7 @@ const App: React.FC = () => {
                 setCollapsed={setSidebarCollapsed}
             />
 
-            <div className="flex-grow-1 d-flex flex-column overflow-hidden position-relative main-content">
+            <div className="d-flex flex-column overflow-hidden position-relative main-content">
                 <div className="overflow-auto h-100 w-100 p-3">
                     <div className="container-fluid" style={{ maxWidth: '1200px' }}>
 

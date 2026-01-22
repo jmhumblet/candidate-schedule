@@ -72,6 +72,8 @@
     text-decoration: none;
     transition: background-color 0.2s;
     user-select: none;
+    border-radius: var(--space-0_5);
+    margin: 0 var(--space-1);
 }
 
 .sidebar-item:hover {
@@ -80,8 +82,9 @@
 }
 
 .sidebar-item.active {
-    border-left: 2px solid var(--accent-primary);
     background-color: var(--bg-surface-secondary);
+    color: var(--accent-primary);
+    font-weight: 500;
 }
 
 .sidebar-search {
@@ -93,8 +96,8 @@
     background-color: var(--bg-body);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
-    border-radius: 6px;
-    padding: 6px 12px;
+    border-radius: var(--space-1);
+    padding: var(--space-1) var(--space-1_5);
     width: 100%;
     font-size: var(--font-sm);
 }
@@ -112,7 +115,8 @@
 
 .collapsed-sidebar .sidebar-item {
     justify-content: center;
-    padding: 10px;
+    padding: var(--space-1);
+    margin: 0;
 }
 
 /* Custom Scrollbar for sidebar */

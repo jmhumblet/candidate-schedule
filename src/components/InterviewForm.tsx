@@ -217,7 +217,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                 <Row>
                     {/* Card 1: Informations Session */}
                     <Col md={12} lg={4} className="mb-3">
-                        <Card className="h-100 shadow-sm border-0">
+                        <Card className="h-100 shadow-sm">
                             <Card.Header className="bg-body-secondary fw-bold">Informations Session</Card.Header>
                             <Card.Body>
                                 <Form.Group className="mb-3">
@@ -274,7 +274,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
 
                     {/* Card 2: Planification */}
                     <Col md={12} lg={4} className="mb-3">
-                        <Card className="h-100 shadow-sm border-0">
+                        <Card className="h-100 shadow-sm">
                             <Card.Header className="bg-body-secondary fw-bold">Planification</Card.Header>
                             <Card.Body>
                                 <Form.Group className="mb-3">
@@ -325,7 +325,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
 
                     {/* Card 3: Séquence d'Entretien */}
                     <Col md={12} lg={4} className="mb-3">
-                        <Card className="h-100 shadow-sm border-0">
+                        <Card className="h-100 shadow-sm">
                             <Card.Header className="bg-body-secondary fw-bold">Séquence d'Entretien</Card.Header>
                             <Card.Body>
                                 <Row>
