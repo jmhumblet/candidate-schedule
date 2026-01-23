@@ -49,7 +49,6 @@ describe('useSessions Performance Benchmark', () => {
         for (let i = 0; i < SESSION_COUNT; i++) {
             mockLocalSessions.push({
                 id: `session-${i}`,
-                ownerId: 'temp',
                 createdAt: new Date().toISOString(),
                 juryDate: new Date().toISOString(),
                 jobTitle: 'Developer',
