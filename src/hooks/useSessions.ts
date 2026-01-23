@@ -26,14 +26,15 @@ export const useSessions = () => {
             if (user && !authLoading) {
                 const localSessions = LocalSessionRepository.readAll();
                 if (localSessions.length > 0) {
-                    for (const session of localSessions) {
+                    // Optimized: Parallel sync using Promise.all
+                    await Promise.all(localSessions.map(async (session) => {
                         try {
                             await repository.save(session);
                             LocalSessionRepository.deleteFromStorage(session.id);
                         } catch (error) {
                             console.error("Error syncing session:", session.id, error);
                         }
-                    }
+                    }));
                 }
             }
         };
