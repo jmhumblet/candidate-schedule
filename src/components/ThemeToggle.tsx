@@ -16,15 +16,22 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
     variant = "outline-secondary",
     showLabel = true
 }) => {
-    const { theme: storedTheme, saveTheme } = usePreferences();
+    const { theme: storedTheme, saveTheme, loading } = usePreferences();
     const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>(() => {
         // Initial state
         if (storedTheme === 'light' || storedTheme === 'dark') return storedTheme;
+
+        // Fallback to DOM attribute (set by index.html script) to prevent FOUC during hydration
+        const domTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (domTheme === 'light' || domTheme === 'dark') return domTheme;
+
         return getSystemTheme();
     });
 
     // Update effective theme when stored preference changes
     useEffect(() => {
+        if (loading) return;
+
         if (storedTheme === 'light' || storedTheme === 'dark') {
             setEffectiveTheme(storedTheme);
         } else {
@@ -37,7 +44,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
                  setEffectiveTheme(getSystemTheme());
              }
         }
-    }, [storedTheme]);
+    }, [storedTheme, loading]);
 
     // Apply theme to document
     useEffect(() => {

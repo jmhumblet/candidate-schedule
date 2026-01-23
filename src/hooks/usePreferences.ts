@@ -29,6 +29,9 @@ export const usePreferences = () => {
         setLoading(true);
         const unsubscribe = repository.subscribe((prefs) => {
             setPreferences(prefs);
+            if (prefs.theme) {
+                localStorage.setItem('theme', prefs.theme);
+            }
             setLoading(false);
         });
 
@@ -36,6 +39,7 @@ export const usePreferences = () => {
     }, [repository]);
 
     const saveTheme = async (theme: string) => {
+        localStorage.setItem('theme', theme);
         await repository.saveTheme(theme);
     };
 
