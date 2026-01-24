@@ -176,6 +176,12 @@ h3, .h3 { font-size: var(--font-base); font-weight: 600; }
   color: var(--text-inverse) !important;
 }
 
+.btn-orange:disabled, .btn-orange.disabled {
+  background-color: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  opacity: 0.65;
+}
+
 .btn-outline-orange {
   color: var(--accent-primary) !important;
   border-color: var(--accent-primary) !important;
@@ -187,6 +193,13 @@ h3, .h3 { font-size: var(--font-base); font-weight: 600; }
     background-color: var(--accent-primary) !important;
     border-color: var(--accent-primary) !important;
     color: var(--text-inverse) !important;
+}
+
+.btn-outline-orange:disabled, .btn-outline-orange.disabled {
+    color: var(--accent-primary) !important;
+    border-color: var(--accent-primary) !important;
+    background-color: transparent !important;
+    opacity: 0.65;
 }
 
 .input-group-text-time {
