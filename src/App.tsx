@@ -36,12 +36,10 @@ const App: React.FC = () => {
     // Sidebar State
     const [sidebarWidth, setSidebarWidth] = useState(300);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth < 768);
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
     useEffect(() => {
         const handleResize = () => {
             const mobile = window.innerWidth < 768;
-            setIsMobile(mobile);
             if (mobile) {
                 setSidebarCollapsed(true);
             }
@@ -165,19 +163,13 @@ const App: React.FC = () => {
         window.location.href = link;
     }, [slots, juryDate, emailTemplates]);
 
-    // Grid Layout Style
-    const gridStyle: React.CSSProperties = {
-        display: 'grid',
-        gridTemplateColumns: isMobile
-            ? '1fr'
-            : `${sidebarCollapsed ? '60px' : `${sidebarWidth}px`} 1fr`,
-        height: '100vh',
-        overflow: 'hidden',
-        backgroundColor: 'var(--bg-body)'
-    };
+    const currentSidebarWidth = sidebarCollapsed ? '60px' : `${sidebarWidth}px`;
 
     return (
-        <div style={gridStyle}>
+        <div
+            className="app-layout"
+            style={{ '--sidebar-current-width': currentSidebarWidth } as React.CSSProperties}
+        >
             <SessionSidebar
                 sessions={sessions}
                 onLoadSession={handleLoadSession}

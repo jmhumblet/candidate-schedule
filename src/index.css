@@ -120,8 +120,8 @@
   --timeline-light: #5ba8d4;
   --timeline-light-text: #000000;
 
-  /* Shadows - None or very subtle in dark mode to avoid "dirty" look */
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.5); /* Slight shadow even in dark mode for separation if bg colors are close */
+  /* Shadows - Dark Mode: Avoid black shadows, rely on surface colors */
+  --shadow-card: none;
   --shadow-float: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
 
   /* Map to Bootstrap Variables (Dark Mode) */
@@ -247,4 +247,19 @@ h3, .h3 { font-size: var(--font-base); font-weight: 600; }
 .card-header {
     background-color: var(--bg-surface-secondary);
     border-bottom: 1px solid var(--border-color);
+}
+
+/* App Layout */
+.app-layout {
+    display: grid;
+    grid-template-columns: var(--sidebar-current-width, 300px) 1fr;
+    height: 100vh;
+    overflow: hidden;
+    background-color: var(--bg-body);
+}
+
+@media (max-width: 768px) {
+    .app-layout {
+        grid-template-columns: 1fr;
+    }
 }

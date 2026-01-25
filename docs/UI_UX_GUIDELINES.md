@@ -8,6 +8,7 @@ The application uses a robust theming engine built on **CSS Custom Properties (V
 - **Do not hardcode hex values** in components.
 - Use semantic variables (e.g., `var(--bg-surface)`) instead of descriptive ones.
 - Dark mode is handled via `[data-bs-theme='dark']` on the root element.
+- Theme preference is persisted to `localStorage` via the `usePreferences` hook.
 
 ### Color Palette Reference
 
@@ -41,6 +42,7 @@ Use strict spacing variables to maintain rhythm.
 - **Primary Actions:** Use `.btn-orange` (mapped to `--accent-primary`).
 - **Secondary Actions:** Use `.btn-outline-orange` or text links.
 - **States:** All buttons must have visible hover, active, and focus states (handled via global CSS overrides).
+- **Disabled:** Uses `--accent-primary` with opacity.
 
 ### Inputs
 - **Focus Ring:** All inputs use a custom focus ring color (`--accent-primary` with opacity) instead of the default browser blue. This is globally enforced in `index.css`.
@@ -48,7 +50,7 @@ Use strict spacing variables to maintain rhythm.
 
 ### Cards
 - **Light Mode:** Use subtle shadows (`--shadow-card`) to create depth.
-- **Dark Mode:** Shadows are removed or made very subtle. Depth is communicated via lighter background colors (`--bg-surface` vs `--bg-body`).
+- **Dark Mode:** **No shadows** (`--shadow-card: none`). Avoid black shadows on dark backgrounds. Depth is communicated via lighter background colors (`--bg-surface` vs `--bg-body` vs `--bg-surface-secondary`) and borders.
 - **Structure:** Use `Card.Header` with `--bg-surface-secondary` for clear separation.
 
 ### Typography
@@ -74,10 +76,12 @@ Use strict spacing variables to maintain rhythm.
 
 ## 5. Layout Architecture
 
-- **Macro Layout:** The main application shell (`App.tsx`) uses **CSS Grid** (`grid-template-columns: auto 1fr`).
+- **Macro Layout:** The main application shell (`App.tsx`) uses a dedicated CSS class `.app-layout`.
+  - Uses **CSS Grid** with a dynamic variable: `grid-template-columns: var(--sidebar-current-width) 1fr`.
+  - The variable `--sidebar-current-width` is passed via inline style to support resizing.
 - **Responsive Behavior:**
   - **Desktop:** Sidebar is persistent and resizable.
-  - **Mobile (<768px):** Grid collapses to 1 column. Sidebar becomes fixed/overlay.
+  - **Mobile (<768px):** Grid collapses to 1 column via media query. Sidebar becomes fixed/overlay.
 - **Component Alignment:** Use Flexbox for internal component alignment.
 
 ---
