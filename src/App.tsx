@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, useEffect } from "react";
+import React, { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import InterviewForm from "./components/InterviewForm";
 import SchedulingService from "./domain/schedulingService";
 import { JuryDayParameters } from "./domain/parameters";
@@ -23,6 +23,18 @@ const App: React.FC = () => {
     const [schedule, setSchedule] = useState<StructuredSchedule | null>(null);
     const [juryDate, setJuryDate] = useState<string>(date.toISOString().split('T')[0]);
     const [jobTitle, setJobTitle] = useState<string>('');
+
+    // Refs for stable callbacks to prevent unnecessary re-renders
+    const juryDateRef = useRef(juryDate);
+    const jobTitleRef = useRef(jobTitle);
+
+    useEffect(() => {
+        juryDateRef.current = juryDate;
+    }, [juryDate]);
+
+    useEffect(() => {
+        jobTitleRef.current = jobTitle;
+    }, [jobTitle]);
 
     // Session Management State
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
@@ -137,8 +149,8 @@ const App: React.FC = () => {
             const sessionToSave: SavedSession = {
                 id: currentSessionId,
                 createdAt: createdAt,
-                juryDate,
-                jobTitle,
+                juryDate: juryDateRef.current,
+                jobTitle: jobTitleRef.current,
                 parameters: initialParameters,
                 confirmedCandidates: newConfirmed
             };
@@ -149,21 +161,21 @@ const App: React.FC = () => {
 
             await saveSession(sessionToSave);
         }
-    }, [confirmedCandidates, currentSessionId, saveSession, initialParameters, juryDate, jobTitle, currentSessionMeta]);
+    }, [confirmedCandidates, currentSessionId, saveSession, initialParameters, currentSessionMeta]);
 
     const handleSendJuryEmail = useCallback(() => {
         if (!slots.length) return;
-        const formattedDate = new Date(juryDate).toLocaleDateString('fr-FR');
+        const formattedDate = new Date(juryDateRef.current).toLocaleDateString('fr-FR');
         const link = EmailTemplateService.generateJuryLink(emailTemplates.jury, formattedDate, slots);
         window.location.href = link;
-    }, [slots, juryDate, emailTemplates]);
+    }, [slots, emailTemplates]);
 
     const handleSendWelcomeEmail = useCallback(() => {
          if (!slots.length) return;
-        const formattedDate = new Date(juryDate).toLocaleDateString('fr-FR');
+        const formattedDate = new Date(juryDateRef.current).toLocaleDateString('fr-FR');
         const link = EmailTemplateService.generateWelcomeLink(emailTemplates.welcome, formattedDate, slots);
         window.location.href = link;
-    }, [slots, juryDate, emailTemplates]);
+    }, [slots, emailTemplates]);
 
     // Grid Layout Style
     const gridStyle: React.CSSProperties = {
