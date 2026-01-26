@@ -220,7 +220,7 @@ const App: React.FC = () => {
                                     onSendJuryEmail={handleSendJuryEmail}
                                     onSendWelcomeEmail={handleSendWelcomeEmail}
                                 />
-                                <TimelineVisualization slots={slots} />
+                                <TimelineVisualization schedule={schedule} />
                             </>
                         )}
                     </div>
