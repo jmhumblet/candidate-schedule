@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
 import { Slot, InterviewSlot, LunchSlot, FinalDebriefingSlot, JuryWelcomeSlot } from '../domain/interviewSlot';
 import { Candidate } from '../domain/parameters';
+import { StructuredSchedule } from '../domain/scheduleTypes';
 import Time from '../domain/time';
 import './TimelineVisualization.css';
 
 interface TimelineVisualizationProps {
-  slots: Slot[];
+  schedule: StructuredSchedule | null;
 }
 
 // Unified Item Types
@@ -42,23 +43,38 @@ const getGlobalSlotSegmentClass = (slot: Slot): string => {
   return "segment-unknown";
 };
 
-const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo(({ slots }) => {
+const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo(({ schedule }) => {
 
   // Calculate global start/end times, rounded to hours for the grid
   const { roundedStartTime, totalWidth, totalHours, startHour } = useMemo(() => {
-    if (!slots || slots.length === 0) {
+    if (!schedule) {
       return { roundedStartTime: null, totalWidth: 0, totalHours: 0, startHour: 0 };
     }
 
     let minMinutes = Infinity;
     let maxMinutes = -Infinity;
 
-    slots.forEach(slot => {
+    // Check general slots
+    schedule.generalSlots.forEach(slot => {
       const start = timeToMinutes(slot.timeSlot.startTime);
       const end = timeToMinutes(slot.timeSlot.endTime);
       if (start < minMinutes) minMinutes = start;
       if (end > maxMinutes) maxMinutes = end;
     });
+
+    // Check candidate slots
+    schedule.candidateSchedules.forEach(cs => {
+      cs.interviewSlots.forEach(slot => {
+        const start = timeToMinutes(slot.timeSlot.startTime);
+        const end = timeToMinutes(slot.timeSlot.endTime);
+        if (start < minMinutes) minMinutes = start;
+        if (end > maxMinutes) maxMinutes = end;
+      });
+    });
+
+    if (minMinutes === Infinity) {
+      return { roundedStartTime: null, totalWidth: 0, totalHours: 0, startHour: 0 };
+    }
 
     const startHour = Math.floor(minMinutes / 60);
     const endHour = Math.ceil(maxMinutes / 60);
@@ -73,41 +89,25 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo((
       totalHours: safeTotalHours,
       startHour
     };
-  }, [slots]);
+  }, [schedule]);
 
   const itemsToRender = useMemo(() => {
-    if (!slots || slots.length === 0) return [];
+    if (!schedule) return [];
 
-    const interviewSlotsByCandidate = new Map<string, { candidate: Candidate, interviewSlots: InterviewSlot[] }>();
-    const globalSlotInputs: (LunchSlot | FinalDebriefingSlot | JuryWelcomeSlot)[] = [];
+    const candidateRenderItems: RenderableCandidateSchedule[] = schedule.candidateSchedules
+      .map(cs => {
+        const sortedSlots = [...cs.interviewSlots].sort((a, b) => timeToMinutes(a.timeSlot.startTime) - timeToMinutes(b.timeSlot.startTime));
+        return {
+          type: 'candidate',
+          candidate: cs.candidate,
+          interviewSlots: sortedSlots,
+          sortTime: sortedSlots.length > 0 ? sortedSlots[0].correctionStartTime : new Time(23, 59)
+        };
+      });
 
-    slots.forEach(slot => {
-      if (slot instanceof InterviewSlot) {
-        const candidateName = slot.candidate.name;
-        if (!interviewSlotsByCandidate.has(candidateName)) {
-          interviewSlotsByCandidate.set(candidateName, { candidate: slot.candidate, interviewSlots: [] });
-        }
-        interviewSlotsByCandidate.get(candidateName)!.interviewSlots.push(slot);
-      } else if (slot instanceof LunchSlot || slot instanceof FinalDebriefingSlot || slot instanceof JuryWelcomeSlot) {
-        globalSlotInputs.push(slot);
-      }
-    });
-
-    interviewSlotsByCandidate.forEach(candidateData => {
-      candidateData.interviewSlots.sort((a,b) => timeToMinutes(a.timeSlot.startTime) - timeToMinutes(b.timeSlot.startTime));
-    });
-
-    const candidateRenderItems: RenderableCandidateSchedule[] = Array.from(interviewSlotsByCandidate.values())
-      .map(cs => ({
-        type: 'candidate',
-        candidate: cs.candidate,
-        interviewSlots: cs.interviewSlots, 
-        sortTime: cs.interviewSlots.length > 0 ? cs.interviewSlots[0].correctionStartTime : new Time(23,59) 
-      }));
-
-    const globalRenderItems: RenderableGlobalSlot[] = globalSlotInputs.map(slot => ({
+    const globalRenderItems: RenderableGlobalSlot[] = schedule.generalSlots.map(slot => ({
       type: 'global',
-      slot: slot,
+      slot: slot as LunchSlot | FinalDebriefingSlot | JuryWelcomeSlot,
       sortTime: slot.timeSlot.startTime
     }));
 
@@ -115,9 +115,9 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = React.memo((
     combinedItems.sort((a, b) => timeToMinutes(a.sortTime) - timeToMinutes(b.sortTime));
 
     return combinedItems;
-  }, [slots]);
+  }, [schedule]);
 
-  if (!slots || slots.length === 0 || !roundedStartTime) {
+  if (!schedule || !roundedStartTime) {
     return <p>Aucun horaire disponible.</p>;
   }
 

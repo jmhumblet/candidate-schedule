@@ -8,7 +8,7 @@ The application uses a robust theming engine built on **CSS Custom Properties (V
 - **Do not hardcode hex values** in components.
 - Use semantic variables (e.g., `var(--bg-surface)`) instead of descriptive ones.
 - Dark mode is handled via `[data-bs-theme='dark']` on the root element.
-- Theme preference is persisted to `localStorage` via the `usePreferences` hook.
+- **Persistence:** User preference is synchronized to `localStorage` to ensure the correct theme is applied immediately upon page load (preventing FOUC), even when using cloud-based storage.
 
 ### Color Palette Reference
 
