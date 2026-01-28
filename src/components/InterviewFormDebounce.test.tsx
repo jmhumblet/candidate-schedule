@@ -23,6 +23,7 @@ describe('InterviewForm Debounce', () => {
             setJuryDate={() => {}}
             jobTitle=""
             setJobTitle={() => {}}
+            isLocked={false}
         />);
 
         // Initial render calls it once

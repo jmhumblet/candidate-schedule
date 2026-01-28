@@ -8,6 +8,7 @@ export interface SavedSession {
     jobTitle: string;
     parameters: JuryDayParametersModel; // Serializable version of JuryDayParameters
     confirmedCandidates: string[]; // List of confirmed candidate names
+    isLocked?: boolean;
 }
 
 // We need a serializable version of the parameters because the domain classes (Duration, Time) have methods
