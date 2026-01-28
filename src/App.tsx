@@ -29,6 +29,9 @@ const App: React.FC = () => {
     // Store metadata like ownerId and createdAt to avoid dependency on the full sessions list
     const [currentSessionMeta, setCurrentSessionMeta] = useState<{ ownerId?: string; createdAt?: string } | null>(null);
 
+    const currentSession = useMemo(() => sessions.find(s => s.id === currentSessionId), [sessions, currentSessionId]);
+    const isLocked = currentSession?.isLocked ?? false;
+
     const [initialParameters, setInitialParameters] = useState<JuryDayParametersModel | null>(null);
     const [confirmedCandidates, setConfirmedCandidates] = useState<string[]>([]);
     const [showTemplateEditor, setShowTemplateEditor] = useState<boolean>(false);
@@ -50,7 +53,7 @@ const App: React.FC = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const handleFormSubmit = useCallback(async (parameters: JuryDayParameters) => {
+    const handleFormSubmit = useCallback(async (parameters: JuryDayParameters, lock: boolean = false) => {
         const newStructuredSchedule = SchedulingService.generateSchedule(parameters);
         setSchedule(newStructuredSchedule);
 
@@ -64,7 +67,8 @@ const App: React.FC = () => {
             juryDate: juryDate,
             jobTitle: jobTitle,
             parameters: modelParams,
-            confirmedCandidates: confirmedCandidates
+            confirmedCandidates: confirmedCandidates,
+            isLocked: lock || isLocked
         };
 
         if (currentSessionMeta?.ownerId) {
@@ -79,7 +83,7 @@ const App: React.FC = () => {
         }
 
         setInitialParameters(modelParams);
-    }, [currentSessionId, juryDate, jobTitle, confirmedCandidates, saveSession, currentSessionMeta]);
+    }, [currentSessionId, juryDate, jobTitle, confirmedCandidates, saveSession, currentSessionMeta, isLocked]);
 
     const slots = useMemo(() => {
         if (!schedule) return [];
@@ -140,7 +144,8 @@ const App: React.FC = () => {
                 juryDate,
                 jobTitle,
                 parameters: initialParameters,
-                confirmedCandidates: newConfirmed
+                confirmedCandidates: newConfirmed,
+                isLocked: isLocked
             };
 
             if (currentSessionMeta?.ownerId) {
@@ -149,7 +154,7 @@ const App: React.FC = () => {
 
             await saveSession(sessionToSave);
         }
-    }, [confirmedCandidates, currentSessionId, saveSession, initialParameters, juryDate, jobTitle, currentSessionMeta]);
+    }, [confirmedCandidates, currentSessionId, saveSession, initialParameters, juryDate, jobTitle, currentSessionMeta, isLocked]);
 
     const handleSendJuryEmail = useCallback(() => {
         if (!slots.length) return;
@@ -207,6 +212,7 @@ const App: React.FC = () => {
                             setJuryDate={setJuryDate}
                             jobTitle={jobTitle}
                             setJobTitle={setJobTitle}
+                            isLocked={isLocked}
                         />
 
                         {schedule && (

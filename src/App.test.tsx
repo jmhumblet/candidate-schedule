@@ -76,6 +76,17 @@ describe('App Integration Test', () => {
       // Verify Auto-save of confirmation (UI State)
       expect(checkbox).toBeChecked();
 
+      // 5. Lock Session
+      const lockBtn = screen.getByText(/Verrouiller/i);
+      fireEvent.click(lockBtn);
+
+      // Verify Locked State
+      expect(await screen.findByText(/Session verrouillée/i)).toBeInTheDocument();
+      // Generate button should be disabled
+      expect(screen.getByText(/Générer/i).closest('button')).toBeDisabled();
+      // Inputs should be disabled
+      expect(jobTitleInput).toBeDisabled();
+
       // 6. Simulate "New Session"
       // Sidebar is always visible.
       // Click "Nouvelle Session" button (Primary button with FaPlus)

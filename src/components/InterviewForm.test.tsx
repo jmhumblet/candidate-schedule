@@ -11,6 +11,7 @@ describe('InterviewForm', () => {
             setJuryDate: () => {},
             jobTitle: 'Test Job',
             setJobTitle: () => {},
+            isLocked: false,
         };
         render(<InterviewForm {...dummyProps} />);
         const button = screen.getByRole('button', { name: /Générer/i });
