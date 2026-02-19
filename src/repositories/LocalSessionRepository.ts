@@ -37,6 +37,12 @@ export class LocalSessionRepository implements SessionRepository {
         localStorage.setItem(LocalSessionRepository.STORAGE_KEY, JSON.stringify(filtered));
     }
 
+    static deleteManyFromStorage(ids: string[]): void {
+        const sessions = LocalSessionRepository.readAll();
+        const filtered = sessions.filter(s => !ids.includes(s.id));
+        localStorage.setItem(LocalSessionRepository.STORAGE_KEY, JSON.stringify(filtered));
+    }
+
     private static notify() {
         const sessions = LocalSessionRepository.readAll().map(s => ({
             ...s,
@@ -62,6 +68,23 @@ export class LocalSessionRepository implements SessionRepository {
 
     async save(session: SavedSession): Promise<void> {
         LocalSessionRepository.saveToStorage(session);
+        LocalSessionRepository.notify();
+    }
+
+    async saveAll(sessions: SavedSession[]): Promise<void> {
+        const existingSessions = LocalSessionRepository.readAll();
+        const updatedSessions = [...existingSessions];
+
+        sessions.forEach(session => {
+            const existingIndex = updatedSessions.findIndex(s => s.id === session.id);
+            if (existingIndex >= 0) {
+                updatedSessions[existingIndex] = session;
+            } else {
+                updatedSessions.push(session);
+            }
+        });
+
+        localStorage.setItem(LocalSessionRepository.STORAGE_KEY, JSON.stringify(updatedSessions));
         LocalSessionRepository.notify();
     }
 

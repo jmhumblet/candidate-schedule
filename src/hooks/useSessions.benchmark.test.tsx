@@ -15,6 +15,7 @@ const MockFirebaseRepository = FirebaseSessionRepository as jest.Mock;
 
 describe('useSessions Performance', () => {
     let mockSave: jest.Mock;
+    let mockSaveAll: jest.Mock;
     let callTimes: number[] = [];
 
     beforeEach(() => {
@@ -27,15 +28,21 @@ describe('useSessions Performance', () => {
             await new Promise(resolve => setTimeout(resolve, 100));
         });
 
+        mockSaveAll = jest.fn().mockImplementation(async () => {
+            callTimes.push(Date.now());
+            await new Promise(resolve => setTimeout(resolve, 100));
+        });
+
         MockFirebaseRepository.mockImplementation(() => ({
             save: mockSave,
+            saveAll: mockSaveAll,
             delete: jest.fn(),
             subscribe: jest.fn().mockReturnValue(() => {}),
             share: jest.fn(),
         }));
     });
 
-    it('should sync sessions concurrently (benchmark)', async () => {
+    it('should sync sessions using bulk write (benchmark)', async () => {
         const SESSION_COUNT = 3;
         const sessions = Array.from({ length: SESSION_COUNT }, (_, i) => ({
             id: `session${i}`,
@@ -45,7 +52,7 @@ describe('useSessions Performance', () => {
         } as any as SavedSession));
 
         jest.spyOn(LocalSessionRepository, 'readAll').mockReturnValue(sessions);
-        jest.spyOn(LocalSessionRepository, 'deleteFromStorage').mockImplementation(() => {});
+        jest.spyOn(LocalSessionRepository, 'deleteManyFromStorage').mockImplementation(() => {});
 
         mockUseAuth.mockReturnValue({
             user: { uid: 'user1', email: 'test@example.com' },
@@ -55,26 +62,11 @@ describe('useSessions Performance', () => {
         renderHook(() => useSessions());
 
         await waitFor(() => {
-            expect(mockSave).toHaveBeenCalledTimes(SESSION_COUNT);
+            expect(mockSaveAll).toHaveBeenCalledWith(sessions);
         }, { timeout: 2000 });
 
-        // Analyze timings
-        if (callTimes.length >= 2) {
-            const firstCall = callTimes[0];
-            const lastCall = callTimes[callTimes.length - 1];
-            const diff = lastCall - firstCall;
-
-            console.log(`Time between first and last call initiation: ${diff}ms`);
-
-            // If sequential: Call 1 (0ms) -> Finish (100ms) -> Call 2 (100ms)
-            // Diff should be roughly (N-1) * 100ms = 200ms for 3 items.
-
-            // If parallel: Call 1 (0ms) -> Call 2 (0msish)
-            // Diff should be roughly 0-20ms.
-
-            // We expect parallel behavior for the optimized version.
-            // So this test should FAIL currently.
-            expect(diff).toBeLessThan(50);
-        }
+        // Since we use bulk write, there should only be one call initiation.
+        expect(mockSaveAll).toHaveBeenCalledTimes(1);
+        expect(mockSave).not.toHaveBeenCalled();
     });
 });

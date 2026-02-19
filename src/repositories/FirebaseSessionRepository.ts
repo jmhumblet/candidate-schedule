@@ -8,7 +8,8 @@ import {
     deleteDoc,
     updateDoc,
     arrayUnion,
-    or
+    or,
+    writeBatch
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { SessionRepository, SessionWithStatus } from './types';
@@ -78,6 +79,38 @@ export class FirebaseSessionRepository implements SessionRepository {
         Object.keys(dataToSave).forEach(key => (dataToSave as any)[key] === undefined && delete (dataToSave as any)[key]);
 
         await setDoc(docRef, dataToSave, { merge: true });
+    }
+
+    async saveAll(sessions: SavedSession[]): Promise<void> {
+        if (!db) throw new Error("Firebase not initialized");
+        if (sessions.length === 0) return;
+
+        // Firestore writeBatch has a limit of 500 operations.
+        // For safety, we chunk the sessions if there are more than 500.
+        const BATCH_SIZE = 500;
+        for (let i = 0; i < sessions.length; i += BATCH_SIZE) {
+            const chunk = sessions.slice(i, i + BATCH_SIZE);
+            const batch = writeBatch(db);
+
+            chunk.forEach(session => {
+                const docRef = doc(db, 'sessions', session.id);
+                const ownerId = (session as any).ownerId;
+
+                const dataToSave = {
+                    ...session,
+                    ownerId: ownerId || this.userId
+                };
+
+                // Remove undefined fields
+                Object.keys(dataToSave).forEach(key =>
+                    (dataToSave as any)[key] === undefined && delete (dataToSave as any)[key]
+                );
+
+                batch.set(docRef, dataToSave, { merge: true });
+            });
+
+            await batch.commit();
+        }
     }
 
     async delete(id: string): Promise<void> {

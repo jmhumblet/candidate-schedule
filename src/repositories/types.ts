@@ -17,6 +17,7 @@ export interface SessionRepository {
     subscribe(onUpdate: (sessions: SessionWithStatus[]) => void): () => void;
 
     save(session: SavedSession): Promise<void>;
+    saveAll(sessions: SavedSession[]): Promise<void>;
     delete(id: string): Promise<void>;
     share?(sessionId: string, email: string): Promise<void>;
 }
