@@ -18,7 +18,7 @@ export class LocalSessionRepository implements SessionRepository {
         }
     }
 
-    static saveToStorage(session: SavedSession): void {
+    static saveToStorage(session: SavedSession): SavedSession[] {
         const sessions = LocalSessionRepository.readAll();
         const existingIndex = sessions.findIndex(s => s.id === session.id);
 
@@ -29,16 +29,19 @@ export class LocalSessionRepository implements SessionRepository {
         }
 
         localStorage.setItem(LocalSessionRepository.STORAGE_KEY, JSON.stringify(sessions));
+        return sessions;
     }
 
-    static deleteFromStorage(id: string): void {
+    static deleteFromStorage(id: string): SavedSession[] {
         const sessions = LocalSessionRepository.readAll();
         const filtered = sessions.filter(s => s.id !== id);
         localStorage.setItem(LocalSessionRepository.STORAGE_KEY, JSON.stringify(filtered));
+        return filtered;
     }
 
-    private static notify() {
-        const sessions = LocalSessionRepository.readAll().map(s => ({
+    private static notify(updatedSessions?: SavedSession[]) {
+        const rawSessions = updatedSessions || LocalSessionRepository.readAll();
+        const sessions = rawSessions.map(s => ({
             ...s,
             syncStatus: 'local' as const
         }));
@@ -61,12 +64,12 @@ export class LocalSessionRepository implements SessionRepository {
     }
 
     async save(session: SavedSession): Promise<void> {
-        LocalSessionRepository.saveToStorage(session);
-        LocalSessionRepository.notify();
+        const updated = LocalSessionRepository.saveToStorage(session);
+        LocalSessionRepository.notify(updated);
     }
 
     async delete(id: string): Promise<void> {
-        LocalSessionRepository.deleteFromStorage(id);
-        LocalSessionRepository.notify();
+        const updated = LocalSessionRepository.deleteFromStorage(id);
+        LocalSessionRepository.notify(updated);
     }
 }

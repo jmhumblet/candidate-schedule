@@ -45,7 +45,7 @@ describe('useSessions Performance', () => {
         } as any as SavedSession));
 
         jest.spyOn(LocalSessionRepository, 'readAll').mockReturnValue(sessions);
-        jest.spyOn(LocalSessionRepository, 'deleteFromStorage').mockImplementation(() => {});
+        jest.spyOn(LocalSessionRepository, 'deleteFromStorage').mockImplementation(() => []);
 
         mockUseAuth.mockReturnValue({
             user: { uid: 'user1', email: 'test@example.com' },

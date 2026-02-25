@@ -43,7 +43,7 @@ describe('useSessions Sync Logic', () => {
         const mockLocalSession = { id: 'session1', ownerId: 'temp', parameters: {}, confirmedCandidates: [] } as any as SavedSession;
 
         jest.spyOn(LocalSessionRepository, 'readAll').mockReturnValue([mockLocalSession]);
-        jest.spyOn(LocalSessionRepository, 'deleteFromStorage').mockImplementation(() => {});
+        jest.spyOn(LocalSessionRepository, 'deleteFromStorage').mockImplementation(() => []);
 
         const mockUser = { uid: 'user1', email: 'test@example.com' };
         mockUseAuth.mockReturnValue({
@@ -65,7 +65,7 @@ describe('useSessions Sync Logic', () => {
     it('should NOT sync if no local sessions exist', async () => {
         // Arrange
         jest.spyOn(LocalSessionRepository, 'readAll').mockReturnValue([]);
-        jest.spyOn(LocalSessionRepository, 'deleteFromStorage').mockImplementation(() => {});
+        jest.spyOn(LocalSessionRepository, 'deleteFromStorage').mockImplementation(() => []);
 
         const mockUser = { uid: 'user1', email: 'test@example.com' };
         mockUseAuth.mockReturnValue({
@@ -89,7 +89,7 @@ describe('useSessions Sync Logic', () => {
         // Arrange
         const mockLocalSession = { id: 'session1' } as any as SavedSession;
         jest.spyOn(LocalSessionRepository, 'readAll').mockReturnValue([mockLocalSession]);
-        jest.spyOn(LocalSessionRepository, 'deleteFromStorage').mockImplementation(() => {});
+        jest.spyOn(LocalSessionRepository, 'deleteFromStorage').mockImplementation(() => []);
 
         mockUseAuth.mockReturnValue({
             user: null, // Not logged in
