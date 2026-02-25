@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import {
     User,
     GoogleAuthProvider,
@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return unsubscribe;
     }, []);
 
-    const login = async () => {
+    const login = useCallback(async () => {
         if (!auth) {
             alert("Firebase is not configured. Please check your src/firebase/config.ts file.");
             return;
@@ -57,9 +57,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error("Login failed", error);
             throw error;
         }
-    };
+    }, []);
 
-    const loginWithEmail = async (email: string, password: string) => {
+    const loginWithEmail = useCallback(async (email: string, password: string) => {
         if (!auth) {
             alert("Firebase is not configured.");
             return;
@@ -70,19 +70,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error("Email login failed", error);
             throw error;
         }
-    };
+    }, []);
 
-    const logout = async () => {
+    const logout = useCallback(async () => {
         if (!auth) return;
         try {
             await signOut(auth);
         } catch (error) {
             console.error("Logout failed", error);
         }
-    };
+    }, []);
+
+    const value = useMemo(() => ({
+        user,
+        loading,
+        login,
+        loginWithEmail,
+        logout
+    }), [user, loading, login, loginWithEmail, logout]);
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, loginWithEmail, logout }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );
