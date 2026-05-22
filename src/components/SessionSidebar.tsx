@@ -289,16 +289,16 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
     const getSyncIcon = (session: SessionWithStatus) => {
         if (!isCloud) return null;
         if (session.syncStatus === 'offline') {
-            return <FaCloudUploadAlt className="text-warning ms-1" title="En attente de synchronisation" size={12} aria-hidden="true" />;
+            return <FaCloudUploadAlt className="text-warning ms-1" title="En attente de synchronisation" size={12} />;
         }
         if (session.ownerId && user && session.ownerId !== user.uid) {
-             return <FaUserFriends className="text-info ms-1" title="Partagé avec vous" size={12} aria-hidden="true" />;
+             return <FaUserFriends className="text-info ms-1" title="Partagé avec vous" size={12} />;
         }
         if (session.sharedWith && session.sharedWith.length > 0) {
-             return <FaUserFriends className="text-primary ms-1" title="Partagé par vous" size={12} aria-hidden="true" />;
+             return <FaUserFriends className="text-primary ms-1" title="Partagé par vous" size={12} />;
         }
 
-        return <FaCloud className="text-success ms-1" title="Synchronisé" size={12} aria-hidden="true" />;
+        return <FaCloud className="text-success ms-1" title="Synchronisé" size={12} />;
     };
 
     // Responsive Mobile Drawer View (< 768px)
