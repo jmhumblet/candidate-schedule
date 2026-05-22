@@ -26,7 +26,7 @@ jest.mock('./EmailTemplateEditor', () => () => <div />);
 
 describe('InterviewForm Performance', () => {
     // TODO: Fix flaky performance test related to AuthProvider context updates causing extra renders
-    test.skip('InterviewForm does not re-render when Sidebar is toggled', () => {
+    test('InterviewForm does not re-render when Sidebar is toggled', () => {
         const { container } = render(
             <AuthProvider>
                 <App />

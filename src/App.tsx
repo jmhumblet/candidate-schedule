@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo, useState, useEffect } from "react";
+import React, { useCallback, useMemo, useState, useEffect, useRef } from "react";
+import { Button } from "react-bootstrap";
 import InterviewForm from "./components/InterviewForm";
 import SchedulingService from "./domain/schedulingService";
 import { JuryDayParameters } from "./domain/parameters";
@@ -7,6 +8,7 @@ import ScheduleTable from "./components/ScheduleTable";
 import TimelineVisualization from "./components/TimelineVisualization";
 import SessionSidebar from "./components/SessionSidebar";
 import { SessionService, SavedSession, JuryDayParametersModel } from "./domain/session";
+import { FaColumns } from "react-icons/fa";
 import EmailTemplateEditor from "./components/EmailTemplateEditor";
 import { EmailTemplateService } from "./domain/EmailTemplates";
 import { useSessions } from "./hooks/useSessions";
@@ -41,49 +43,93 @@ const App: React.FC = () => {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth < 768);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+    // State Ref to hold volatile state properties and avoid recreating callbacks
+    const stateRef = useRef({
+        confirmedCandidates,
+        sessions,
+        currentSessionId,
+        currentSessionMeta,
+        saveSession,
+        initialParameters,
+        juryDate,
+        jobTitle,
+        isLocked
+    });
+
     useEffect(() => {
-        const handleResize = () => {
-            const mobile = window.innerWidth < 768;
+        stateRef.current = {
+            confirmedCandidates,
+            sessions,
+            currentSessionId,
+            currentSessionMeta,
+            saveSession,
+            initialParameters,
+            juryDate,
+            jobTitle,
+            isLocked
+        };
+    });
+
+    useEffect(() => {
+        const mql = window.matchMedia('(max-width: 767px)');
+        const handleChange = (e: MediaQueryListEvent) => {
+            const mobile = e.matches;
             setIsMobile(mobile);
             if (mobile) {
                 setSidebarCollapsed(true);
             }
         };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        mql.addEventListener('change', handleChange);
+        setIsMobile(mql.matches);
+        if (mql.matches) {
+            setSidebarCollapsed(true);
+        }
+        return () => mql.removeEventListener('change', handleChange);
     }, []);
 
     const handleFormSubmit = useCallback(async (parameters: JuryDayParameters, lock: boolean = false) => {
         const newStructuredSchedule = SchedulingService.generateSchedule(parameters);
         setSchedule(newStructuredSchedule);
 
-        const sessionId = currentSessionId || crypto.randomUUID();
-        const createdAt = currentSessionMeta?.createdAt || new Date().toISOString();
+        const {
+            currentSessionId: currentId,
+            currentSessionMeta: currentMeta,
+            juryDate: currentDate,
+            jobTitle: currentJobTitle,
+            confirmedCandidates: currentConfirmed,
+            saveSession: currentSave,
+            sessions: currentSessions,
+            isLocked: currentIsLocked
+        } = stateRef.current;
 
+        const sessionId = currentId || crypto.randomUUID();
+        const createdAt = currentMeta?.createdAt || new Date().toISOString();
         const modelParams = SessionService.mapToModel(parameters);
         const sessionToSave: SavedSession = {
             id: sessionId,
             createdAt: createdAt,
-            juryDate: juryDate,
-            jobTitle: jobTitle,
+            juryDate: currentDate,
+            jobTitle: currentJobTitle,
             parameters: modelParams,
-            confirmedCandidates: confirmedCandidates,
-            isLocked: lock || isLocked
+            confirmedCandidates: currentConfirmed,
+            isLocked: lock || currentIsLocked
         };
 
-        if (currentSessionMeta?.ownerId) {
-            (sessionToSave as any).ownerId = currentSessionMeta.ownerId;
+        const existingSession = currentSessions.find(s => s.id === sessionId);
+        const ownerId = currentMeta?.ownerId || existingSession?.ownerId;
+        if (ownerId) {
+            (sessionToSave as any).ownerId = ownerId;
         }
 
-        await saveSession(sessionToSave);
+        await currentSave(sessionToSave);
         setCurrentSessionId(sessionId);
 
-        if (!currentSessionMeta) {
-            setCurrentSessionMeta({ createdAt });
+        if (!currentMeta) {
+            setCurrentSessionMeta({ createdAt, ownerId });
         }
 
         setInitialParameters(modelParams);
-    }, [currentSessionId, juryDate, jobTitle, confirmedCandidates, saveSession, currentSessionMeta, isLocked]);
+    }, []);
 
     const slots = useMemo(() => {
         if (!schedule) return [];
@@ -129,32 +175,46 @@ const App: React.FC = () => {
     };
 
     const handleConfirmCandidate = useCallback(async (candidateName: string, isConfirmed: boolean) => {
+        const {
+            confirmedCandidates: currentConfirmed,
+            sessions: currentSessions,
+            currentSessionId: currentId,
+            currentSessionMeta: currentMeta,
+            saveSession: currentSave,
+            initialParameters: currentParams,
+            juryDate: currentDate,
+            jobTitle: currentJobTitle,
+            isLocked: currentIsLocked
+        } = stateRef.current;
+
         const newConfirmed = isConfirmed
-            ? [...confirmedCandidates, candidateName]
-            : confirmedCandidates.filter(c => c !== candidateName);
+            ? [...currentConfirmed, candidateName]
+            : currentConfirmed.filter(c => c !== candidateName);
 
         setConfirmedCandidates(newConfirmed);
 
-        if (currentSessionId && initialParameters) {
-            const createdAt = currentSessionMeta?.createdAt || new Date().toISOString();
+        if (currentId && currentParams) {
+            const existingSession = currentSessions.find(s => s.id === currentId);
+            const createdAt = currentMeta?.createdAt || existingSession?.createdAt || new Date().toISOString();
 
             const sessionToSave: SavedSession = {
-                id: currentSessionId,
+                id: currentId,
                 createdAt: createdAt,
-                juryDate,
-                jobTitle,
-                parameters: initialParameters,
+                juryDate: currentDate,
+                jobTitle: currentJobTitle,
+                parameters: currentParams,
                 confirmedCandidates: newConfirmed,
-                isLocked: isLocked
+                isLocked: currentIsLocked
             };
 
-            if (currentSessionMeta?.ownerId) {
-                (sessionToSave as any).ownerId = currentSessionMeta.ownerId;
+            const ownerId = currentMeta?.ownerId || existingSession?.ownerId;
+            if (ownerId) {
+                (sessionToSave as any).ownerId = ownerId;
             }
 
-            await saveSession(sessionToSave);
+            await currentSave(sessionToSave);
         }
-    }, [confirmedCandidates, currentSessionId, saveSession, initialParameters, juryDate, jobTitle, currentSessionMeta, isLocked]);
+    }, []);
 
     const handleSendJuryEmail = useCallback(() => {
         if (!slots.length) return;
@@ -195,13 +255,26 @@ const App: React.FC = () => {
                 setWidth={setSidebarWidth}
                 collapsed={sidebarCollapsed}
                 setCollapsed={setSidebarCollapsed}
+                isMobile={isMobile}
             />
 
-            <div className="d-flex flex-column overflow-hidden position-relative main-content">
+            <div id="main-content" className="flex-grow-1 d-flex flex-column overflow-hidden position-relative main-content">
                 <div className="overflow-auto h-100 w-100 p-3">
                     <div className="container-fluid" style={{ maxWidth: '1200px' }}>
 
                         <div className="d-flex align-items-center mb-3">
+                            {isMobile && (
+                                <Button
+                                    id="drawer-open"
+                                    variant="outline-secondary"
+                                    className="me-2 d-md-none"
+                                    aria-label="Menu"
+                                    aria-expanded="false"
+                                    aria-controls="drawer"
+                                >
+                                    <FaColumns aria-hidden="true" />
+                                </Button>
+                            )}
                             <h1 className="mb-0">Entretiens</h1>
                         </div>
 

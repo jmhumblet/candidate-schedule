@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
     PreferenceRepository,
@@ -38,20 +38,20 @@ export const usePreferences = () => {
         return unsubscribe;
     }, [repository]);
 
-    const saveTheme = async (theme: string) => {
+    const saveTheme = useCallback(async (theme: string) => {
         localStorage.setItem('theme', theme);
         await repository.saveTheme(theme);
-    };
+    }, [repository]);
 
-    const saveTemplates = async (templates: EmailTemplatesMap) => {
+    const saveTemplates = useCallback(async (templates: EmailTemplatesMap) => {
         await repository.saveTemplates(templates);
-    };
+    }, [repository]);
 
-    return {
+    return useMemo(() => ({
         theme: preferences.theme,
         emailTemplates: preferences.emailTemplates,
         loading,
         saveTheme,
         saveTemplates
-    };
+    }), [preferences.theme, preferences.emailTemplates, loading, saveTheme, saveTemplates]);
 };
