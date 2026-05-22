@@ -66,12 +66,12 @@ export const useSessions = () => {
         }
     }, [repository]);
 
-    return {
+    return useMemo(() => ({
         sessions,
         loading,
         saveSession,
         deleteSession,
         shareSession,
         isCloud: !!user
-    };
+    }), [sessions, loading, saveSession, deleteSession, shareSession, user]);
 };

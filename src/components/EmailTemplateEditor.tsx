@@ -125,7 +125,7 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({ show, onHide 
                                 </div>
                              </div>
 
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId={`subject-${type}`}>
                                 <Form.Label>Sujet</Form.Label>
                                 <Form.Control
                                     type="text"
@@ -133,7 +133,7 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({ show, onHide 
                                     onChange={(e) => handleChange('subject', e.target.value)}
                                 />
                             </Form.Group>
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId={`body-${type}`}>
                                 <Form.Label>Corps</Form.Label>
                                 <Form.Control
                                     as="textarea"

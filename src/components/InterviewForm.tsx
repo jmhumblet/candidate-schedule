@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { JuryDayParameters, Candidate, InterviewParameters, Duration } from '../domain/parameters';
-import { Button, Col, Form, Row, OverlayTrigger, Tooltip, InputGroup, Card } from 'react-bootstrap'
+import { Button, Col, Form, Row, OverlayTrigger, Tooltip, InputGroup, Card, Alert } from 'react-bootstrap'
 import { FaClock, FaHourglassHalf, FaLock } from 'react-icons/fa';
 import Time from '../domain/time';
 import SchedulingService from '../domain/schedulingService';
@@ -44,6 +44,8 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
     const [lunchDuration, setLunchDuration] = useState<number>(30);
     const [finalDebriefingDuration, setFinalDebriefingDuration] = useState<number>(15);
 
+    const [formError, setFormError] = useState<string>('');
+
     // Debounce inputs that trigger expensive recalculations
     const debouncedCandidatesInput = useDebounce(candidatesInput, 300);
     const debouncedCandidatesCount = useDebounce(candidatesCount, 300);
@@ -54,6 +56,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
     };
 
     useEffect(() => {
+        setFormError('');
         if (initialParameters) {
             setJurorsStartTime(initialParameters.jurorsStartTime);
             setWelcomeDuration(parseDurationToMinutes(initialParameters.interviewParameters.welcomeDuration));
@@ -142,6 +145,71 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
         };
     }, []);
 
+    useEffect(() => {
+        const syncAria = (el: HTMLElement) => {
+            if (el.matches) {
+                const isUserInvalid = el.matches(':user-invalid');
+                el.setAttribute('aria-invalid', isUserInvalid ? 'true' : 'false');
+            }
+        };
+
+        const handleBlur = (e: FocusEvent) => {
+            syncAria(e.target as HTMLElement);
+        };
+
+        const handleInput = (e: Event) => {
+            const el = e.target as HTMLElement;
+            if (el.hasAttribute('aria-invalid')) {
+                syncAria(el);
+            }
+        };
+
+        const form = formRef.current;
+        if (form) {
+            form.addEventListener('blur', handleBlur, true);
+            form.addEventListener('input', handleInput);
+        }
+
+        return () => {
+            if (form) {
+                form.removeEventListener('blur', handleBlur, true);
+                form.removeEventListener('input', handleInput);
+            }
+        };
+    }, []);
+
+    const validateForm = (): boolean => {
+        const form = formRef.current;
+        if (form && !form.checkValidity()) {
+            // Unsuccessful submission
+            // Mark all invalid fields with aria-invalid="true" and add standard user-invalid-fallback class
+            const invalidFields = form.querySelectorAll('input, textarea, select');
+            invalidFields.forEach((field) => {
+                const el = field as HTMLElement;
+                if (el.matches && el.matches(':invalid')) {
+                    el.setAttribute('aria-invalid', 'true');
+                    el.classList.add('user-invalid-fallback');
+                } else {
+                    el.setAttribute('aria-invalid', 'false');
+                    el.classList.remove('user-invalid-fallback');
+                }
+            });
+
+            // Focus the first invalid field programmatically
+            const firstInvalid = form.querySelector('input:invalid, textarea:invalid, select:invalid') as HTMLElement;
+            if (firstInvalid) {
+                firstInvalid.focus();
+            }
+
+            // Set global error alert strictly in French
+            setFormError('Le formulaire contient des erreurs. Veuillez corriger les champs invalides ci-dessous.');
+            return false;
+        }
+
+        setFormError('');
+        return true;
+    };
+
     const createParams = (): JuryDayParameters => {
         let candidateList: Candidate[] = [];
         if (candidatesInput.trim()) {
@@ -170,10 +238,12 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!validateForm()) return;
         onSubmit(createParams(), false);
     };
 
     const handleLock = () => {
+        if (!validateForm()) return;
         onSubmit(createParams(), true);
     };
 
@@ -219,12 +289,17 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
 
     return (
         <div className="container-fluid p-0">
-            <Form ref={formRef} className="form-horizontal" onSubmit={handleSubmit}>
+            <Form ref={formRef} className="form-horizontal" onSubmit={handleSubmit} noValidate>
+                {formError && (
+                    <Alert variant="danger" role="alert" aria-live="assertive" className="mb-3">
+                        {formError}
+                    </Alert>
+                )}
                 <fieldset disabled={isLocked}>
                     <Row>
                         {/* Card 1: Informations Session */}
                         <Col md={12} lg={4} className="mb-3">
-                            <Card className="h-100 shadow-sm">
+                            <Card className="h-100 shadow-sm border-0">
                                 <Card.Header className="bg-body-secondary fw-bold">Informations Session</Card.Header>
                                 <Card.Body>
                                     <Form.Group className="mb-3">
@@ -235,7 +310,12 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                                             value={juryDate}
                                             onChange={(e) => setJuryDate(e.target.value)}
                                             required
+                                            aria-errormessage="juryDate-error"
+                                            aria-describedby="juryDate-error"
                                         />
+                                        <div id="juryDate-error" className="error-msg" role="alert">
+                                            <span aria-hidden="true">❌</span> Veuillez saisir une date de jury valide.
+                                        </div>
                                     </Form.Group>
                                     <Form.Group className="mb-3">
                                         <Form.Label htmlFor="jobTitle" className="small fw-bold text-uppercase text-secondary">Poste</Form.Label>
@@ -260,10 +340,17 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                                                     value={candidatesCount}
                                                     onChange={(e) => setCandidatesCount(Number(e.target.value))}
                                                     disabled={hasCandidatesNames}
+                                                    min="1"
+                                                    required
+                                                    aria-errormessage="candidatesCount-error"
+                                                    aria-describedby="candidatesCount-error"
                                                 />
                                             </OverlayTrigger>
                                         </InputGroup>
-                                        <Form.Text className="text-muted mb-1 d-block small">Ou saisir la liste :</Form.Text>
+                                        <div id="candidatesCount-error" className="error-msg mb-2" role="alert">
+                                            <span aria-hidden="true">❌</span> Le nombre de candidats doit être d'au moins 1.
+                                        </div>
+                                        <Form.Label htmlFor="candidatesInput" className="text-muted mb-1 d-block small">Ou saisir la liste :</Form.Label>
                                         <Form.Control
                                             id="candidatesInput"
                                             as="textarea"
@@ -281,13 +368,13 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
 
                         {/* Card 2: Planification */}
                         <Col md={12} lg={4} className="mb-3">
-                            <Card className="h-100 shadow-sm">
+                            <Card className="h-100 shadow-sm border-0">
                                 <Card.Header className="bg-body-secondary fw-bold">Planification</Card.Header>
                                 <Card.Body>
                                     <Form.Group className="mb-3">
                                         <Form.Label htmlFor="jurorsStartTime" className="small fw-bold text-uppercase text-secondary">Début jury</Form.Label>
                                         <InputGroup>
-                                            <InputGroup.Text><FaClock /></InputGroup.Text>
+                                            <InputGroup.Text><FaClock aria-hidden="true" /></InputGroup.Text>
                                             <Form.Control
                                                 id="jurorsStartTime"
                                                 type="time"
@@ -295,13 +382,18 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                                                 value={jurorsStartTime}
                                                 onChange={(e) => setJurorsStartTime(e.target.value)}
                                                 required
+                                                aria-errormessage="jurorsStartTime-error"
+                                                aria-describedby="jurorsStartTime-error"
                                             />
                                         </InputGroup>
+                                        <div id="jurorsStartTime-error" className="error-msg" role="alert">
+                                            <span aria-hidden="true">❌</span> Veuillez saisir une heure de début valide.
+                                        </div>
                                     </Form.Group>
                                     <Form.Group className="mb-3">
                                         <Form.Label htmlFor="lunchTargetTime" className="small fw-bold text-uppercase text-secondary">Cible Déjeuner</Form.Label>
                                         <InputGroup>
-                                            <InputGroup.Text><FaClock /></InputGroup.Text>
+                                            <InputGroup.Text><FaClock aria-hidden="true" /></InputGroup.Text>
                                             <Form.Control
                                                 id="lunchTargetTime"
                                                 type="time"
@@ -309,22 +401,33 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                                                 value={lunchTargetTime}
                                                 onChange={(e) => setLunchTargetTime(e.target.value)}
                                                 required
+                                                aria-errormessage="lunchTargetTime-error"
+                                                aria-describedby="lunchTargetTime-error"
                                             />
                                         </InputGroup>
+                                        <div id="lunchTargetTime-error" className="error-msg" role="alert">
+                                            <span aria-hidden="true">❌</span> Veuillez saisir une heure de déjeuner cible valide.
+                                        </div>
                                     </Form.Group>
                                     <Form.Group className="mb-3">
                                         <Form.Label htmlFor="lunchDuration" className="small fw-bold text-uppercase text-secondary">Durée Déjeuner</Form.Label>
                                         <InputGroup>
-                                            <InputGroup.Text><FaHourglassHalf /></InputGroup.Text>
+                                            <InputGroup.Text><FaHourglassHalf aria-hidden="true" /></InputGroup.Text>
                                             <Form.Control
                                                 id="lunchDuration"
                                                 type="number"
                                                 value={lunchDuration}
                                                 onChange={(e) => setLunchDuration(Number(e.target.value))}
+                                                min="0"
                                                 required
+                                                aria-errormessage="lunchDuration-error"
+                                                aria-describedby="lunchDuration-error"
                                             />
                                             <InputGroup.Text>min</InputGroup.Text>
                                         </InputGroup>
+                                        <div id="lunchDuration-error" className="error-msg" role="alert">
+                                            <span aria-hidden="true">❌</span> La durée de déjeuner doit être supérieure ou égale à 0.
+                                        </div>
                                     </Form.Group>
                                 </Card.Body>
                             </Card>
@@ -332,7 +435,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
 
                         {/* Card 3: Séquence d'Entretien */}
                         <Col md={12} lg={4} className="mb-3">
-                            <Card className="h-100 shadow-sm">
+                            <Card className="h-100 shadow-sm border-0">
                                 <Card.Header className="bg-body-secondary fw-bold">Séquence d'Entretien</Card.Header>
                                 <Card.Body>
                                     <Row>
@@ -340,54 +443,72 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                                             <Form.Group className="mb-3">
                                                 <Form.Label htmlFor="welcomeDuration" className="small fw-bold text-uppercase text-secondary">Accueil</Form.Label>
                                                 <InputGroup size="sm">
-                                                    <Form.Control id="welcomeDuration" type="number" value={welcomeDuration} onChange={(e) => setWelcomeDuration(Number(e.target.value))} required />
+                                                    <Form.Control id="welcomeDuration" type="number" value={welcomeDuration} onChange={(e) => setWelcomeDuration(Number(e.target.value))} min="0" required aria-errormessage="welcomeDuration-error" aria-describedby="welcomeDuration-error" />
                                                     <InputGroup.Text>min</InputGroup.Text>
                                                 </InputGroup>
+                                                <div id="welcomeDuration-error" className="error-msg" role="alert">
+                                                    <span aria-hidden="true">❌</span> Doit être &gt;= 0.
+                                                </div>
                                             </Form.Group>
                                         </Col>
                                         <Col sm={6}>
                                             <Form.Group className="mb-3">
                                                 <Form.Label htmlFor="casusDuration" className="small fw-bold text-uppercase text-secondary">Casus</Form.Label>
                                                 <InputGroup size="sm">
-                                                    <Form.Control id="casusDuration" type="number" value={casusDuration} onChange={(e) => setCasusDuration(Number(e.target.value))} required />
+                                                    <Form.Control id="casusDuration" type="number" value={casusDuration} onChange={(e) => setCasusDuration(Number(e.target.value))} min="0" required aria-errormessage="casusDuration-error" aria-describedby="casusDuration-error" />
                                                     <InputGroup.Text>min</InputGroup.Text>
                                                 </InputGroup>
+                                                <div id="casusDuration-error" className="error-msg" role="alert">
+                                                    <span aria-hidden="true">❌</span> Doit être &gt;= 0.
+                                                </div>
                                             </Form.Group>
                                         </Col>
                                         <Col sm={6}>
                                             <Form.Group className="mb-3">
                                                 <Form.Label htmlFor="correctionDuration" className="small fw-bold text-uppercase text-secondary">Correction</Form.Label>
                                                 <InputGroup size="sm">
-                                                    <Form.Control id="correctionDuration" type="number" value={correctionDuration} onChange={(e) => setCorrectionDuration(Number(e.target.value))} required />
+                                                    <Form.Control id="correctionDuration" type="number" value={correctionDuration} onChange={(e) => setCorrectionDuration(Number(e.target.value))} min="0" required aria-errormessage="correctionDuration-error" aria-describedby="correctionDuration-error" />
                                                     <InputGroup.Text>min</InputGroup.Text>
                                                 </InputGroup>
+                                                <div id="correctionDuration-error" className="error-msg" role="alert">
+                                                    <span aria-hidden="true">❌</span> Doit être &gt;= 0.
+                                                </div>
                                             </Form.Group>
                                         </Col>
                                         <Col sm={6}>
                                             <Form.Group className="mb-3">
                                                 <Form.Label htmlFor="interviewDuration" className="small fw-bold text-uppercase text-secondary">Entretien</Form.Label>
                                                 <InputGroup size="sm">
-                                                    <Form.Control id="interviewDuration" type="number" value={interviewDuration} onChange={(e) => setInterviewDuration(Number(e.target.value))} required />
+                                                    <Form.Control id="interviewDuration" type="number" value={interviewDuration} onChange={(e) => setInterviewDuration(Number(e.target.value))} min="1" required aria-errormessage="interviewDuration-error" aria-describedby="interviewDuration-error" />
                                                     <InputGroup.Text>min</InputGroup.Text>
                                                 </InputGroup>
+                                                <div id="interviewDuration-error" className="error-msg" role="alert">
+                                                    <span aria-hidden="true">❌</span> Doit être &gt;= 1.
+                                                </div>
                                             </Form.Group>
                                         </Col>
                                         <Col sm={6}>
                                             <Form.Group className="mb-3">
                                                 <Form.Label htmlFor="debriefingDuration" className="small fw-bold text-uppercase text-secondary">Débriefing</Form.Label>
                                                 <InputGroup size="sm">
-                                                    <Form.Control id="debriefingDuration" type="number" value={debriefingDuration} onChange={(e) => setDebriefingDuration(Number(e.target.value))} required />
+                                                    <Form.Control id="debriefingDuration" type="number" value={debriefingDuration} onChange={(e) => setDebriefingDuration(Number(e.target.value))} min="0" required aria-errormessage="debriefingDuration-error" aria-describedby="debriefingDuration-error" />
                                                     <InputGroup.Text>min</InputGroup.Text>
                                                 </InputGroup>
+                                                <div id="debriefingDuration-error" className="error-msg" role="alert">
+                                                    <span aria-hidden="true">❌</span> Doit être &gt;= 0.
+                                                </div>
                                             </Form.Group>
                                         </Col>
                                         <Col sm={6}>
                                             <Form.Group className="mb-3">
                                                 <Form.Label htmlFor="finalDebriefingDuration" className="small fw-bold text-uppercase text-secondary">Débr. Final</Form.Label>
                                                 <InputGroup size="sm">
-                                                    <Form.Control id="finalDebriefingDuration" type="number" value={finalDebriefingDuration} onChange={(e) => setFinalDebriefingDuration(Number(e.target.value))} required />
+                                                    <Form.Control id="finalDebriefingDuration" type="number" value={finalDebriefingDuration} onChange={(e) => setFinalDebriefingDuration(Number(e.target.value))} min="0" required aria-errormessage="finalDebriefingDuration-error" aria-describedby="finalDebriefingDuration-error" />
                                                     <InputGroup.Text>min</InputGroup.Text>
                                                 </InputGroup>
+                                                <div id="finalDebriefingDuration-error" className="error-msg" role="alert">
+                                                    <span aria-hidden="true">❌</span> Doit être &gt;= 0.
+                                                </div>
                                             </Form.Group>
                                         </Col>
                                     </Row>
@@ -402,13 +523,26 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                             <strong>Durée totale de la journée estimée : {totalDuration}</strong>
                         </div>
                         <div className="d-flex gap-2">
-                            <Button
-                                variant={isLocked ? "secondary" : "outline-danger"}
-                                onClick={handleLock}
-                                disabled={isLocked}
+                            <OverlayTrigger
+                                placement="top"
+                                overlay={
+                                    <Tooltip id="tooltip-lock">
+                                        {isLocked
+                                            ? "Cette session est verrouillée et ne peut plus être modifiée."
+                                            : "Verrouiller la session pour empêcher toute modification des paramètres et des candidats."}
+                                    </Tooltip>
+                                }
                             >
-                                {isLocked ? "Session verrouillée" : <><FaLock className="me-2" />Verrouiller</>}
-                            </Button>
+                                <span className="d-inline-block">
+                                    <Button
+                                        variant={isLocked ? "secondary" : "outline-danger"}
+                                        onClick={handleLock}
+                                        disabled={isLocked}
+                                    >
+                                        {isLocked ? "Session verrouillée" : <><FaLock className="me-2" />Verrouiller</>}
+                                    </Button>
+                                </span>
+                            </OverlayTrigger>
                             {isLocked ? (
                                 <OverlayTrigger
                                     placement="top"
