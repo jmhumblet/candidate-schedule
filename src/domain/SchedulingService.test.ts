@@ -152,5 +152,62 @@ describe('SchedulingService', () => {
         expect(candidateSchedule.candidate.name).toBe(`Candidate ${index + 1}`);
       });
     });
+
+    const createAfternoonParameters = (forceLunch: boolean): JuryDayParameters => {
+      const candidates = Array.from({ length: 4 }, (_, i) =>
+        new Candidate(`Candidate ${i + 1}`, null)
+      );
+      return new JuryDayParameters(
+        candidates,
+        new Time(13, 0),
+        new InterviewParameters(
+          new Duration(0, 15),
+          new Duration(1, 0),
+          new Duration(0, 15),
+          new Duration(1, 0),
+          new Duration(0, 15)
+        ),
+        new Time(14, 0),
+        new Duration(0, 30),
+        new Duration(0, 15),
+        forceLunch
+      );
+    };
+
+    test('should NOT add lunch slot for afternoon session when forceLunch is false', () => {
+      const schedule = SchedulingService.generateSchedule(createAfternoonParameters(false));
+      const hasLunchSlot = schedule.generalSlots.some(s => s.constructor.name === 'LunchSlot');
+      expect(hasLunchSlot).toBe(false);
+    });
+
+    test('should add lunch slot for afternoon session when forceLunch is true', () => {
+      const schedule = SchedulingService.generateSchedule(createAfternoonParameters(true));
+      const hasLunchSlot = schedule.generalSlots.some(s => s.constructor.name === 'LunchSlot');
+      expect(hasLunchSlot).toBe(true);
+    });
+
+    test('should NOT add lunch slot when jurorsStartTime is exactly 12:00 and forceLunch is false', () => {
+      const candidates = Array.from({ length: 4 }, (_, i) =>
+        new Candidate(`Candidate ${i + 1}`, null)
+      );
+      const parameters = new JuryDayParameters(
+        candidates,
+        new Time(12, 0),
+        new InterviewParameters(
+          new Duration(0, 15),
+          new Duration(1, 0),
+          new Duration(0, 15),
+          new Duration(1, 0),
+          new Duration(0, 15)
+        ),
+        new Time(13, 0),
+        new Duration(0, 30),
+        new Duration(0, 15),
+        false
+      );
+      const schedule = SchedulingService.generateSchedule(parameters);
+      const hasLunchSlot = schedule.generalSlots.some(s => s.constructor.name === 'LunchSlot');
+      expect(hasLunchSlot).toBe(false);
+    });
   });
 });

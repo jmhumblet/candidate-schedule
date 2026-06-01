@@ -35,4 +35,47 @@ describe('SessionService', () => {
         // Double check using prototype to be absolutely sure what Firestore would see
         expect(Object.getPrototypeOf(model.candidates[0])).toBe(Object.prototype);
     });
+
+    it('mapToModel should preserve forceLunch', () => {
+        const params = new JuryDayParameters(
+            [],
+            new Time(14, 0),
+            new InterviewParameters(
+                new Duration(0, 15),
+                new Duration(1, 0),
+                new Duration(0, 15),
+                new Duration(1, 0),
+                new Duration(0, 15)
+            ),
+            new Time(15, 0),
+            new Duration(0, 30),
+            new Duration(0, 15),
+            true
+        );
+        const model = SessionService.mapToModel(params);
+        expect(model.forceLunch).toBe(true);
+    });
+
+    it('mapFromModel should preserve forceLunch and default to false when absent', () => {
+        const baseModel = {
+            candidates: [],
+            jurorsStartTime: '14:00',
+            interviewParameters: {
+                welcomeDuration: '00:15',
+                casusDuration: '01:00',
+                correctionDuration: '00:15',
+                interviewDuration: '01:00',
+                debriefingDuration: '00:15',
+            },
+            lunchTargetTime: '15:00',
+            lunchDuration: '00:30',
+            finalDebriefingDuration: '00:15',
+        };
+
+        const withForce = SessionService.mapFromModel({ ...baseModel, forceLunch: true });
+        expect(withForce.forceLunch).toBe(true);
+
+        const withoutForce = SessionService.mapFromModel({ ...baseModel });
+        expect(withoutForce.forceLunch).toBe(false);
+    });
 });

@@ -8,7 +8,8 @@ class JuryDayParameters {
         public interviewParameters : InterviewParameters,
         public lunchTargetTime : Time,
         public lunchDuration : Duration,
-        public finalDebriefingDuration : Duration
+        public finalDebriefingDuration : Duration,
+        public forceLunch : boolean = false
     ) {}
 }
 

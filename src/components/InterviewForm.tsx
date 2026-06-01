@@ -42,6 +42,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
     const [debriefingDuration, setDebriefingDuration] = useState<number>(15);
     const [lunchTargetTime, setLunchTargetTime] = useState<string>('12:45');
     const [lunchDuration, setLunchDuration] = useState<number>(30);
+    const [forceLunch, setForceLunch] = useState<boolean>(false);
     const [finalDebriefingDuration, setFinalDebriefingDuration] = useState<number>(15);
 
     const [formError, setFormError] = useState<string>('');
@@ -66,6 +67,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
             setDebriefingDuration(parseDurationToMinutes(initialParameters.interviewParameters.debriefingDuration));
             setLunchTargetTime(initialParameters.lunchTargetTime);
             setLunchDuration(parseDurationToMinutes(initialParameters.lunchDuration));
+            setForceLunch(initialParameters.forceLunch ?? false);
             setFinalDebriefingDuration(parseDurationToMinutes(initialParameters.finalDebriefingDuration));
 
             // Reconstruct candidates input string
@@ -88,6 +90,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
             setDebriefingDuration(15);
             setLunchTargetTime('12:45');
             setLunchDuration(30);
+            setForceLunch(false);
             setFinalDebriefingDuration(15);
             setCandidatesInput('');
             setCandidatesCount(DEFAULT_CANDIDATE_COUNT);
@@ -232,7 +235,8 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
             ),
             Time.Parse(lunchTargetTime),
             new Duration(0, lunchDuration),
-            new Duration(0, finalDebriefingDuration)
+            new Duration(0, finalDebriefingDuration),
+            forceLunch
         );
     };
 
@@ -271,7 +275,8 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
             ),
             Time.Parse(lunchTargetTime),
             new Duration(0, lunchDuration),
-            new Duration(0, finalDebriefingDuration)
+            new Duration(0, finalDebriefingDuration),
+            forceLunch
         );
 
         const schedule = SchedulingService.generateSchedule(juryDayParams);
@@ -285,7 +290,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
 
         const diff = maxMinutes - minMinutes;
         return new Duration(Math.floor(diff / 60), diff % 60).toString();
-    }, [debouncedCandidatesCount, debouncedCandidatesInput, jurorsStartTime, welcomeDuration, casusDuration, correctionDuration, interviewDuration, debriefingDuration, lunchTargetTime, lunchDuration, finalDebriefingDuration]);
+    }, [debouncedCandidatesCount, debouncedCandidatesInput, jurorsStartTime, welcomeDuration, casusDuration, correctionDuration, interviewDuration, debriefingDuration, lunchTargetTime, lunchDuration, finalDebriefingDuration, forceLunch]);
 
     return (
         <div className="container-fluid p-0">
@@ -390,45 +395,104 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                                             <span aria-hidden="true">❌</span> Veuillez saisir une heure de début valide.
                                         </div>
                                     </Form.Group>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label htmlFor="lunchTargetTime" className="small fw-bold text-uppercase text-secondary">Cible Déjeuner</Form.Label>
-                                        <InputGroup>
-                                            <InputGroup.Text><FaClock aria-hidden="true" /></InputGroup.Text>
-                                            <Form.Control
-                                                id="lunchTargetTime"
-                                                type="time"
-                                                step="300"
-                                                value={lunchTargetTime}
-                                                onChange={(e) => setLunchTargetTime(e.target.value)}
-                                                required
-                                                aria-errormessage="lunchTargetTime-error"
-                                                aria-describedby="lunchTargetTime-error"
-                                            />
-                                        </InputGroup>
-                                        <div id="lunchTargetTime-error" className="error-msg" role="alert">
-                                            <span aria-hidden="true">❌</span> Veuillez saisir une heure de déjeuner cible valide.
-                                        </div>
-                                    </Form.Group>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label htmlFor="lunchDuration" className="small fw-bold text-uppercase text-secondary">Durée Déjeuner</Form.Label>
-                                        <InputGroup>
-                                            <InputGroup.Text><FaHourglassHalf aria-hidden="true" /></InputGroup.Text>
-                                            <Form.Control
-                                                id="lunchDuration"
-                                                type="number"
-                                                value={lunchDuration}
-                                                onChange={(e) => setLunchDuration(Number(e.target.value))}
-                                                min="0"
-                                                required
-                                                aria-errormessage="lunchDuration-error"
-                                                aria-describedby="lunchDuration-error"
-                                            />
-                                            <InputGroup.Text>min</InputGroup.Text>
-                                        </InputGroup>
-                                        <div id="lunchDuration-error" className="error-msg" role="alert">
-                                            <span aria-hidden="true">❌</span> La durée de déjeuner doit être supérieure ou égale à 0.
-                                        </div>
-                                    </Form.Group>
+                                    {jurorsStartTime < '12:00' ? (
+                                        <>
+                                            <Form.Group className="mb-3">
+                                                <Form.Label htmlFor="lunchTargetTime" className="small fw-bold text-uppercase text-secondary">Cible Déjeuner</Form.Label>
+                                                <InputGroup>
+                                                    <InputGroup.Text><FaClock aria-hidden="true" /></InputGroup.Text>
+                                                    <Form.Control
+                                                        id="lunchTargetTime"
+                                                        type="time"
+                                                        step="300"
+                                                        value={lunchTargetTime}
+                                                        onChange={(e) => setLunchTargetTime(e.target.value)}
+                                                        required
+                                                        aria-errormessage="lunchTargetTime-error"
+                                                        aria-describedby="lunchTargetTime-error"
+                                                    />
+                                                </InputGroup>
+                                                <div id="lunchTargetTime-error" className="error-msg" role="alert">
+                                                    <span aria-hidden="true">❌</span> Veuillez saisir une heure de déjeuner cible valide.
+                                                </div>
+                                            </Form.Group>
+                                            <Form.Group className="mb-3">
+                                                <Form.Label htmlFor="lunchDuration" className="small fw-bold text-uppercase text-secondary">Durée Déjeuner</Form.Label>
+                                                <InputGroup>
+                                                    <InputGroup.Text><FaHourglassHalf aria-hidden="true" /></InputGroup.Text>
+                                                    <Form.Control
+                                                        id="lunchDuration"
+                                                        type="number"
+                                                        value={lunchDuration}
+                                                        onChange={(e) => setLunchDuration(Number(e.target.value))}
+                                                        min="0"
+                                                        required
+                                                        aria-errormessage="lunchDuration-error"
+                                                        aria-describedby="lunchDuration-error"
+                                                    />
+                                                    <InputGroup.Text>min</InputGroup.Text>
+                                                </InputGroup>
+                                                <div id="lunchDuration-error" className="error-msg" role="alert">
+                                                    <span aria-hidden="true">❌</span> La durée de déjeuner doit être supérieure ou égale à 0.
+                                                </div>
+                                            </Form.Group>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Form.Group className="mb-3">
+                                                <Form.Check
+                                                    type="switch"
+                                                    id="forceLunch"
+                                                    label="Ajouter une pause déjeuner"
+                                                    checked={forceLunch}
+                                                    onChange={(e) => setForceLunch(e.target.checked)}
+                                                />
+                                            </Form.Group>
+                                            {forceLunch && (
+                                                <>
+                                                    <Form.Group className="mb-3">
+                                                        <Form.Label htmlFor="lunchTargetTime" className="small fw-bold text-uppercase text-secondary">Cible Déjeuner</Form.Label>
+                                                        <InputGroup>
+                                                            <InputGroup.Text><FaClock aria-hidden="true" /></InputGroup.Text>
+                                                            <Form.Control
+                                                                id="lunchTargetTime"
+                                                                type="time"
+                                                                step="300"
+                                                                value={lunchTargetTime}
+                                                                onChange={(e) => setLunchTargetTime(e.target.value)}
+                                                                required
+                                                                aria-errormessage="lunchTargetTime-error"
+                                                                aria-describedby="lunchTargetTime-error"
+                                                            />
+                                                        </InputGroup>
+                                                        <div id="lunchTargetTime-error" className="error-msg" role="alert">
+                                                            <span aria-hidden="true">❌</span> Veuillez saisir une heure de déjeuner cible valide.
+                                                        </div>
+                                                    </Form.Group>
+                                                    <Form.Group className="mb-3">
+                                                        <Form.Label htmlFor="lunchDuration" className="small fw-bold text-uppercase text-secondary">Durée Déjeuner</Form.Label>
+                                                        <InputGroup>
+                                                            <InputGroup.Text><FaHourglassHalf aria-hidden="true" /></InputGroup.Text>
+                                                            <Form.Control
+                                                                id="lunchDuration"
+                                                                type="number"
+                                                                value={lunchDuration}
+                                                                onChange={(e) => setLunchDuration(Number(e.target.value))}
+                                                                min="0"
+                                                                required
+                                                                aria-errormessage="lunchDuration-error"
+                                                                aria-describedby="lunchDuration-error"
+                                                            />
+                                                            <InputGroup.Text>min</InputGroup.Text>
+                                                        </InputGroup>
+                                                        <div id="lunchDuration-error" className="error-msg" role="alert">
+                                                            <span aria-hidden="true">❌</span> La durée de déjeuner doit être supérieure ou égale à 0.
+                                                        </div>
+                                                    </Form.Group>
+                                                </>
+                                            )}
+                                        </>
+                                    )}
                                 </Card.Body>
                             </Card>
                         </Col>

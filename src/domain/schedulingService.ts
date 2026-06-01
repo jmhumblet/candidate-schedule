@@ -1,6 +1,7 @@
 import { FinalDebriefingSlot, InterviewSlot, JuryWelcomeSlot, LunchSlot } from "./interviewSlot";
 import { JuryDayParameters } from "./parameters";
 import { StructuredSchedule, CandidateSchedule } from "./scheduleTypes";
+import Time from "./time";
 
 export default class SchedulingService {
     public static generateSchedule(
@@ -17,7 +18,8 @@ export default class SchedulingService {
 
         let lunchHasHappened = false;
         let lastSlotEndTime = juryWelcome.timeSlot.endTime;
-                
+        const startsBeforeNoon = new Time(12, 0).isLaterThan(parameters.jurorsStartTime);
+
         for (const candidate of parameters.candidates){
             const referenceStart = lastSlotEndTime;
             const nextStartTime = referenceStart
@@ -34,6 +36,7 @@ export default class SchedulingService {
             lastSlotEndTime = appearance.timeSlot.endTime;
 
             if (!lunchHasHappened
+                && (startsBeforeNoon || parameters.forceLunch)
                 && appearance.timeSlot.endTime
                     .later(parameters.interviewParameters.juryDuration.half())
                     .isLaterThan(parameters.lunchTargetTime)
