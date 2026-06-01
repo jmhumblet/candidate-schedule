@@ -94,4 +94,37 @@ describe('InterviewForm', () => {
         expect(dateError).toHaveAttribute('role', 'alert');
         expect(dateError).toHaveTextContent(/Veuillez saisir une date de jury valide/i);
     });
+
+    test('start/end segmented toggle flips the label and reinterprets the time field', () => {
+        render(<InterviewForm {...dummyProps} />);
+
+        // The segmented control offers both modes as radio options; start is selected by default.
+        const startOption = screen.getByRole('radio', { name: /Début du jury/i });
+        const endOption = screen.getByRole('radio', { name: /Fin du jury/i });
+        expect(startOption).toBeChecked();
+        // In start mode, the time input is labelled as the start time.
+        expect(screen.getByLabelText(/Heure de début du jury/i)).toBeInTheDocument();
+
+        fireEvent.click(endOption);
+
+        // After toggling, the end option is selected and the time input switches to "end" semantics.
+        expect(endOption).toBeChecked();
+        expect(screen.getByLabelText(/Heure de fin du jury/i)).toBeInTheDocument();
+    });
+
+    test('shows an early-arrival warning when the first candidate arrives before 07h45', async () => {
+        render(<InterviewForm {...dummyProps} />);
+
+        // No warning for the default 09:00 start.
+        expect(screen.queryByLabelText(/arrivée anticipée/i)).not.toBeInTheDocument();
+
+        // Switch to "end" mode and request a very early finish so the day must start before dawn.
+        fireEvent.click(screen.getByRole('radio', { name: /Fin du jury/i }));
+        const timeInput = screen.getByLabelText(/Heure de fin du jury/i);
+        fireEvent.change(timeInput, { target: { value: '08:00' } });
+
+        // The debounced schedule recompute drives the warning icon.
+        const warning = await screen.findByLabelText(/arrivée anticipée/i);
+        expect(warning).toBeInTheDocument();
+    });
 });

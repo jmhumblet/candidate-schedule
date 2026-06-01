@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { JuryDayParameters, Candidate, InterviewParameters, Duration } from '../domain/parameters';
-import { Button, Col, Form, Row, OverlayTrigger, Tooltip, InputGroup, Card, Alert } from 'react-bootstrap'
-import { FaClock, FaHourglassHalf, FaLock } from 'react-icons/fa';
+import { Button, Col, Form, Row, OverlayTrigger, Tooltip, InputGroup, Card, Alert, ToggleButton, ToggleButtonGroup } from 'react-bootstrap'
+import { FaClock, FaHourglassHalf, FaLock, FaExclamationTriangle } from 'react-icons/fa';
 import Time from '../domain/time';
 import SchedulingService from '../domain/schedulingService';
 import useDebounce from '../hooks/useDebounce';
@@ -35,6 +35,8 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
     const [candidatesCount, setCandidatesCount] = useState<number>(DEFAULT_CANDIDATE_COUNT);
     const [candidatesInput, setCandidatesInput] = useState<string>('');
     const [jurorsStartTime, setJurorsStartTime] = useState<string>('09:00');
+    const [scheduleMode, setScheduleMode] = useState<'start' | 'end'>('start');
+    const [endTime, setEndTime] = useState<string>('17:00');
     const [welcomeDuration, setWelcomeDuration] = useState<number>(15);
     const [casusDuration, setCasusDuration] = useState<number>(60);
     const [correctionDuration, setCorrectionDuration] = useState<number>(15);
@@ -60,6 +62,8 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
         setFormError('');
         if (initialParameters) {
             setJurorsStartTime(initialParameters.jurorsStartTime);
+            setScheduleMode(initialParameters.scheduleMode ?? 'start');
+            setEndTime(initialParameters.endTime ?? '17:00');
             setWelcomeDuration(parseDurationToMinutes(initialParameters.interviewParameters.welcomeDuration));
             setCasusDuration(parseDurationToMinutes(initialParameters.interviewParameters.casusDuration));
             setCorrectionDuration(parseDurationToMinutes(initialParameters.interviewParameters.correctionDuration));
@@ -83,6 +87,8 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
         } else {
             // Reset to defaults if initialParameters is explicitly null (New Session)
             setJurorsStartTime('09:00');
+            setScheduleMode('start');
+            setEndTime('17:00');
             setWelcomeDuration(15);
             setCasusDuration(60);
             setCorrectionDuration(15);
@@ -236,7 +242,9 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
             Time.Parse(lunchTargetTime),
             new Duration(0, lunchDuration),
             new Duration(0, finalDebriefingDuration),
-            forceLunch
+            forceLunch,
+            scheduleMode,
+            Time.Parse(endTime)
         );
     };
 
@@ -251,7 +259,9 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
         onSubmit(createParams(), true);
     };
 
-    const totalDuration = React.useMemo(() => {
+    const EARLY_ARRIVAL_LIMIT = 7 * 60 + 45; // 07h45 in minutes
+
+    const scheduleInfo = React.useMemo(() => {
         let candidateList: Candidate[] = [];
         if (debouncedCandidatesInput.trim()) {
             candidateList = debouncedCandidatesInput.split('\n').map((line) => parseCandidate(line));
@@ -261,7 +271,8 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
             });
         }
 
-        if (candidateList.length === 0) return '0h00';
+        const empty = { totalDuration: '0h00', effectiveStartTime: jurorsStartTime, computedEndTime: endTime, hasEarlyArrival: false };
+        if (candidateList.length === 0) return empty;
 
         const juryDayParams = new JuryDayParameters(
             candidateList,
@@ -276,21 +287,48 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
             Time.Parse(lunchTargetTime),
             new Duration(0, lunchDuration),
             new Duration(0, finalDebriefingDuration),
-            forceLunch
+            forceLunch,
+            scheduleMode,
+            Time.Parse(endTime)
         );
 
         const schedule = SchedulingService.generateSchedule(juryDayParams);
         const allSlots = [...schedule.generalSlots, ...schedule.candidateSchedules.flatMap(cs => cs.interviewSlots)];
 
-        if (allSlots.length === 0) return '0h00';
+        if (allSlots.length === 0) return empty;
 
         const timeToMinutes = (t: Time) => t.hour * 60 + t.minute;
         const minMinutes = Math.min(...allSlots.map(s => timeToMinutes(s.timeSlot.startTime)));
         const maxMinutes = Math.max(...allSlots.map(s => timeToMinutes(s.timeSlot.endTime)));
 
         const diff = maxMinutes - minMinutes;
-        return new Duration(Math.floor(diff / 60), diff % 60).toString();
-    }, [debouncedCandidatesCount, debouncedCandidatesInput, jurorsStartTime, welcomeDuration, casusDuration, correctionDuration, interviewDuration, debriefingDuration, lunchTargetTime, lunchDuration, finalDebriefingDuration, forceLunch]);
+        // The jury welcome is always the first general slot; its start is the effective jury start.
+        const effectiveStartTime = schedule.generalSlots[0].timeSlot.startTime.toInputString();
+        // The final debriefing is always the last general slot; its end is the real end of the jury's work.
+        const computedEndTime = schedule.generalSlots[schedule.generalSlots.length - 1].timeSlot.endTime.toInputString();
+
+        return {
+            totalDuration: new Duration(Math.floor(diff / 60), diff % 60).toString(),
+            effectiveStartTime,
+            computedEndTime,
+            hasEarlyArrival: minMinutes < EARLY_ARRIVAL_LIMIT,
+        };
+    }, [debouncedCandidatesCount, debouncedCandidatesInput, jurorsStartTime, scheduleMode, endTime, welcomeDuration, casusDuration, correctionDuration, interviewDuration, debriefingDuration, lunchTargetTime, lunchDuration, finalDebriefingDuration, forceLunch]);
+
+    const totalDuration = scheduleInfo.totalDuration;
+
+    const handleScheduleModeChange = (mode: 'start' | 'end') => {
+        if (mode === scheduleMode) return;
+        if (mode === 'end') {
+            // Switching to "end" mode: seed the end field with the currently computed end time
+            // so the displayed time stays continuous.
+            setEndTime(scheduleInfo.computedEndTime);
+        } else {
+            // Switching back to "start" mode: seed the start field with the computed start.
+            setJurorsStartTime(scheduleInfo.effectiveStartTime);
+        }
+        setScheduleMode(mode);
+    };
 
     return (
         <div className="container-fluid p-0">
@@ -377,25 +415,65 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                                 <Card.Header className="bg-body-secondary fw-bold">Planification</Card.Header>
                                 <Card.Body>
                                     <Form.Group className="mb-3">
-                                        <Form.Label htmlFor="jurorsStartTime" className="small fw-bold text-uppercase text-secondary">Début jury</Form.Label>
+                                        <ToggleButtonGroup
+                                            type="radio"
+                                            name="scheduleMode"
+                                            value={scheduleMode}
+                                            onChange={handleScheduleModeChange}
+                                            className="w-100 mb-2 schedule-mode-toggle"
+                                        >
+                                            <ToggleButton
+                                                id="scheduleMode-start"
+                                                value="start"
+                                                variant="outline-orange"
+                                                className="fw-bold text-uppercase"
+                                            >
+                                                Début du jury
+                                            </ToggleButton>
+                                            <ToggleButton
+                                                id="scheduleMode-end"
+                                                value="end"
+                                                variant="outline-orange"
+                                                className="fw-bold text-uppercase"
+                                            >
+                                                Fin du jury
+                                            </ToggleButton>
+                                        </ToggleButtonGroup>
                                         <InputGroup>
-                                            <InputGroup.Text><FaClock aria-hidden="true" /></InputGroup.Text>
+                                            {/* The leading icon box switches to a warning when the first candidate
+                                                would arrive unusually early — keeping the box (and thus the input
+                                                width) identical so there is no layout shift. */}
+                                            <InputGroup.Text>
+                                                {scheduleInfo.hasEarlyArrival ? (
+                                                    <OverlayTrigger
+                                                        placement="top"
+                                                        overlay={<Tooltip id="early-arrival-tooltip">Le premier candidat doit arriver plus tôt que d'habitude (avant 07h45).</Tooltip>}
+                                                    >
+                                                        <span className="text-warning" role="img" aria-label="Avertissement : arrivée anticipée du premier candidat">
+                                                            <FaExclamationTriangle aria-hidden="true" />
+                                                        </span>
+                                                    </OverlayTrigger>
+                                                ) : (
+                                                    <FaClock aria-hidden="true" />
+                                                )}
+                                            </InputGroup.Text>
                                             <Form.Control
                                                 id="jurorsStartTime"
                                                 type="time"
                                                 step="300"
-                                                value={jurorsStartTime}
-                                                onChange={(e) => setJurorsStartTime(e.target.value)}
+                                                value={scheduleMode === 'start' ? jurorsStartTime : endTime}
+                                                onChange={(e) => scheduleMode === 'start' ? setJurorsStartTime(e.target.value) : setEndTime(e.target.value)}
                                                 required
+                                                aria-label={scheduleMode === 'start' ? 'Heure de début du jury' : 'Heure de fin du jury'}
                                                 aria-errormessage="jurorsStartTime-error"
                                                 aria-describedby="jurorsStartTime-error"
                                             />
                                         </InputGroup>
                                         <div id="jurorsStartTime-error" className="error-msg" role="alert">
-                                            <span aria-hidden="true">❌</span> Veuillez saisir une heure de début valide.
+                                            <span aria-hidden="true">❌</span> Veuillez saisir une heure valide.
                                         </div>
                                     </Form.Group>
-                                    {jurorsStartTime < '12:00' ? (
+                                    {scheduleInfo.effectiveStartTime < '12:00' ? (
                                         <>
                                             <Form.Group className="mb-3">
                                                 <Form.Label htmlFor="lunchTargetTime" className="small fw-bold text-uppercase text-secondary">Cible Déjeuner</Form.Label>

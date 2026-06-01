@@ -27,6 +27,8 @@ export interface JuryDayParametersModel {
     lunchDuration: string;
     finalDebriefingDuration: string;
     forceLunch?: boolean;
+    scheduleMode?: 'start' | 'end';
+    endTime?: string;
 }
 
 export class SessionService {
@@ -45,6 +47,8 @@ export class SessionService {
             lunchDuration: params.lunchDuration.toInputString(),
             finalDebriefingDuration: params.finalDebriefingDuration.toInputString(),
             forceLunch: params.forceLunch,
+            scheduleMode: params.scheduleMode,
+            endTime: params.endTime?.toInputString(),
         };
     }
 
@@ -66,7 +70,9 @@ export class SessionService {
             Time.Parse(model.lunchTargetTime),
             Duration.Parse(model.lunchDuration),
             Duration.Parse(model.finalDebriefingDuration),
-            model.forceLunch ?? false
+            model.forceLunch ?? false,
+            model.scheduleMode ?? 'start',
+            model.endTime ? Time.Parse(model.endTime) : undefined
         );
     }
 }

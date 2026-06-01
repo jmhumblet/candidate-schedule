@@ -193,6 +193,46 @@ h3, .h3 { font-size: var(--font-base); font-weight: 600; }
     color: var(--text-inverse) !important;
 }
 
+/* Segmented start/end toggle (react-bootstrap ToggleButtonGroup, type="radio").
+   react-bootstrap drives the selected state via `.btn-check:checked + .btn`, not `.active`,
+   so the highlight is wired up explicitly here. The two options share one rounded container
+   with no inner divider; the selected option gets a rounded, accent-filled pill. */
+.schedule-mode-toggle {
+  border: 1px solid var(--border-color);
+  border-radius: var(--space-1);
+  padding: 3px;
+  gap: 3px;
+  background-color: transparent;
+}
+
+.schedule-mode-toggle .btn {
+  flex: 1 1 0;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: calc(var(--space-1) - 2px) !important;
+  background-color: transparent !important;
+  color: var(--accent-primary) !important;
+  box-shadow: none !important;
+  transition: all 0.15s ease-in-out;
+}
+
+.schedule-mode-toggle .btn:hover {
+  background-color: var(--accent-primary-subtle) !important;
+}
+
+.schedule-mode-toggle .btn-check:checked + .btn {
+  background-color: var(--accent-primary) !important;
+  color: var(--text-inverse) !important;
+}
+
+.schedule-mode-toggle .btn-check:checked + .btn:hover {
+  background-color: var(--accent-primary-hover) !important;
+}
+
+.schedule-mode-toggle .btn-check:focus-visible + .btn {
+  box-shadow: 0 0 0 0.2rem rgba(var(--accent-primary-rgb), 0.35) !important;
+}
+
 .input-group-text-time {
   background-color: var(--status-info-bg) !important;
   color: var(--status-info-text) !important;

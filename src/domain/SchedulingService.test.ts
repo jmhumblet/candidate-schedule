@@ -210,4 +210,113 @@ describe('SchedulingService', () => {
       expect(hasLunchSlot).toBe(false);
     });
   });
+
+  describe('retro-planning (end mode)', () => {
+    const lastSlotEnd = (schedule: ReturnType<typeof SchedulingService.generateSchedule>) =>
+      schedule.generalSlots[schedule.generalSlots.length - 1].timeSlot.endTime;
+
+    const createEndModeParameters = (candidatesCount: number, endTime: Time): JuryDayParameters => {
+      const candidates = Array.from({ length: candidatesCount }, (_, index) =>
+        new Candidate(`Candidate ${index + 1}`, null)
+      );
+      return new JuryDayParameters(
+        candidates,
+        new Time(9, 0), // jurorsStartTime (ignored in end mode)
+        new InterviewParameters(
+          new Duration(0, 15),
+          new Duration(1, 0),
+          new Duration(0, 15),
+          new Duration(1, 0),
+          new Duration(0, 15)
+        ),
+        new Time(12, 45),
+        new Duration(0, 30),
+        new Duration(0, 15),
+        false,
+        'end',
+        endTime
+      );
+    };
+
+    test('final debriefing ends exactly at the requested end time', () => {
+      const schedule = SchedulingService.generateSchedule(createEndModeParameters(3, new Time(17, 30)));
+      const end = lastSlotEnd(schedule);
+      expect(end.hour).toBe(17);
+      expect(end.minute).toBe(30);
+    });
+
+    test('produces the same length day as the equivalent start-mode schedule', () => {
+      const endSchedule = SchedulingService.generateSchedule(createEndModeParameters(3, new Time(17, 30)));
+      const computedStart = endSchedule.generalSlots[0].timeSlot.startTime;
+
+      // Feed the computed start back through start-mode and confirm the same end time.
+      const startSchedule = SchedulingService.generateSchedule(new JuryDayParameters(
+        Array.from({ length: 3 }, (_, i) => new Candidate(`Candidate ${i + 1}`, null)),
+        computedStart,
+        new InterviewParameters(
+          new Duration(0, 15),
+          new Duration(1, 0),
+          new Duration(0, 15),
+          new Duration(1, 0),
+          new Duration(0, 15)
+        ),
+        new Time(12, 45),
+        new Duration(0, 30),
+        new Duration(0, 15),
+        false
+      ));
+
+      expect(lastSlotEnd(startSchedule).hour).toBe(17);
+      expect(lastSlotEnd(startSchedule).minute).toBe(30);
+    });
+
+    test('still inserts lunch when the computed start lands before noon', () => {
+      // A long day forced to finish at 18:00 will start in the morning, so lunch applies.
+      const schedule = SchedulingService.generateSchedule(createEndModeParameters(5, new Time(18, 0)));
+      const computedStart = schedule.generalSlots[0].timeSlot.startTime;
+      expect(new Time(12, 0).isLaterThan(computedStart)).toBe(true);
+
+      const hasLunchSlot = schedule.generalSlots.some(s => s.constructor.name === 'LunchSlot');
+      expect(hasLunchSlot).toBe(true);
+      // Lunch lengthens the day, so the end must still land exactly on the target.
+      expect(lastSlotEnd(schedule).hour).toBe(18);
+      expect(lastSlotEnd(schedule).minute).toBe(0);
+    });
+
+    test('forceLunch in end mode pushes the start earlier while keeping the end fixed', () => {
+      // Afternoon-only day: without forceLunch no lunch, with forceLunch a lunch is inserted.
+      const makeParams = (forceLunch: boolean) => new JuryDayParameters(
+        Array.from({ length: 3 }, (_, i) => new Candidate(`Candidate ${i + 1}`, null)),
+        new Time(9, 0),
+        new InterviewParameters(
+          new Duration(0, 15),
+          new Duration(0, 30),
+          new Duration(0, 15),
+          new Duration(0, 30),
+          new Duration(0, 15)
+        ),
+        new Time(15, 0),
+        new Duration(0, 30),
+        new Duration(0, 15),
+        forceLunch,
+        'end',
+        new Time(17, 0)
+      );
+
+      const without = SchedulingService.generateSchedule(makeParams(false));
+      const withLunch = SchedulingService.generateSchedule(makeParams(true));
+
+      const startMinutes = (s: ReturnType<typeof SchedulingService.generateSchedule>) => {
+        const t = s.generalSlots[0].timeSlot.startTime;
+        return t.hour * 60 + t.minute;
+      };
+
+      // With lunch the day is longer, so it must start earlier to still end at 17:00.
+      expect(startMinutes(withLunch)).toBeLessThan(startMinutes(without));
+      expect(lastSlotEnd(withLunch).hour).toBe(17);
+      expect(lastSlotEnd(withLunch).minute).toBe(0);
+      expect(lastSlotEnd(without).hour).toBe(17);
+      expect(lastSlotEnd(without).minute).toBe(0);
+    });
+  });
 });

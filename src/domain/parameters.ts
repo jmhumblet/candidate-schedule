@@ -9,7 +9,9 @@ class JuryDayParameters {
         public lunchTargetTime : Time,
         public lunchDuration : Duration,
         public finalDebriefingDuration : Duration,
-        public forceLunch : boolean = false
+        public forceLunch : boolean = false,
+        public scheduleMode : 'start' | 'end' = 'start',
+        public endTime? : Time
     ) {}
 }
 

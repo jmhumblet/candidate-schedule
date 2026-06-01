@@ -78,4 +78,54 @@ describe('SessionService', () => {
         const withoutForce = SessionService.mapFromModel({ ...baseModel });
         expect(withoutForce.forceLunch).toBe(false);
     });
+
+    it('should round-trip scheduleMode and endTime', () => {
+        const params = new JuryDayParameters(
+            [],
+            new Time(9, 0),
+            new InterviewParameters(
+                new Duration(0, 15),
+                new Duration(1, 0),
+                new Duration(0, 15),
+                new Duration(1, 0),
+                new Duration(0, 15)
+            ),
+            new Time(12, 45),
+            new Duration(0, 30),
+            new Duration(0, 15),
+            false,
+            'end',
+            new Time(17, 30)
+        );
+
+        const model = SessionService.mapToModel(params);
+        expect(model.scheduleMode).toBe('end');
+        expect(model.endTime).toBe('17:30');
+
+        const restored = SessionService.mapFromModel(model);
+        expect(restored.scheduleMode).toBe('end');
+        expect(restored.endTime?.hour).toBe(17);
+        expect(restored.endTime?.minute).toBe(30);
+    });
+
+    it('mapFromModel should default scheduleMode to "start" and endTime to undefined when absent', () => {
+        const baseModel = {
+            candidates: [],
+            jurorsStartTime: '09:00',
+            interviewParameters: {
+                welcomeDuration: '00:15',
+                casusDuration: '01:00',
+                correctionDuration: '00:15',
+                interviewDuration: '01:00',
+                debriefingDuration: '00:15',
+            },
+            lunchTargetTime: '12:45',
+            lunchDuration: '00:30',
+            finalDebriefingDuration: '00:15',
+        };
+
+        const restored = SessionService.mapFromModel(baseModel);
+        expect(restored.scheduleMode).toBe('start');
+        expect(restored.endTime).toBeUndefined();
+    });
 });
