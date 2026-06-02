@@ -5,7 +5,8 @@
       "Bash(npx react-scripts *)",
       "Bash(npx playwright *)",
       "Bash(npm start *)",
-      "Bash(echo *)"
+      "Bash(echo *)",
+      "Bash(gh run *)"
     ]
   }
 }

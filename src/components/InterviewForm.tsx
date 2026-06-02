@@ -18,6 +18,8 @@ type InterviewFormProps = {
     isLocked: boolean;
 };
 
+const EARLY_ARRIVAL_LIMIT = 7 * 60 + 45; // 07h45 in minutes
+
 const InterviewForm: React.FC<InterviewFormProps> = ({
     onSubmit,
     initialParameters,
@@ -258,8 +260,6 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
         if (!validateForm()) return;
         onSubmit(createParams(), true);
     };
-
-    const EARLY_ARRIVAL_LIMIT = 7 * 60 + 45; // 07h45 in minutes
 
     const scheduleInfo = React.useMemo(() => {
         let candidateList: Candidate[] = [];
