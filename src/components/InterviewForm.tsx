@@ -514,6 +514,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                                                         value={lunchDuration}
                                                         onChange={(e) => setLunchDuration(Number(e.target.value))}
                                                         min="0"
+                                                        step="5"
                                                         required
                                                         aria-errormessage="lunchDuration-error"
                                                         aria-describedby="lunchDuration-error"
@@ -567,6 +568,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                                                                 value={lunchDuration}
                                                                 onChange={(e) => setLunchDuration(Number(e.target.value))}
                                                                 min="0"
+                                                                step="5"
                                                                 required
                                                                 aria-errormessage="lunchDuration-error"
                                                                 aria-describedby="lunchDuration-error"
@@ -595,7 +597,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                                             <Form.Group className="mb-3">
                                                 <Form.Label htmlFor="welcomeDuration" className="small fw-bold text-uppercase text-secondary">Accueil</Form.Label>
                                                 <InputGroup size="sm">
-                                                    <Form.Control id="welcomeDuration" type="number" value={welcomeDuration} onChange={(e) => setWelcomeDuration(Number(e.target.value))} min="0" required aria-errormessage="welcomeDuration-error" aria-describedby="welcomeDuration-error" />
+                                                    <Form.Control id="welcomeDuration" type="number" value={welcomeDuration} onChange={(e) => setWelcomeDuration(Number(e.target.value))} min="0" step="5" required aria-errormessage="welcomeDuration-error" aria-describedby="welcomeDuration-error" />
                                                     <InputGroup.Text>min</InputGroup.Text>
                                                 </InputGroup>
                                                 <div id="welcomeDuration-error" className="error-msg" role="alert">
@@ -607,7 +609,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                                             <Form.Group className="mb-3">
                                                 <Form.Label htmlFor="casusDuration" className="small fw-bold text-uppercase text-secondary">Casus</Form.Label>
                                                 <InputGroup size="sm">
-                                                    <Form.Control id="casusDuration" type="number" value={casusDuration} onChange={(e) => setCasusDuration(Number(e.target.value))} min="0" required aria-errormessage="casusDuration-error" aria-describedby="casusDuration-error" />
+                                                    <Form.Control id="casusDuration" type="number" value={casusDuration} onChange={(e) => setCasusDuration(Number(e.target.value))} min="0" step="5" required aria-errormessage="casusDuration-error" aria-describedby="casusDuration-error" />
                                                     <InputGroup.Text>min</InputGroup.Text>
                                                 </InputGroup>
                                                 <div id="casusDuration-error" className="error-msg" role="alert">
@@ -619,7 +621,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                                             <Form.Group className="mb-3">
                                                 <Form.Label htmlFor="correctionDuration" className="small fw-bold text-uppercase text-secondary">Correction</Form.Label>
                                                 <InputGroup size="sm">
-                                                    <Form.Control id="correctionDuration" type="number" value={correctionDuration} onChange={(e) => setCorrectionDuration(Number(e.target.value))} min="0" required aria-errormessage="correctionDuration-error" aria-describedby="correctionDuration-error" />
+                                                    <Form.Control id="correctionDuration" type="number" value={correctionDuration} onChange={(e) => setCorrectionDuration(Number(e.target.value))} min="0" step="5" required aria-errormessage="correctionDuration-error" aria-describedby="correctionDuration-error" />
                                                     <InputGroup.Text>min</InputGroup.Text>
                                                 </InputGroup>
                                                 <div id="correctionDuration-error" className="error-msg" role="alert">
@@ -631,7 +633,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                                             <Form.Group className="mb-3">
                                                 <Form.Label htmlFor="interviewDuration" className="small fw-bold text-uppercase text-secondary">Entretien</Form.Label>
                                                 <InputGroup size="sm">
-                                                    <Form.Control id="interviewDuration" type="number" value={interviewDuration} onChange={(e) => setInterviewDuration(Number(e.target.value))} min="1" required aria-errormessage="interviewDuration-error" aria-describedby="interviewDuration-error" />
+                                                    <Form.Control id="interviewDuration" type="number" value={interviewDuration} onChange={(e) => setInterviewDuration(Number(e.target.value))} min="1" step="5" required aria-errormessage="interviewDuration-error" aria-describedby="interviewDuration-error" />
                                                     <InputGroup.Text>min</InputGroup.Text>
                                                 </InputGroup>
                                                 <div id="interviewDuration-error" className="error-msg" role="alert">
@@ -643,7 +645,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                                             <Form.Group className="mb-3">
                                                 <Form.Label htmlFor="debriefingDuration" className="small fw-bold text-uppercase text-secondary">Débriefing</Form.Label>
                                                 <InputGroup size="sm">
-                                                    <Form.Control id="debriefingDuration" type="number" value={debriefingDuration} onChange={(e) => setDebriefingDuration(Number(e.target.value))} min="0" required aria-errormessage="debriefingDuration-error" aria-describedby="debriefingDuration-error" />
+                                                    <Form.Control id="debriefingDuration" type="number" value={debriefingDuration} onChange={(e) => setDebriefingDuration(Number(e.target.value))} min="0" step="5" required aria-errormessage="debriefingDuration-error" aria-describedby="debriefingDuration-error" />
                                                     <InputGroup.Text>min</InputGroup.Text>
                                                 </InputGroup>
                                                 <div id="debriefingDuration-error" className="error-msg" role="alert">
@@ -655,7 +657,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                                             <Form.Group className="mb-3">
                                                 <Form.Label htmlFor="finalDebriefingDuration" className="small fw-bold text-uppercase text-secondary">Débr. Final</Form.Label>
                                                 <InputGroup size="sm">
-                                                    <Form.Control id="finalDebriefingDuration" type="number" value={finalDebriefingDuration} onChange={(e) => setFinalDebriefingDuration(Number(e.target.value))} min="0" required aria-errormessage="finalDebriefingDuration-error" aria-describedby="finalDebriefingDuration-error" />
+                                                    <Form.Control id="finalDebriefingDuration" type="number" value={finalDebriefingDuration} onChange={(e) => setFinalDebriefingDuration(Number(e.target.value))} min="0" step="5" required aria-errormessage="finalDebriefingDuration-error" aria-describedby="finalDebriefingDuration-error" />
                                                     <InputGroup.Text>min</InputGroup.Text>
                                                 </InputGroup>
                                                 <div id="finalDebriefingDuration-error" className="error-msg" role="alert">
