@@ -214,6 +214,11 @@ h3, .h3 { font-size: var(--font-base); font-weight: 600; }
   color: var(--accent-primary) !important;
   box-shadow: none !important;
   transition: all 0.15s ease-in-out;
+  /* Keep each label on a single line even in a narrow card. */
+  white-space: nowrap;
+  font-size: 0.8rem;
+  padding-left: 0.3rem;
+  padding-right: 0.3rem;
 }
 
 .schedule-mode-toggle .btn:hover {

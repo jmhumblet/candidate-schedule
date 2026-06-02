@@ -6,7 +6,9 @@
       "Bash(npx playwright *)",
       "Bash(npm start *)",
       "Bash(echo *)",
-      "Bash(gh run *)"
+      "Bash(gh run *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
