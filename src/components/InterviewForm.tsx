@@ -633,7 +633,7 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                                             <Form.Group className="mb-3">
                                                 <Form.Label htmlFor="interviewDuration" className="small fw-bold text-uppercase text-secondary">Entretien</Form.Label>
                                                 <InputGroup size="sm">
-                                                    <Form.Control id="interviewDuration" type="number" value={interviewDuration} onChange={(e) => setInterviewDuration(Number(e.target.value))} min="1" step="5" required aria-errormessage="interviewDuration-error" aria-describedby="interviewDuration-error" />
+                                                    <Form.Control id="interviewDuration" type="number" value={interviewDuration} onChange={(e) => setInterviewDuration(Number(e.target.value))} min="0" step="5" required aria-errormessage="interviewDuration-error" aria-describedby="interviewDuration-error" />
                                                     <InputGroup.Text>min</InputGroup.Text>
                                                 </InputGroup>
                                                 <div id="interviewDuration-error" className="error-msg" role="alert">
