@@ -444,18 +444,28 @@ const InterviewForm: React.FC<InterviewFormProps> = ({
                                                 would arrive unusually early — keeping the box (and thus the input
                                                 width) identical so there is no layout shift. */}
                                             <InputGroup.Text>
-                                                {scheduleInfo.hasEarlyArrival ? (
-                                                    <OverlayTrigger
-                                                        placement="top"
-                                                        overlay={<Tooltip id="early-arrival-tooltip">Le premier candidat doit arriver plus tôt que d'habitude (avant 07h45).</Tooltip>}
-                                                    >
-                                                        <span className="text-warning" role="img" aria-label="Avertissement : arrivée anticipée du premier candidat">
-                                                            <FaExclamationTriangle aria-hidden="true" />
-                                                        </span>
-                                                    </OverlayTrigger>
-                                                ) : (
-                                                    <FaClock aria-hidden="true" />
-                                                )}
+                                                {/* Fixed-size, centred box so the clock/warning swap — and the
+                                                    tooltip on hover — never change the icon's footprint. The tooltip
+                                                    is portalled to <body> so it is not clipped/repositioned by the
+                                                    input group (which caused a hover flicker). */}
+                                                <span
+                                                    className="d-inline-flex align-items-center justify-content-center"
+                                                    style={{ width: '1.25em', height: '1.25em' }}
+                                                >
+                                                    {scheduleInfo.hasEarlyArrival ? (
+                                                        <OverlayTrigger
+                                                            placement="top"
+                                                            container={document.body}
+                                                            overlay={<Tooltip id="early-arrival-tooltip">Le premier candidat doit arriver plus tôt que d'habitude (avant 07h45).</Tooltip>}
+                                                        >
+                                                            <span className="text-warning d-inline-flex" role="img" aria-label="Avertissement : arrivée anticipée du premier candidat">
+                                                                <FaExclamationTriangle aria-hidden="true" />
+                                                            </span>
+                                                        </OverlayTrigger>
+                                                    ) : (
+                                                        <FaClock aria-hidden="true" />
+                                                    )}
+                                                </span>
                                             </InputGroup.Text>
                                             <Form.Control
                                                 id="jurorsStartTime"
